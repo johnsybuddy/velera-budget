@@ -974,7 +974,7 @@ function updateDashboard() {
             
             monthDifference = 0;
             
-            // Apply logic for each bill
+            // Apply logic for each bill - ONLY count actual net impact
             Object.keys(billBudgets).forEach(billName => {
                 const budget = billBudgets[billName];
                 const actual = billTotals[billName] || 0;
@@ -982,17 +982,21 @@ function updateDashboard() {
                 
                 if (billName === 'Extra Paid Erik' || billName === 'Erik Paid Sara') {
                     billContribution = actual; // Extra Paid categories are always positive
-                } else if (actual === 0) {
-                    // If no money spent, no contribution to surplus (no theoretical credit)
-                    billContribution = 0;
-                } else {
-                    // If actual > 0, use over/under (actual savings or overspending)
-                    let overUnder = actual - budget;
+                } else if (actual > 0) {
+                    // Only count actual spending impact - no theoretical savings
                     if (positiveCreditBills.includes(billName)) {
-                        overUnder = budget - actual; // Flip for positive credit bills
+                        // For variable expenses, only count actual savings when under budget
+                        if (actual < budget) {
+                            billContribution = budget - actual; // Real savings
+                        } else {
+                            billContribution = budget - actual; // Overspending (negative)
+                        }
+                    } else {
+                        // For fixed expenses, any spending is just spending (no surplus credit)
+                        billContribution = 0;
                     }
-                    billContribution = overUnder;
                 }
+                // If actual === 0, contribute nothing (no theoretical credit)
                 
                 monthDifference += billContribution;
             });
