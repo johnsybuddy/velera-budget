@@ -183,34 +183,53 @@ function parseCSV(csv) {
         return;
     }
     
-    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+    // Parse headers more carefully - handle quoted headers
+    const headerLine = lines[0];
+    const headers = headerLine.split(',').map(h => h.trim().replace(/^["']|["']$/g, ''));
+    console.log('Raw header line:', headerLine);
+    console.log('Parsed headers:', headers);
+    
     csvData = [];
     
     // Detect bank type and column mapping
     const bankConfig = detectBankType(headers);
     if (!bankConfig) {
-        showNotification('Could not identify bank format. Supported: Chase, Wells Fargo, Bank of America, Capital One', 'error');
+        showNotification('Could not identify bank format. Please check that your CSV has Date, Description, and Amount columns. Supported: Chase, Wells Fargo, Bank of America, Capital One, or Generic CSV', 'error');
+        console.log('Available headers:', headers);
         return;
     }
     
     showNotification(`Detected ${bankConfig.name} format`);
+    console.log('Bank config:', bankConfig);
     
     // Parse data rows
     for (let i = 1; i < Math.min(lines.length, 101); i++) { // Preview first 100 rows
-        const cols = lines[i].split(',').map(c => c.trim().replace(/"/g, ''));
+        const line = lines[i].trim();
+        if (!line) continue;
+        
+        // Handle quoted CSV values better
+        const cols = line.split(',').map(c => c.trim().replace(/^["']|["']$/g, ''));
+        console.log(`Row ${i}:`, cols);
+        
         if (cols.length >= 3) {
             const transaction = parseTransaction(cols, bankConfig);
             if (transaction && !isDuplicate(transaction)) {
+                console.log('Parsed transaction:', transaction);
                 csvData.push(transaction);
+            } else if (transaction) {
+                console.log('Duplicate transaction skipped:', transaction);
             }
         }
     }
     
+    console.log('Total parsed transactions:', csvData.length);
     displayCSVPreview();
 }
 
 function detectBankType(headers) {
     const headerStr = headers.join('|').toLowerCase();
+    console.log('CSV Headers detected:', headers);
+    console.log('Header string:', headerStr);
     
     // Chase Bank
     if (headerStr.includes('transaction date') && headerStr.includes('description') && headerStr.includes('amount')) {
@@ -254,10 +273,12 @@ function detectBankType(headers) {
         };
     }
     
-    // Generic fallback
+    // Enhanced Generic fallback with better pattern matching
     const dateCol = headers.findIndex(h => /date/i.test(h));
-    const descCol = headers.findIndex(h => /desc|name|merchant|store|payee/i.test(h));
-    const amountCol = headers.findIndex(h => /amount|total|sum/i.test(h));
+    const descCol = headers.findIndex(h => /desc|description|name|merchant|store|payee|vendor/i.test(h));
+    const amountCol = headers.findIndex(h => /amount|total|sum|debit|credit/i.test(h));
+    
+    console.log('Generic detection - Date col:', dateCol, 'Desc col:', descCol, 'Amount col:', amountCol);
     
     if (dateCol !== -1 && descCol !== -1 && amountCol !== -1) {
         return {
@@ -360,96 +381,134 @@ function cleanDescription(desc) {
 
 function autoCategorizeBill(description) {
     const desc = description.toLowerCase();
+    console.log('Categorizing:', desc);
     
     // Check for internal transfers first
     if (desc.includes('transfer') || desc.includes('internal') || desc.includes('deposit') ||
-        desc.includes('withdrawal') || desc.includes('payment to') || desc.includes('payment from')) {
+        desc.includes('withdrawal') || desc.includes('payment to') || desc.includes('payment from') ||
+        desc.includes('ach credit') || desc.includes('ach debit') || desc.includes('direct deposit')) {
         return 'Ignore/Internal Transfer';
     }
     
     // Mortgage and Housing
-    if (desc.includes('mortgage') || desc.includes('loan') || desc.includes('escrow')) {
+    if (desc.includes('mortgage') || desc.includes('loan') || desc.includes('escrow') ||
+        desc.includes('home loan') || desc.includes('property tax')) {
         return 'Mortgage + Escrow (Ins-Taxes)';
     }
     
     // Car Payment
-    if (desc.includes('auto loan') || desc.includes('car payment') || desc.includes('vehicle')) {
+    if (desc.includes('auto loan') || desc.includes('car payment') || desc.includes('vehicle') ||
+        desc.includes('car loan') || desc.includes('auto finance')) {
         return 'Car Payment';
     }
     
     // Insurance
     if (desc.includes('insurance') && !desc.includes('health')) {
-        if (desc.includes('auto') || desc.includes('car')) {
+        if (desc.includes('auto') || desc.includes('car') || desc.includes('vehicle')) {
             return 'Auto Insurance';
+        }
+        if (desc.includes('aaa') || desc.includes('roadside')) {
+            return 'AAA Roadside Assistance';
         }
         return 'Jewelers Insurance';
     }
     
     // Utilities
-    if (desc.includes('xcel') || desc.includes('excel energy')) {
+    if (desc.includes('xcel') || desc.includes('excel energy') || desc.includes('electric') ||
+        desc.includes('power company') || desc.includes('utility')) {
         return 'Xcel Energy';
     }
-    if (desc.includes('spectrum') || desc.includes('charter')) {
+    if (desc.includes('spectrum') || desc.includes('charter') || desc.includes('internet') ||
+        desc.includes('cable') || desc.includes('phone service')) {
         return 'Spectrum Phone';
     }
-    if (desc.includes('water') || desc.includes('utilities')) {
+    if (desc.includes('water') || desc.includes('sewer') || desc.includes('water dept')) {
         return 'Water';
     }
-    if (desc.includes('garbage') || desc.includes('waste') || desc.includes('earthbound')) {
+    if (desc.includes('garbage') || desc.includes('waste') || desc.includes('earthbound') ||
+        desc.includes('trash') || desc.includes('recycling')) {
         return 'Earthbound Garbage';
     }
     
-    // Gas Stations
+    // Gas Stations - Enhanced list
     if (desc.includes('shell') || desc.includes('exxon') || desc.includes('bp ') || 
         desc.includes('chevron') || desc.includes('mobil') || desc.includes('conoco') ||
         desc.includes('phillips 66') || desc.includes('speedway') || desc.includes('casey') ||
-        desc.includes('kwik trip') || desc.includes('holiday')) {
+        desc.includes('kwik trip') || desc.includes('holiday') || desc.includes('sinclair') ||
+        desc.includes('valero') || desc.includes('marathon') || desc.includes('citgo') ||
+        desc.includes('gas station') || desc.includes('fuel') || desc.includes('petro')) {
         return 'Gas';
     }
     
-    // Groceries
+    // Groceries - Enhanced list
     if (desc.includes('walmart') || desc.includes('target') || desc.includes('hy-vee') ||
         desc.includes('kroger') || desc.includes('safeway') || desc.includes('costco') ||
         desc.includes('sams club') || desc.includes('aldi') || desc.includes('whole foods') ||
-        desc.includes('trader joe') || desc.includes('grocery')) {
+        desc.includes('trader joe') || desc.includes('grocery') || desc.includes('supermarket') ||
+        desc.includes('food store') || desc.includes('market') || desc.includes('king soopers') ||
+        desc.includes('city market') || desc.includes('sprouts')) {
         return 'Groceries';
     }
     
-    // Restaurants
+    // Restaurants - Enhanced list
     if (desc.includes('restaurant') || desc.includes('mcdonald') || desc.includes('burger') ||
         desc.includes('pizza') || desc.includes('taco') || desc.includes('subway') ||
         desc.includes('starbucks') || desc.includes('coffee') || desc.includes('cafe') ||
-        desc.includes('dine') || desc.includes('grill') || desc.includes('bar ')) {
+        desc.includes('dine') || desc.includes('grill') || desc.includes('bar ') ||
+        desc.includes('kfc') || desc.includes('wendy') || desc.includes('chipotle') ||
+        desc.includes('panera') || desc.includes('domino') || desc.includes('papa') ||
+        desc.includes('dunkin') || desc.includes('sonic') || desc.includes('arbys') ||
+        desc.includes('dairy queen') || desc.includes('chick-fil-a') || desc.includes('applebee') ||
+        desc.includes('olive garden') || desc.includes('red lobster') || desc.includes('outback')) {
         return 'Restaurants/Entertainment';
     }
     
     // Daycare
-    if (desc.includes('daycare') || desc.includes('childcare') || desc.includes('preschool')) {
+    if (desc.includes('daycare') || desc.includes('childcare') || desc.includes('preschool') ||
+        desc.includes('child care') || desc.includes('nursery') || desc.includes('learning center')) {
         return 'Daycare';
     }
     
     // YMCA
-    if (desc.includes('ymca') || desc.includes('gym') || desc.includes('fitness')) {
+    if (desc.includes('ymca') || desc.includes('gym') || desc.includes('fitness') ||
+        desc.includes('recreation center') || desc.includes('health club')) {
         return 'YMCA Membership';
     }
     
     // Subscriptions
     if (desc.includes('roku') || desc.includes('disney') || desc.includes('netflix') ||
-        desc.includes('hulu') || desc.includes('amazon prime') || desc.includes('spotify')) {
+        desc.includes('hulu') || desc.includes('amazon prime') || desc.includes('spotify') ||
+        desc.includes('streaming') || desc.includes('subscription')) {
         return 'Roku / Disney Subscriptions';
     }
     
     // Pharmacy/Medical
     if (desc.includes('pharmacy') || desc.includes('cvs') || desc.includes('walgreens') ||
-        desc.includes('medical') || desc.includes('doctor') || desc.includes('clinic')) {
+        desc.includes('medical') || desc.includes('doctor') || desc.includes('clinic') ||
+        desc.includes('hospital') || desc.includes('health') || desc.includes('prescription') ||
+        desc.includes('medicine') || desc.includes('drug store')) {
         return "Dylan's Medication";
     }
     
+    // School related
+    if (desc.includes('school') || desc.includes('lunch') || desc.includes('cafeteria') ||
+        desc.includes('student') || desc.includes('education')) {
+        return "Dylan's School Lunches";
+    }
+    
     // Pet supplies
-    if (desc.includes('pet') || desc.includes('cat') || desc.includes('dog') || desc.includes('animal')) {
+    if (desc.includes('pet') || desc.includes('cat') || desc.includes('dog') || desc.includes('animal') ||
+        desc.includes('veterinary') || desc.includes('vet') || desc.includes('petco') || desc.includes('petsmart')) {
         return 'Cat Food';
     }
     
+    // Charity
+    if (desc.includes('charity') || desc.includes('donation') || desc.includes('church') ||
+        desc.includes('tithe') || desc.includes('offering') || desc.includes('nonprofit')) {
+        return 'Charity';
+    }
+    
+    console.log('No category match found, defaulting to Miscellaneous');
     // Default to Miscellaneous
     return 'Miscellaneous';
 }
