@@ -26,12 +26,13 @@ function showTab(tabName) {
 
 // Firebase Configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyBvOkBwRlERnSqNDt-OcNcG6llP0ExBUb0",
-    authDomain: "bills-q-tracker-demo.firebaseapp.com",
-    projectId: "bills-q-tracker-demo",
-    storageBucket: "bills-q-tracker-demo.appspot.com",
-    messagingSenderId: "123456789012",
-    appId: "1:123456789012:web:0123456789abcdef"
+    apiKey: "AIzaSyCnpK-aY7cQdkW1MoloTHJD-GJSSswJXxE",
+    authDomain: "johnson-fam-bills.firebaseapp.com",
+    projectId: "johnson-fam-bills",
+    storageBucket: "johnson-fam-bills.firebasestorage.app",
+    messagingSenderId: "859356967572",
+    appId: "1:859356967572:web:db2f34908247872ed2ba81",
+    measurementId: "G-GCBWCYHHE4"
 };
 
 // Initialize Firebase
