@@ -830,19 +830,10 @@ function updateDashboard() {
                 if (billName === 'Extra Paid Erik' || billName === 'Erik Paid Sara') {
                     billContribution = actual; // Extra Paid categories are always positive
                 } else if (actual === 0) {
-                    // If actual is $0.00, check if over/under would be positive
-                    let overUnder = actual - budget;
-                    if (positiveCreditBills.includes(billName)) {
-                        overUnder = budget - actual; // Flip for positive credit bills
-                    }
-                    
-                    if (overUnder > 0) {
-                        billContribution = overUnder; // Use positive over/under
-                    } else {
-                        billContribution = 0; // Use actual (which is 0)
-                    }
+                    // If no money spent, no contribution to surplus (no theoretical credit)
+                    billContribution = 0;
                 } else {
-                    // If actual > 0, use over/under
+                    // If actual > 0, use over/under (actual savings or overspending)
                     let overUnder = actual - budget;
                     if (positiveCreditBills.includes(billName)) {
                         overUnder = budget - actual; // Flip for positive credit bills
