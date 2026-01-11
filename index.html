@@ -445,9 +445,16 @@
                 <button class="btn-secondary" onclick="showImportCSV()">Import CSV</button>
             </div>
             <div class="transactions-table-container">
+                <div class="bulk-actions" style="margin-bottom: 1rem; display: none;" id="bulkActions">
+                    <button class="btn-delete" onclick="deleteSelectedTransactions()">Delete Selected</button>
+                    <button class="btn-secondary" onclick="selectAllTransactions()">Select All</button>
+                    <button class="btn-secondary" onclick="clearSelection()">Clear Selection</button>
+                    <span id="selectedCount">0 selected</span>
+                </div>
                 <table class="transactions-table">
                     <thead>
                         <tr>
+                            <th><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()"></th>
                             <th>Date</th>
                             <th>Source/Store</th>
                             <th>Amount</th>

@@ -1040,7 +1040,7 @@ function updateTransactionTable() {
             const dividerRow = document.createElement('tr');
             dividerRow.className = 'transaction-divider-row';
             dividerRow.innerHTML = `
-                <td colspan="5"><div class="transaction-divider"></div></td>
+                <td colspan="6"><div class="transaction-divider"></div></td>
             `;
             tbody.appendChild(dividerRow);
             isFirstMonth = false;
@@ -1050,7 +1050,7 @@ function updateTransactionTable() {
         const monthRow = document.createElement('tr');
         monthRow.className = 'month-header';
         monthRow.innerHTML = `
-            <td colspan="5"><strong>${monthData.name}</strong></td>
+            <td colspan="6"><strong>${monthData.name}</strong></td>
         `;
         tbody.appendChild(monthRow);
         
@@ -1064,6 +1064,7 @@ function updateTransactionTable() {
             });
             
             row.innerHTML = `
+                <td><input type="checkbox" class="transaction-checkbox" data-index="${transaction.originalIndex}" onchange="updateBulkActions()"></td>
                 <td class="editable-date" data-field="date" data-index="${transaction.originalIndex}" onclick="editField(this)">${formattedDate}</td>
                 <td class="editable-text" data-field="source" data-index="${transaction.originalIndex}" onclick="editField(this)">${transaction.source}</td>
                 <td class="editable-amount" data-field="amount" data-index="${transaction.originalIndex}" onclick="editField(this)">$${transaction.amount.toFixed(2)}</td>
@@ -1733,3 +1734,89 @@ document.addEventListener('DOMContentLoaded', function() {
     // ... existing DOMContentLoaded code ...
     initVoiceRecognition();
 });
+
+// Bulk delete functionality
+function updateBulkActions() {
+    const checkboxes = document.querySelectorAll('.transaction-checkbox');
+    const checkedBoxes = document.querySelectorAll('.transaction-checkbox:checked');
+    const bulkActions = document.getElementById('bulkActions');
+    const selectedCount = document.getElementById('selectedCount');
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    
+    // Show/hide bulk actions
+    if (checkedBoxes.length > 0) {
+        bulkActions.style.display = 'block';
+        selectedCount.textContent = `${checkedBoxes.length} selected`;
+    } else {
+        bulkActions.style.display = 'none';
+    }
+    
+    // Update select all checkbox state
+    if (checkedBoxes.length === 0) {
+        selectAllCheckbox.indeterminate = false;
+        selectAllCheckbox.checked = false;
+    } else if (checkedBoxes.length === checkboxes.length) {
+        selectAllCheckbox.indeterminate = false;
+        selectAllCheckbox.checked = true;
+    } else {
+        selectAllCheckbox.indeterminate = true;
+    }
+}
+
+function toggleSelectAll() {
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    const checkboxes = document.querySelectorAll('.transaction-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAllCheckbox.checked;
+    });
+    
+    updateBulkActions();
+}
+
+function selectAllTransactions() {
+    const checkboxes = document.querySelectorAll('.transaction-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = true;
+    });
+    updateBulkActions();
+}
+
+function clearSelection() {
+    const checkboxes = document.querySelectorAll('.transaction-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    updateBulkActions();
+}
+
+function deleteSelectedTransactions() {
+    const checkedBoxes = document.querySelectorAll('.transaction-checkbox:checked');
+    
+    if (checkedBoxes.length === 0) {
+        showNotification('No transactions selected', 'warning');
+        return;
+    }
+    
+    if (confirm(`Delete ${checkedBoxes.length} selected transaction(s)?`)) {
+        // Get indices to delete (sort in descending order to avoid index shifting)
+        const indicesToDelete = Array.from(checkedBoxes)
+            .map(checkbox => parseInt(checkbox.dataset.index))
+            .sort((a, b) => b - a);
+        
+        // Delete transactions from highest index to lowest
+        indicesToDelete.forEach(index => {
+            transactions.splice(index, 1);
+        });
+        
+        saveTransactions();
+        updateTransactionTable();
+        updateBudgetFromTransactions();
+        updateDashboard();
+        
+        showNotification(`${indicesToDelete.length} transaction(s) deleted!`);
+        
+        // Hide bulk actions
+        document.getElementById('bulkActions').style.display = 'none';
+    }
+}
