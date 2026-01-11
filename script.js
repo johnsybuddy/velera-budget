@@ -24,22 +24,123 @@ function showTab(tabName) {
     localStorage.setItem('currentTab', tabName);
 }
 
+// Firebase Configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyBvOkBwRlERnSqNDt-OcNcG6llP0ExBUb0",
+    authDomain: "bills-q-tracker-demo.firebaseapp.com",
+    projectId: "bills-q-tracker-demo",
+    storageBucket: "bills-q-tracker-demo.appspot.com",
+    messagingSenderId: "123456789012",
+    appId: "1:123456789012:web:0123456789abcdef"
+};
+
+// Initialize Firebase
+let db = null;
+let isFirebaseEnabled = false;
+
+try {
+    if (typeof firebase !== 'undefined') {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.firestore();
+        isFirebaseEnabled = true;
+        console.log('Firebase initialized successfully');
+        
+        // Set up offline persistence
+        db.enablePersistence().catch((err) => {
+            console.log('Persistence failed:', err);
+        });
+    }
+} catch (error) {
+    console.log('Firebase not available, using localStorage:', error);
+    isFirebaseEnabled = false;
+}
+
+// User ID for data isolation
+const userId = 'johnsybuddy'; // Your username
+
 // Store transactions
 let transactions = [
     { date: '2025-10-15', source: 'Target', amount: 125.50, bill: 'Groceries' },
     { date: '2025-09-20', source: 'Walmart', amount: 89.75, bill: 'Gas' }
 ];
 
-// Save transactions to localStorage
-function saveTransactions() {
-    localStorage.setItem('billsTransactions', JSON.stringify(transactions));
+// Enhanced cloud storage functions
+async function saveTransactions() {
+    if (isFirebaseEnabled) {
+        try {
+            await db.collection('users').doc(userId).set({
+                transactions: transactions,
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            console.log('Transactions saved to cloud');
+        } catch (error) {
+            console.error('Error saving to cloud:', error);
+            // Fallback to localStorage
+            localStorage.setItem('billsTransactions', JSON.stringify(transactions));
+        }
+    } else {
+        // Fallback to localStorage
+        localStorage.setItem('billsTransactions', JSON.stringify(transactions));
+    }
 }
 
-// Load transactions from localStorage
-function loadTransactions() {
+async function loadTransactions() {
+    if (isFirebaseEnabled) {
+        try {
+            const doc = await db.collection('users').doc(userId).get();
+            if (doc.exists && doc.data().transactions) {
+                transactions = doc.data().transactions;
+                console.log('Transactions loaded from cloud:', transactions.length);
+                return;
+            }
+        } catch (error) {
+            console.error('Error loading from cloud:', error);
+        }
+    }
+    
+    // Fallback to localStorage
     const saved = localStorage.getItem('billsTransactions');
     if (saved) {
         transactions = JSON.parse(saved);
+        console.log('Transactions loaded from localStorage:', transactions.length);
+    }
+}
+
+async function saveMonthlyBudgets() {
+    if (isFirebaseEnabled) {
+        try {
+            await db.collection('users').doc(userId).set({
+                monthlyBudgets: monthlyBudgets,
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            console.log('Monthly budgets saved to cloud');
+        } catch (error) {
+            console.error('Error saving budgets to cloud:', error);
+            localStorage.setItem('monthlyBudgets', JSON.stringify(monthlyBudgets));
+        }
+    } else {
+        localStorage.setItem('monthlyBudgets', JSON.stringify(monthlyBudgets));
+    }
+}
+
+async function loadMonthlyBudgets() {
+    if (isFirebaseEnabled) {
+        try {
+            const doc = await db.collection('users').doc(userId).get();
+            if (doc.exists && doc.data().monthlyBudgets) {
+                monthlyBudgets = doc.data().monthlyBudgets;
+                console.log('Monthly budgets loaded from cloud');
+                return;
+            }
+        } catch (error) {
+            console.error('Error loading budgets from cloud:', error);
+        }
+    }
+    
+    // Fallback to localStorage
+    const saved = localStorage.getItem('monthlyBudgets');
+    if (saved) {
+        monthlyBudgets = JSON.parse(saved);
     }
 }
 
@@ -615,14 +716,6 @@ let monthlyBudgets = {
     jul: {}, aug: {}, sep: {}, oct: {}, nov: {}, dec: {}
 };
 
-// Load monthly budgets from localStorage
-function loadMonthlyBudgets() {
-    const saved = localStorage.getItem('monthlyBudgets');
-    if (saved) {
-        monthlyBudgets = JSON.parse(saved);
-    }
-}
-
 // Save monthly budgets to localStorage
 function saveMonthlyBudgets() {
     localStorage.setItem('monthlyBudgets', JSON.stringify(monthlyBudgets));
@@ -967,11 +1060,11 @@ function updateDashboard() {
 }
 
 // Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     // Load saved data first
-    loadTransactions();
+    await loadTransactions();
     loadFamilyExpenses();
-    loadMonthlyBudgets();
+    await loadMonthlyBudgets();
     
     // Determine which month to show (saved or current)
     const savedMonth = localStorage.getItem('currentMonth');
@@ -1878,4 +1971,35 @@ function deleteSelectedTransactions() {
         // Hide bulk actions
         document.getElementById('bulkActions').style.display = 'none';
     }
+}
+// Sync status functions
+function showSyncStatus(message = 'Syncing...') {
+    const syncStatus = document.getElementById('syncStatus');
+    const syncText = syncStatus.querySelector('.sync-text');
+    if (syncStatus && syncText) {
+        syncText.textContent = message;
+        syncStatus.style.display = 'flex';
+    }
+}
+
+function hideSyncStatus() {
+    const syncStatus = document.getElementById('syncStatus');
+    if (syncStatus) {
+        setTimeout(() => {
+            syncStatus.style.display = 'none';
+        }, 1000);
+    }
+}
+
+// Enhanced save functions with sync status
+async function saveTransactionsWithStatus() {
+    showSyncStatus('Saving transactions...');
+    await saveTransactions();
+    hideSyncStatus();
+}
+
+async function saveBudgetsWithStatus() {
+    showSyncStatus('Saving budget...');
+    await saveMonthlyBudgets();
+    hideSyncStatus();
 }

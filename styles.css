@@ -2825,3 +2825,33 @@ body {
         height: 16px;
     }
 }
+/* Sync Status Indicator */
+.sync-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--white);
+    font-size: 0.875rem;
+    opacity: 0.9;
+}
+
+.sync-icon {
+    font-size: 1rem;
+    animation: pulse 2s infinite;
+}
+
+.sync-text {
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .sync-status {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .sync-status .sync-text {
+        display: none;
+    }
+}
