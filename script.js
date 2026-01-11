@@ -760,7 +760,7 @@ function updateDashboard() {
     const monthlyGrid = document.getElementById('monthlyGrid');
     monthlyGrid.innerHTML = '';
     
-    let overallTotal = 0;
+    let overallTotal = 0; // Start surplus tracking at $0 for the year
     let totalSpent = 0;
     const totalBudget = 6546.00;
     const currentDate = new Date();
@@ -853,7 +853,10 @@ function updateDashboard() {
                 monthDifference += billContribution;
             });
             
-            overallTotal += monthDifference;
+            // Only add to overall total if this is September 2025 or later (year-to-date tracking)
+            if (currentYear === 2025 && monthIndex >= 9) {
+                overallTotal += monthDifference;
+            }
             
             amountClass = monthDifference > 0 ? 'positive' : monthDifference < 0 ? 'negative' : 'neutral';
             cardClass = `month-card ${monthDifference >= 0 ? 'surplus' : 'deficit'}`;
