@@ -678,8 +678,7 @@ body {
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    border-top: 2px solid var(--border-light);
-    border-bottom: 1px solid var(--border-light);
+    border-bottom: 2px solid var(--border-light);
 }
 
 
