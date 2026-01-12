@@ -1,3 +1,5 @@
+console.log('=== SCRIPT.JS LOADED - VERSION 20250111 ===');
+
 // Tab functionality
 function showTab(tabName) {
     // Hide all tab contents
