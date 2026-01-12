@@ -1474,6 +1474,31 @@ function showNotification(message, type = 'success') {
 }
 
 // Bill management functions
+function updateBudgetTotals() {
+    let totalBudget = 0;
+    let totalActual = 0;
+    let totalOverUnder = 0;
+    
+    const rows = document.querySelectorAll('.budget-table tbody tr:not(.separator)');
+    rows.forEach(row => {
+        if (row.cells[1] && row.cells[2] && row.cells[3]) {
+            const budget = parseFloat(row.cells[1].textContent.replace(/[$,]/g, '')) || 0;
+            const actualSpan = row.cells[2].querySelector('.actual-amount');
+            const actual = actualSpan ? parseFloat(actualSpan.textContent.replace(/[$,]/g, '')) || 0 : 0;
+            const overUnder = parseFloat(row.cells[3].textContent.replace(/[$,]/g, '')) || 0;
+            
+            totalBudget += budget;
+            totalActual += actual;
+            totalOverUnder += overUnder;
+        }
+    });
+    
+    document.getElementById('totalBudget').textContent = `$${totalBudget.toFixed(2)}`;
+    document.getElementById('totalActual').textContent = `$${totalActual.toFixed(2)}`;
+    document.getElementById('totalOverUnder').textContent = `$${totalOverUnder.toFixed(2)}`;
+    document.getElementById('totalOverUnder').style.color = totalOverUnder >= 0 ? 'var(--success)' : 'var(--danger)';
+}
+
 function showAddBill() {
     document.getElementById('addBillModal').style.display = 'block';
     document.getElementById('billModalTitle').textContent = 'Add Bill';
@@ -1512,12 +1537,37 @@ document.getElementById('addBillForm').addEventListener('submit', function(e) {
     const isEdit = this.dataset.editBill;
     
     if (isEdit) {
-        showNotification(`${billName} updated!`);
+        // Update the bill amount in the table
+        const rows = document.querySelectorAll('.budget-table tbody tr');
+        rows.forEach(row => {
+            if (row.cells[0] && row.cells[0].textContent.trim() === isEdit) {
+                row.cells[1].textContent = `$${amount.toFixed(2)}`;
+                // Update the over/under calculation
+                const actualText = row.cells[2]?.querySelector('.actual-amount')?.textContent || '$0.00';
+                const actual = parseFloat(actualText.replace(/[$,]/g, '')) || 0;
+                const overUnder = actual - amount;
+                if (row.cells[3]) {
+                    row.cells[3].textContent = `$${overUnder.toFixed(2)}`;
+                    row.cells[3].style.color = overUnder >= 0 ? 'var(--success)' : 'var(--danger)';
+                }
+            }
+        });
+        
+        // Save to monthly budgets
+        monthlyBudgets[currentMonth][isEdit] = amount;
+        saveMonthlyBudgets();
+        
+        // Update totals
+        updateBudgetTotals();
+        updateDashboard();
+        
+        showNotification(`${billName} updated to $${amount.toFixed(2)}!`);
     } else {
         showNotification(`${billName} added!`);
     }
     
     closeAddBill();
+});
 });
 
 // Family Expense Tracking
