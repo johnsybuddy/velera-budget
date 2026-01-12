@@ -975,6 +975,7 @@ function updateDashboard() {
             monthDifference = 0;
             
             // Apply logic for each bill - ONLY count actual net impact
+            console.log('Using NEW dashboard calculation logic - should start at $0');
             Object.keys(billBudgets).forEach(billName => {
                 const budget = billBudgets[billName];
                 const actual = billTotals[billName] || 0;
@@ -1035,6 +1036,7 @@ function updateDashboard() {
     const overallProgress = document.getElementById('overallProgress');
     const progressText = document.getElementById('progressText');
     
+    console.log('FINAL overallTotal for dashboard:', overallTotal);
     overallAmount.textContent = `${overallTotal >= 0 ? '+' : ''}$${Math.abs(overallTotal).toFixed(2)}`;
     overallAmount.className = `status-amount ${overallTotal >= 0 ? 'positive' : 'negative'}`;
     
