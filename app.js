@@ -1,4 +1,4 @@
-console.log('=== SCRIPT.JS LOADED - VERSION 20250111 ===');
+console.log('=== SCRIPT.JS LOADED - VERSION 20250112 ===');
 
 // Tab functionality
 function showTab(tabName) {
@@ -25,6 +25,22 @@ function showTab(tabName) {
     // Save current tab
     localStorage.setItem('currentTab', tabName);
 }
+
+// Periodic Bills Configuration
+// frequency: 'monthly', 'quarterly', 'semi-annual', 'annual'
+// monthsInCycle: how many months between payments
+const periodicBillsConfig = {
+    'Auto Insurance': { frequency: 'semi-annual', monthsInCycle: 6, totalAmount: 750 },
+    'AAA Roadside Assistance': { frequency: 'annual', monthsInCycle: 12, totalAmount: 180 },
+    'Jewelers Insurance': { frequency: 'annual', monthsInCycle: 12, totalAmount: 84 },
+    'Xcel Energy': { frequency: 'quarterly', monthsInCycle: 3, totalAmount: 855 },
+    'Earthbound Garbage': { frequency: 'quarterly', monthsInCycle: 3, totalAmount: 294 },
+    'Water': { frequency: 'quarterly', monthsInCycle: 3, totalAmount: 210 },
+    'YMCA Membership': { frequency: 'annual', monthsInCycle: 12, totalAmount: 420 }
+};
+
+// Bucket balances for periodic bills (accumulated savings toward next payment)
+let periodicBuckets = {};
 
 // Firebase Configuration
 const firebaseConfig = {
@@ -133,7 +149,10 @@ async function loadMonthlyBudgets() {
             if (doc.exists && doc.data().monthlyBudgets) {
                 monthlyBudgets = doc.data().monthlyBudgets;
                 console.log('Monthly budgets loaded from cloud');
-                return;
+            }
+            if (doc.exists && doc.data().periodicBuckets) {
+                periodicBuckets = doc.data().periodicBuckets;
+                console.log('Periodic buckets loaded from cloud');
             }
         } catch (error) {
             console.error('Error loading budgets from cloud:', error);
@@ -141,10 +160,113 @@ async function loadMonthlyBudgets() {
     }
     
     // Fallback to localStorage
-    const saved = localStorage.getItem('monthlyBudgets');
-    if (saved) {
-        monthlyBudgets = JSON.parse(saved);
+    if (Object.keys(monthlyBudgets).every(k => Object.keys(monthlyBudgets[k]).length === 0)) {
+        const saved = localStorage.getItem('monthlyBudgets');
+        if (saved) {
+            monthlyBudgets = JSON.parse(saved);
+        }
     }
+    
+    const savedBuckets = localStorage.getItem('periodicBuckets');
+    if (savedBuckets && Object.keys(periodicBuckets).length === 0) {
+        periodicBuckets = JSON.parse(savedBuckets);
+    }
+}
+
+async function savePeriodicBuckets() {
+    if (isFirebaseEnabled) {
+        try {
+            await db.collection('users').doc(userId).set({
+                periodicBuckets: periodicBuckets,
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            console.log('Periodic buckets saved to cloud');
+        } catch (error) {
+            console.error('Error saving buckets to cloud:', error);
+            localStorage.setItem('periodicBuckets', JSON.stringify(periodicBuckets));
+        }
+    } else {
+        localStorage.setItem('periodicBuckets', JSON.stringify(periodicBuckets));
+    }
+}
+
+// Calculate total reserved in periodic buckets (not real surplus yet)
+function getTotalPeriodicBuckets() {
+    let total = 0;
+    for (const billName in periodicBuckets) {
+        total += periodicBuckets[billName] || 0;
+    }
+    return total;
+}
+
+// Check if a bill is periodic
+function isPeriodicBill(billName) {
+    return periodicBillsConfig.hasOwnProperty(billName);
+}
+
+// Get monthly budget amount for a periodic bill
+function getPeriodicMonthlyBudget(billName) {
+    const config = periodicBillsConfig[billName];
+    if (config) {
+        return config.totalAmount / config.monthsInCycle;
+    }
+    return 0;
+}
+
+// Calculate periodic buckets based on all transactions
+function calculatePeriodicBuckets() {
+    const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    const monthNumbers = {
+        jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06',
+        jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12'
+    };
+    
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonthIndex = currentDate.getMonth(); // 0-11
+    
+    // Reset buckets
+    periodicBuckets = {};
+    
+    // For each periodic bill, calculate bucket balance
+    for (const billName in periodicBillsConfig) {
+        const config = periodicBillsConfig[billName];
+        const monthlyBudget = config.totalAmount / config.monthsInCycle;
+        
+        let bucketBalance = 0;
+        
+        // Go through each month up to current month
+        for (let i = 0; i <= currentMonthIndex; i++) {
+            const month = months[i];
+            const monthNum = monthNumbers[month];
+            
+            // Add monthly budget to bucket
+            bucketBalance += monthlyBudget;
+            
+            // Check if there was a payment this month
+            const monthPayments = transactions.filter(t => {
+                const tDate = new Date(t.date);
+                const tMonth = String(tDate.getMonth() + 1).padStart(2, '0');
+                const tYear = tDate.getFullYear();
+                return t.bill === billName && tMonth === monthNum && tYear === currentYear;
+            });
+            
+            // Subtract payments from bucket
+            monthPayments.forEach(payment => {
+                bucketBalance -= payment.amount;
+            });
+        }
+        
+        // Store bucket balance (only if positive - negative means overpaid which is real surplus)
+        periodicBuckets[billName] = Math.max(0, bucketBalance);
+        
+        console.log(`Periodic bucket for ${billName}: $${periodicBuckets[billName].toFixed(2)} (monthly budget: $${monthlyBudget.toFixed(2)})`);
+    }
+    
+    // Save buckets
+    savePeriodicBuckets();
+    
+    return periodicBuckets;
 }
 
 // Calculate budget totals from transactions for current month
@@ -918,6 +1040,9 @@ function promptMarkPaid(billName) {
 
 // Dashboard functionality
 function updateDashboard() {
+    // Calculate periodic buckets first
+    calculatePeriodicBuckets();
+    
     const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
     const monthNames = {
         jan: 'Jan', feb: 'Feb', mar: 'Mar', apr: 'Apr', may: 'May', jun: 'Jun',
@@ -1060,32 +1185,39 @@ function updateDashboard() {
     const progressText = document.getElementById('progressText');
     
     console.log('FINAL overallTotal for dashboard:', overallTotal);
-    overallAmount.textContent = `${overallTotal >= 0 ? '+' : ''}$${Math.abs(overallTotal).toFixed(2)}`;
-    overallAmount.className = `status-amount ${overallTotal >= 0 ? 'positive' : 'negative'}`;
+    
+    // Calculate total reserved in periodic buckets
+    const totalReserved = getTotalPeriodicBuckets();
+    const trueSurplus = overallTotal - totalReserved;
+    console.log('Total reserved in periodic buckets:', totalReserved);
+    console.log('True surplus (excluding buckets):', trueSurplus);
+    
+    overallAmount.textContent = `${trueSurplus >= 0 ? '+' : ''}$${Math.abs(trueSurplus).toFixed(2)}`;
+    overallAmount.className = `status-amount ${trueSurplus >= 0 ? 'positive' : 'negative'}`;
     
     // Calculate progress percentage
     const progressPercent = Math.min((totalSpent / totalBudget) * 100, 100);
     overallProgress.style.width = `${progressPercent}%`;
     progressText.textContent = `${progressPercent.toFixed(1)}% of budget used`;
     
-    if (overallTotal > 0) {
+    if (trueSurplus > 0) {
         overallStatusCard.className = 'status-card surplus';
         overallLabel.textContent = 'Surplus 💰';
         overallLabel.className = 'status-label surplus';
         statusIndicator.textContent = '🟢';
-        overallProgress.style.background = 'linear-gradient(90deg, var(--success), #34D399)';
-    } else if (overallTotal < 0) {
+        overallProgress.style.background = 'var(--success)';
+    } else if (trueSurplus < 0) {
         overallStatusCard.className = 'status-card deficit';
         overallLabel.textContent = 'Behind 📉';
         overallLabel.className = 'status-label deficit';
         statusIndicator.textContent = '🔴';
-        overallProgress.style.background = 'linear-gradient(90deg, var(--danger), #F87171)';
+        overallProgress.style.background = 'var(--danger)';
     } else {
         overallStatusCard.className = 'status-card';
         overallLabel.textContent = 'On Track 🎯';
         overallLabel.className = 'status-label';
         statusIndicator.textContent = '🟡';
-        overallProgress.style.background = 'linear-gradient(90deg, var(--burnt-orange), var(--light-orange))';
+        overallProgress.style.background = 'var(--primary)';
     }
 }
 
