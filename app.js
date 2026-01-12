@@ -1568,7 +1568,6 @@ document.getElementById('addBillForm').addEventListener('submit', function(e) {
     
     closeAddBill();
 });
-});
 
 // Family Expense Tracking
 let familyExpenses = [];
