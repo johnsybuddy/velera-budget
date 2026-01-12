@@ -756,7 +756,7 @@ function showMonth(month) {
 }
 
 function loadMonthBudget(month) {
-    const budgetInputs = document.querySelectorAll('.budget-input');
+    // Update the table cells with saved budget values
     const defaultBudgets = {
         'Mortgage + Escrow (Ins-Taxes)': 2272.00,
         'Car Payment': 453.00,
@@ -782,16 +782,37 @@ function loadMonthBudget(month) {
         'Travel Spending': 100.00,
         'Dylan Investment': 35.00,
         'Brooks Investment': 25.00,
-        'Extra Paid Erik': 0.00,
-        'Erik Paid Sara': 0.00,
-        'Miscellaneous Erik': 50.00,
-        'Miscellaneous Sara': 50.00
+        'Extra Paid': 0.00
     };
     
-    budgetInputs.forEach((input, index) => {
-        const billName = Object.keys(defaultBudgets)[index];
-        const savedValue = monthlyBudgets[month][billName];
-        input.value = savedValue !== undefined ? savedValue : defaultBudgets[billName];
+    // Get all budget table rows
+    const rows = document.querySelectorAll('.budget-table tbody tr');
+    
+    rows.forEach(row => {
+        const billNameCell = row.cells[0];
+        if (!billNameCell) return;
+        
+        const billName = billNameCell.textContent.trim();
+        
+        // Skip separator rows
+        if (row.classList.contains('separator')) return;
+        
+        // Get saved value or default
+        const savedValue = monthlyBudgets[month] && monthlyBudgets[month][billName];
+        const displayValue = savedValue !== undefined ? savedValue : defaultBudgets[billName];
+        
+        if (displayValue !== undefined) {
+            // Update the Monthly Expense cell (column 2)
+            if (row.cells[1]) {
+                row.cells[1].textContent = `$${displayValue.toFixed(2)}`;
+            }
+            
+            // Update the Edit button onclick with new value
+            const editBtn = row.querySelector('.btn-edit');
+            if (editBtn) {
+                editBtn.setAttribute('onclick', `editBill('${billName.replace(/'/g, "\\'")}', ${displayValue})`);
+            }
+        }
     });
 }
 
