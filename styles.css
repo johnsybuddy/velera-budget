@@ -61,7 +61,7 @@ body {
 
 /* Clean Navbar */
 .navbar {
-    background: var(--bg-card);
+    background: var(--bg-sidebar);
     padding: 0 1.5rem;
     height: 60px;
     display: flex;
@@ -168,6 +168,8 @@ body {
     font-weight: 600;
     color: var(--text-primary);
     margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-light);
 }
 
 .dashboard-stats {
@@ -184,6 +186,7 @@ body {
     align-items: center;
     gap: 0.75rem;
     transition: background 0.15s ease;
+    border: 1px solid var(--border-light);
 }
 
 .stat-card:hover {
@@ -253,6 +256,8 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-light);
 }
 
 .status-header h3 {
@@ -349,6 +354,8 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-light);
 }
 
 .breakdown-header h3 {
@@ -470,6 +477,8 @@ body {
     font-weight: 600;
     color: var(--text-primary);
     margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-light);
 }
 
 .monthly-grid {
@@ -659,16 +668,18 @@ body {
 }
 
 .separator {
-    background: var(--bg-main);
+    background: var(--bg-card);
 }
 
 .separator td {
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1rem;
     font-weight: 600;
     color: var(--text-secondary);
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    border-top: 2px solid var(--border-light);
+    border-bottom: 1px solid var(--border-light);
 }
 
 
