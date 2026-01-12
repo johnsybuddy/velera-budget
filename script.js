@@ -926,8 +926,8 @@ function updateDashboard() {
         const monthNumber = monthNumbers[month];
         const monthIndex = index + 1; // 1-12
         
-        // Only calculate for months that have actually occurred (Sep-Oct 2025)
-        const isCurrentOrPast = (currentYear === 2025 && monthIndex >= 9 && monthIndex <= currentMonth) || currentYear > 2025;
+        // Only calculate for months that have transactions (not future months)
+        const isCurrentOrPast = monthIndex <= currentMonth || (currentYear > 2026);
         
         let monthDifference = 0;
         let displayAmount = '$0.00';
@@ -1004,10 +1004,8 @@ function updateDashboard() {
                 monthDifference += billContribution;
             });
             
-            // Only add to overall total if this is September 2025 or later (year-to-date tracking)
-            if (currentYear === 2025 && monthIndex >= 9) {
-                overallTotal += monthDifference;
-            }
+            // Only add to overall total for current year
+            overallTotal += monthDifference;
             
             amountClass = monthDifference > 0 ? 'positive' : monthDifference < 0 ? 'negative' : 'neutral';
             cardClass = `month-card ${monthDifference >= 0 ? 'surplus' : 'deficit'}`;
