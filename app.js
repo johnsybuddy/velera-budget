@@ -719,11 +719,6 @@ let monthlyBudgets = {
     jul: {}, aug: {}, sep: {}, oct: {}, nov: {}, dec: {}
 };
 
-// Save monthly budgets to localStorage
-function saveMonthlyBudgets() {
-    localStorage.setItem('monthlyBudgets', JSON.stringify(monthlyBudgets));
-}
-
 function showMonth(month) {
     currentMonth = month;
     
@@ -954,8 +949,8 @@ function updateDashboard() {
                 }
             });
             
-            // Bills and their budgets
-            const billBudgets = {
+            // Default bill budgets (used if no custom value saved)
+            const defaultBillBudgets = {
                 'Mortgage + Escrow (Ins-Taxes)': 2272.00, 'Car Payment': 453.00, 'Auto Insurance': 125.00,
                 'AAA Roadside Assistance': 15.00, 'Gas': 150.00, 'Jewelers Insurance': 7.00,
                 'Earthbound Garbage': 98.00, 'Water': 70.00, 'Xcel Energy': 285.00, 'Spectrum Phone': 116.00,
@@ -966,6 +961,13 @@ function updateDashboard() {
                 'Brooks Investment': 25.00, 'Extra Paid Erik': 0.00, 'Erik Paid Sara': 0.00,
                 'Miscellaneous Erik': 50.00, 'Miscellaneous Sara': 50.00
             };
+            
+            // Get actual budgets - use saved monthlyBudgets values if available, otherwise defaults
+            const billBudgets = {};
+            Object.keys(defaultBillBudgets).forEach(billName => {
+                const savedValue = monthlyBudgets[month] && monthlyBudgets[month][billName];
+                billBudgets[billName] = savedValue !== undefined ? savedValue : defaultBillBudgets[billName];
+            });
             
             const positiveCreditBills = [
                 'Gas', 'Groceries', 'Restaurants/Entertainment', 'Cat Food', "Dylan's Medication",
