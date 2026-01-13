@@ -1188,25 +1188,30 @@ function updateDashboard() {
     
     // Calculate total reserved in periodic buckets
     const totalReserved = getTotalPeriodicBuckets();
-    const trueSurplus = overallTotal - totalReserved;
     console.log('Total reserved in periodic buckets:', totalReserved);
-    console.log('True surplus (excluding buckets):', trueSurplus);
     
-    overallAmount.textContent = `${trueSurplus >= 0 ? '+' : ''}$${Math.abs(trueSurplus).toFixed(2)}`;
-    overallAmount.className = `status-amount ${trueSurplus >= 0 ? 'positive' : 'negative'}`;
+    // Update reserved amount display
+    const reservedDisplay = document.getElementById('reservedAmount');
+    if (reservedDisplay) {
+        reservedDisplay.textContent = `$${totalReserved.toFixed(2)}`;
+    }
+    
+    // Financial Health shows actual surplus (buckets shown separately)
+    overallAmount.textContent = `${overallTotal >= 0 ? '+' : ''}$${Math.abs(overallTotal).toFixed(2)}`;
+    overallAmount.className = `status-amount ${overallTotal >= 0 ? 'positive' : 'negative'}`;
     
     // Calculate progress percentage
     const progressPercent = Math.min((totalSpent / totalBudget) * 100, 100);
     overallProgress.style.width = `${progressPercent}%`;
     progressText.textContent = `${progressPercent.toFixed(1)}% of budget used`;
     
-    if (trueSurplus > 0) {
+    if (overallTotal > 0) {
         overallStatusCard.className = 'status-card surplus';
         overallLabel.textContent = 'Surplus 💰';
         overallLabel.className = 'status-label surplus';
         statusIndicator.textContent = '🟢';
         overallProgress.style.background = 'var(--success)';
-    } else if (trueSurplus < 0) {
+    } else if (overallTotal < 0) {
         overallStatusCard.className = 'status-card deficit';
         overallLabel.textContent = 'Behind 📉';
         overallLabel.className = 'status-label deficit';
