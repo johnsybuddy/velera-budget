@@ -29,14 +29,14 @@ function showTab(tabName) {
 // Periodic Bills Configuration
 // frequency: 'monthly', 'quarterly', 'semi-annual', 'annual'
 // monthsInCycle: how many months between payments
+// dueMonth: 1-12 for the month the bill is due (for annual/semi-annual)
 const periodicBillsConfig = {
-    'Auto Insurance': { frequency: 'semi-annual', monthsInCycle: 6, totalAmount: 750 },
-    'AAA Roadside Assistance': { frequency: 'annual', monthsInCycle: 12, totalAmount: 180 },
+    'Auto Insurance': { frequency: 'semi-annual', monthsInCycle: 6, totalAmount: 750, dueMonth: 8 },  // Aug 26
+    'AAA Roadside Assistance': { frequency: 'annual', monthsInCycle: 12, totalAmount: 180, dueMonth: 5 },  // May 26
     'Jewelers Insurance': { frequency: 'annual', monthsInCycle: 12, totalAmount: 84 },
-    'Xcel Energy': { frequency: 'quarterly', monthsInCycle: 3, totalAmount: 855 },
-    'Earthbound Garbage': { frequency: 'quarterly', monthsInCycle: 3, totalAmount: 294 },
-    'Water': { frequency: 'quarterly', monthsInCycle: 3, totalAmount: 210 },
-    'YMCA Membership': { frequency: 'annual', monthsInCycle: 12, totalAmount: 420 }
+    'Earthbound Garbage': { frequency: 'quarterly', monthsInCycle: 3, totalAmount: 294, dueMonth: 1 },  // Jan 26
+    'Water': { frequency: 'quarterly', monthsInCycle: 3, totalAmount: 210, dueMonth: 1 },  // Jan 26
+    'YMCA Membership': { frequency: 'annual', monthsInCycle: 12, totalAmount: 420, dueMonth: 12 }  // Dec 26
 };
 
 // Bucket balances for periodic bills (accumulated savings toward next payment)
@@ -314,9 +314,10 @@ function updateBudgetFromTransactions() {
     const rows = document.querySelectorAll('.budget-table tbody tr:not(.separator)');
     
     rows.forEach(row => {
-        const budgetCell = row.cells[1];
-        const actualSpan = row.cells[2]?.querySelector('.actual-amount');
-        const overUnderCell = row.cells[3];
+        // Column indices: 0=Bill, 1=Due Date, 2=Monthly Expense, 3=Actual, 4=Over/Under
+        const budgetCell = row.cells[2];
+        const actualSpan = row.cells[3]?.querySelector('.actual-amount');
+        const overUnderCell = row.cells[4];
         
         if (budgetCell && actualSpan && overUnderCell) {
             const billName = actualSpan.getAttribute('data-bill');
@@ -362,7 +363,8 @@ function updateBudgetFromTransactions() {
     // Calculate total over/under by summing individual bill over/under amounts
     let totalOverUnder = 0;
     rows.forEach(row => {
-        const overUnderCell = row.cells[3];
+        // Column 4 is Over/Under (after Due Date column was added)
+        const overUnderCell = row.cells[4];
         if (overUnderCell && overUnderCell.textContent.includes('$')) {
             const overUnderValue = parseFloat(overUnderCell.textContent.replace(/[$,]/g, '')) || 0;
             totalOverUnder += overUnderValue;
@@ -924,9 +926,9 @@ function loadMonthBudget(month) {
         const displayValue = savedValue !== undefined ? savedValue : defaultBudgets[billName];
         
         if (displayValue !== undefined) {
-            // Update the Monthly Expense cell (column 2)
-            if (row.cells[1]) {
-                row.cells[1].textContent = `$${displayValue.toFixed(2)}`;
+            // Update the Monthly Expense cell (column 2, after Due Date column)
+            if (row.cells[2]) {
+                row.cells[2].textContent = `$${displayValue.toFixed(2)}`;
             }
             
             // Update the Edit button onclick with new value
@@ -1004,8 +1006,9 @@ function promptMarkPaid(billName) {
             return row.cells[0] && row.cells[0].textContent.trim() === billName;
         });
         
-        if (row && row.cells[1]) {
-            const budgetText = row.cells[1].textContent.replace(/[$,]/g, '');
+        // Column 2 is Monthly Expense (after Due Date column)
+        if (row && row.cells[2]) {
+            const budgetText = row.cells[2].textContent.replace(/[$,]/g, '');
             const amount = parseFloat(budgetText) || 0;
             
             if (amount > 0 && confirm(`Mark ${billName} as paid for $${amount.toFixed(2)}?`)) {
@@ -1641,11 +1644,12 @@ function updateBudgetTotals() {
     
     const rows = document.querySelectorAll('.budget-table tbody tr:not(.separator)');
     rows.forEach(row => {
-        if (row.cells[1] && row.cells[2] && row.cells[3]) {
-            const budget = parseFloat(row.cells[1].textContent.replace(/[$,]/g, '')) || 0;
-            const actualSpan = row.cells[2].querySelector('.actual-amount');
+        // Column indices: 0=Bill, 1=Due Date, 2=Monthly Expense, 3=Actual, 4=Over/Under
+        if (row.cells[2] && row.cells[3] && row.cells[4]) {
+            const budget = parseFloat(row.cells[2].textContent.replace(/[$,]/g, '')) || 0;
+            const actualSpan = row.cells[3].querySelector('.actual-amount');
             const actual = actualSpan ? parseFloat(actualSpan.textContent.replace(/[$,]/g, '')) || 0 : 0;
-            const overUnder = parseFloat(row.cells[3].textContent.replace(/[$,]/g, '')) || 0;
+            const overUnder = parseFloat(row.cells[4].textContent.replace(/[$,]/g, '')) || 0;
             
             totalBudget += budget;
             totalActual += actual;
@@ -1701,14 +1705,14 @@ document.getElementById('addBillForm').addEventListener('submit', function(e) {
         const rows = document.querySelectorAll('.budget-table tbody tr');
         rows.forEach(row => {
             if (row.cells[0] && row.cells[0].textContent.trim() === isEdit) {
-                row.cells[1].textContent = `$${amount.toFixed(2)}`;
+                row.cells[2].textContent = `$${amount.toFixed(2)}`;
                 // Update the over/under calculation
-                const actualText = row.cells[2]?.querySelector('.actual-amount')?.textContent || '$0.00';
+                const actualText = row.cells[3]?.querySelector('.actual-amount')?.textContent || '$0.00';
                 const actual = parseFloat(actualText.replace(/[$,]/g, '')) || 0;
                 const overUnder = actual - amount;
-                if (row.cells[3]) {
-                    row.cells[3].textContent = `$${overUnder.toFixed(2)}`;
-                    row.cells[3].style.color = overUnder >= 0 ? 'var(--success)' : 'var(--danger)';
+                if (row.cells[4]) {
+                    row.cells[4].textContent = `$${overUnder.toFixed(2)}`;
+                    row.cells[4].style.color = overUnder >= 0 ? 'var(--success)' : 'var(--danger)';
                 }
             }
         });

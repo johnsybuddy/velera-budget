@@ -214,6 +214,7 @@
                     <thead>
                         <tr>
                             <th>Bill</th>
+                            <th>Due Date</th>
                             <th>Monthly Expense</th>
                             <th>Actual</th>
                             <th>Over/Under</th>
@@ -223,6 +224,7 @@
                     <tbody>
                         <tr>
                             <td>Mortgage + Escrow (Ins-Taxes)</td>
+                            <td class="due-date">Monthly</td>
                             <td>$2,272.00</td>
                             <td><span class="actual-amount clickable-zero" data-bill="Mortgage + Escrow (Ins-Taxes)" onclick="promptMarkPaid('Mortgage + Escrow (Ins-Taxes)')">$0.00</span></td>
                             <td class="over-under">-$2,272.00</td>
@@ -230,6 +232,7 @@
                         </tr>
                         <tr>
                             <td>Car Payment</td>
+                            <td class="due-date">Monthly</td>
                             <td>$453.00</td>
                             <td><span class="actual-amount clickable-zero" data-bill="Car Payment" onclick="promptMarkPaid('Car Payment')">$0.00</span></td>
                             <td class="over-under">-$453.00</td>
@@ -237,6 +240,7 @@
                         </tr>
                         <tr>
                             <td>Gas</td>
+                            <td class="due-date">Monthly</td>
                             <td>$150.00</td>
                             <td><span class="actual-amount clickable-zero" data-bill="Gas" onclick="promptMarkPaid('Gas')">$0.00</span></td>
                             <td class="over-under">-$150.00</td>
@@ -244,6 +248,7 @@
                         </tr>
                         <tr>
                             <td>Auto Insurance</td>
+                            <td class="due-date">Aug 26</td>
                             <td>$125.00</td>
                             <td><span class="actual-amount clickable-zero" data-bill="Auto Insurance" onclick="promptMarkPaid('Auto Insurance')">$0.00</span></td>
                             <td class="over-under">-$125.00</td>
@@ -251,6 +256,7 @@
                         </tr>
                         <tr>
                             <td>AAA Roadside Assistance</td>
+                            <td class="due-date">May 26</td>
                             <td>$15.00</td>
                             <td><span class="actual-amount clickable-zero" data-bill="AAA Roadside Assistance" onclick="promptMarkPaid('AAA Roadside Assistance')">$0.00</span></td>
                             <td class="over-under">-$15.00</td>
@@ -258,6 +264,7 @@
                         </tr>
                         <tr>
                             <td>Jewelers Insurance</td>
+                            <td class="due-date">Annual</td>
                             <td>$7.00</td>
                             <td><span class="actual-amount clickable-zero" data-bill="Jewelers Insurance" onclick="promptMarkPaid('Jewelers Insurance')">$0.00</span></td>
                             <td class="over-under">-$7.00</td>
@@ -269,6 +276,7 @@
                             <td></td>
                             <td></td>
                             <td></td>
+                            <td></td>
                         </tr>
                         <tr class="separator">
                             <td><strong>Mortgage-Car-Insurance</strong></td>
@@ -276,9 +284,11 @@
                             <td></td>
                             <td></td>
                             <td></td>
+                            <td></td>
                         </tr>
                         <tr>
                             <td>Daycare</td>
+                            <td class="due-date">Monthly</td>
                             <td>$1,100.00</td>
                             <td><span class="actual-amount clickable-zero" data-bill="Daycare" onclick="promptMarkPaid('Daycare')">$0.00</span></td>
                             <td class="over-under">-$1,100.00</td>
@@ -286,6 +296,7 @@
                         </tr>
                         <tr>
                             <td>Xcel Energy</td>
+                            <td class="due-date">Monthly</td>
                             <td>$285.00</td>
                             <td><span class="actual-amount clickable-zero" data-bill="Xcel Energy" onclick="promptMarkPaid('Xcel Energy')">$0.00</span></td>
                             <td class="over-under">-$285.00</td>
@@ -293,6 +304,7 @@
                         </tr>
                         <tr>
                             <td>Spectrum Phone</td>
+                            <td class="due-date">Monthly</td>
                             <td>$116.00</td>
                             <td><span class="actual-amount clickable-zero" data-bill="Spectrum Phone" onclick="promptMarkPaid('Spectrum Phone')">$0.00</span></td>
                             <td class="over-under">-$116.00</td>
@@ -300,6 +312,7 @@
                         </tr>
                         <tr>
                             <td>Earthbound Garbage</td>
+                            <td class="due-date">Jan 26</td>
                             <td>$98.00</td>
                             <td><span class="actual-amount clickable-zero" data-bill="Earthbound Garbage" onclick="promptMarkPaid('Earthbound Garbage')">$0.00</span></td>
                             <td class="over-under">-$98.00</td>
@@ -307,6 +320,7 @@
                         </tr>
                         <tr>
                             <td>Water</td>
+                            <td class="due-date">Jan 26</td>
                             <td>$70.00</td>
                             <td><span class="actual-amount clickable-zero" data-bill="Water" onclick="promptMarkPaid('Water')">$0.00</span></td>
                             <td class="over-under">-$70.00</td>
@@ -314,6 +328,7 @@
                         </tr>
                         <tr>
                             <td>Charity</td>
+                            <td class="due-date">Monthly</td>
                             <td>$50.00</td>
                             <td><span class="actual-amount clickable-zero" data-bill="Charity" onclick="promptMarkPaid('Charity')">$0.00</span></td>
                             <td class="over-under">-$50.00</td>
@@ -321,6 +336,7 @@
                         </tr>
                         <tr>
                             <td>YMCA Membership</td>
+                            <td class="due-date">Dec 26</td>
                             <td>$35.00</td>
                             <td><span class="actual-amount clickable-zero" data-bill="YMCA Membership" onclick="promptMarkPaid('YMCA Membership')">$0.00</span></td>
                             <td class="over-under">-$35.00</td>
@@ -332,9 +348,13 @@
                             <td></td>
                             <td></td>
                             <td></td>
+                            <td></td>
                         </tr>
                         <tr>
                             <td>Groceries</td>
+                        <tr>
+                            <td>Groceries</td>
+                            <td class="due-date">Monthly</td>
                             <td>$850.00</td>
                             <td><span class="actual-amount clickable-zero" data-bill="Groceries" onclick="promptMarkPaid('Groceries')">$0.00</span></td>
                             <td class="over-under">-$850.00</td>
@@ -342,6 +362,7 @@
                         </tr>
                         <tr>
                             <td>Restaurants/Entertainment</td>
+                            <td class="due-date">Monthly</td>
                             <td>$300.00</td>
                             <td><span class="actual-amount clickable-zero" data-bill="Restaurants/Entertainment" onclick="promptMarkPaid('Restaurants/Entertainment')">$0.00</span></td>
                             <td class="over-under">-$300.00</td>
@@ -349,6 +370,7 @@
                         </tr>
                         <tr>
                             <td>Dylan's Medication</td>
+                            <td class="due-date">Monthly</td>
                             <td>$90.00</td>
                             <td><span class="actual-amount clickable-zero" data-bill="Dylan's Medication" onclick="promptMarkPaid('Dylan\'s Medication')">$0.00</span></td>
                             <td class="over-under">-$90.00</td>
@@ -356,6 +378,7 @@
                         </tr>
                         <tr>
                             <td>Dylan's School Lunches</td>
+                            <td class="due-date">Monthly</td>
                             <td>$50.00</td>
                             <td><span class="actual-amount clickable-zero" data-bill="Dylan's School Lunches" onclick="promptMarkPaid('Dylan\'s School Lunches')">$0.00</span></td>
                             <td class="over-under">-$50.00</td>
@@ -363,6 +386,7 @@
                         </tr>
                         <tr>
                             <td>Miscellaneous</td>
+                            <td class="due-date">Monthly</td>
                             <td>$50.00</td>
                             <td><span class="actual-amount clickable-zero" data-bill="Miscellaneous" onclick="promptMarkPaid('Miscellaneous')">$0.00</span></td>
                             <td class="over-under">-$50.00</td>
@@ -370,6 +394,7 @@
                         </tr>
                         <tr>
                             <td>Roku / Disney Subscriptions</td>
+                            <td class="due-date">Monthly</td>
                             <td>$25.00</td>
                             <td><span class="actual-amount clickable-zero" data-bill="Roku / Disney Subscriptions" onclick="promptMarkPaid('Roku / Disney Subscriptions')">$0.00</span></td>
                             <td class="over-under">-$25.00</td>
@@ -377,6 +402,7 @@
                         </tr>
                         <tr>
                             <td>Cat Food</td>
+                            <td class="due-date">Monthly</td>
                             <td>$20.00</td>
                             <td><span class="actual-amount clickable-zero" data-bill="Cat Food" onclick="promptMarkPaid('Cat Food')">$0.00</span></td>
                             <td class="over-under">-$20.00</td>
@@ -388,9 +414,11 @@
                             <td></td>
                             <td></td>
                             <td></td>
+                            <td></td>
                         </tr>
                         <tr>
                             <td>Emergency Fund</td>
+                            <td class="due-date">Monthly</td>
                             <td>$225.00</td>
                             <td><span class="actual-amount clickable-zero" data-bill="Emergency Fund" onclick="promptMarkPaid('Emergency Fund')">$0.00</span></td>
                             <td class="over-under">-$225.00</td>
@@ -398,6 +426,7 @@
                         </tr>
                         <tr>
                             <td>Travel Spending</td>
+                            <td class="due-date">Monthly</td>
                             <td>$100.00</td>
                             <td><span class="actual-amount clickable-zero" data-bill="Travel Spending" onclick="promptMarkPaid('Travel Spending')">$0.00</span></td>
                             <td class="over-under">-$100.00</td>
@@ -405,6 +434,7 @@
                         </tr>
                         <tr>
                             <td>Dylan Investment</td>
+                            <td class="due-date">Monthly</td>
                             <td>$35.00</td>
                             <td><span class="actual-amount clickable-zero" data-bill="Dylan Investment" onclick="promptMarkPaid('Dylan Investment')">$0.00</span></td>
                             <td class="over-under">-$35.00</td>
@@ -412,6 +442,7 @@
                         </tr>
                         <tr>
                             <td>Brooks Investment</td>
+                            <td class="due-date">Monthly</td>
                             <td>$25.00</td>
                             <td><span class="actual-amount clickable-zero" data-bill="Brooks Investment" onclick="promptMarkPaid('Brooks Investment')">$0.00</span></td>
                             <td class="over-under">-$25.00</td>
@@ -423,8 +454,10 @@
                             <td></td>
                             <td></td>
                             <td></td>
+                            <td></td>
                         </tr>
                         <tr class="separator">
+                            <td></td>
                             <td></td>
                             <td></td>
                             <td></td>
@@ -433,6 +466,7 @@
                         </tr>
                         <tr>
                             <td>Extra Paid</td>
+                            <td class="due-date">-</td>
                             <td>$0.00</td>
                             <td><span class="actual-amount clickable-zero" data-bill="Extra Paid" onclick="promptMarkPaid('Extra Paid')">$0.00</span></td>
                             <td class="over-under">$0.00</td>
@@ -442,6 +476,7 @@
                     <tfoot>
                         <tr class="total-row">
                             <td><strong>TOTALS</strong></td>
+                            <td></td>
                             <td><strong id="totalBudget">$6,546.00</strong></td>
                             <td><strong id="totalActual">$0.00</strong></td>
                             <td><strong id="totalOverUnder">-$6,546.00</strong></td>
