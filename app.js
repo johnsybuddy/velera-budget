@@ -299,6 +299,7 @@ function updateBudgetFromTransactions() {
     };
     
     const currentMonthNumber = monthNumbers[currentMonth];
+    const currentYear = new Date().getFullYear();
     const currentMonthTransactions = transactions.filter(transaction => {
         const transactionDate = new Date(transaction.date);
         const transactionMonth = String(transactionDate.getMonth() + 1).padStart(2, '0');
@@ -307,7 +308,7 @@ function updateBudgetFromTransactions() {
         // Debug each transaction
         console.log(`Transaction: ${transaction.date} -> Month: ${transactionMonth}, Year: ${transactionYear}, Bill: ${transaction.bill}`);
         
-        return transactionMonth === currentMonthNumber && transactionYear === 2025 && transaction.bill !== 'Ignore/Internal Transfer';
+        return transactionMonth === currentMonthNumber && transactionYear === currentYear && transaction.bill !== 'Ignore/Internal Transfer';
     });
     
     console.log(`Current month: ${currentMonth} (${currentMonthNumber})`);
