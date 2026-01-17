@@ -274,15 +274,15 @@ function updateBudgetFromTransactions() {
     console.log('=== updateBudgetFromTransactions called ===');
     console.log('Current month:', currentMonth);
     console.log('Total transactions:', transactions.length);
+    console.log('Transactions array:', transactions);
     
     // Show ALL transactions to debug
-    console.log('ALL transactions:', transactions);
-    
-    // Show first few transactions to debug date format
     if (transactions.length > 0) {
+        console.log('First transaction:', transactions[0]);
         console.log('Sample transactions:', transactions.slice(0, 5));
     } else {
         console.log('NO TRANSACTIONS FOUND!');
+        return; // Exit early if no transactions
     }
     
     // Reset all actual amounts
