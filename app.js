@@ -291,6 +291,11 @@ function updateBudgetFromTransactions() {
         return transactionMonth === currentMonthNumber && transactionYear === 2025 && transaction.bill !== 'Ignore/Internal Transfer';
     });
     
+    console.log(`Current month: ${currentMonth} (${currentMonthNumber})`);
+    console.log(`Total transactions: ${transactions.length}`);
+    console.log(`Current month transactions: ${currentMonthTransactions.length}`);
+    console.log('Current month transactions:', currentMonthTransactions);
+    
     // Calculate totals by bill for current month only
     const billTotals = {};
     currentMonthTransactions.forEach(transaction => {
