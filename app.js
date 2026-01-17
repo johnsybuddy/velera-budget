@@ -275,6 +275,9 @@ function updateBudgetFromTransactions() {
     console.log('Current month:', currentMonth);
     console.log('Total transactions:', transactions.length);
     
+    // Show first few transactions to debug date format
+    console.log('Sample transactions:', transactions.slice(0, 5));
+    
     // Reset all actual amounts
     const actualSpans = document.querySelectorAll('.actual-amount');
     console.log('Found actual spans:', actualSpans.length);
@@ -293,6 +296,10 @@ function updateBudgetFromTransactions() {
         const transactionDate = new Date(transaction.date);
         const transactionMonth = String(transactionDate.getMonth() + 1).padStart(2, '0');
         const transactionYear = transactionDate.getFullYear();
+        
+        // Debug each transaction
+        console.log(`Transaction: ${transaction.date} -> Month: ${transactionMonth}, Year: ${transactionYear}, Bill: ${transaction.bill}`);
+        
         return transactionMonth === currentMonthNumber && transactionYear === 2025 && transaction.bill !== 'Ignore/Internal Transfer';
     });
     
