@@ -300,15 +300,22 @@ function updateBudgetFromTransactions() {
     
     const currentMonthNumber = monthNumbers[currentMonth];
     const currentYear = new Date().getFullYear();
+    console.log('Current year:', currentYear);
+    
     const currentMonthTransactions = transactions.filter(transaction => {
         const transactionDate = new Date(transaction.date);
         const transactionMonth = String(transactionDate.getMonth() + 1).padStart(2, '0');
         const transactionYear = transactionDate.getFullYear();
         
-        // Debug each transaction
-        console.log(`Transaction: ${transaction.date} -> Month: ${transactionMonth}, Year: ${transactionYear}, Bill: ${transaction.bill}`);
+        console.log(`Transaction: ${transaction.date} -> Month: ${transactionMonth}, Year: ${transactionYear}, Bill: ${transaction.bill}, CurrentYear: ${currentYear}`);
         
-        return transactionMonth === currentMonthNumber && transactionYear === currentYear && transaction.bill !== 'Ignore/Internal Transfer';
+        const monthMatch = transactionMonth === currentMonthNumber;
+        const yearMatch = transactionYear === currentYear;
+        const notIgnored = transaction.bill !== 'Ignore/Internal Transfer';
+        
+        console.log(`  Month match: ${monthMatch}, Year match: ${yearMatch}, Not ignored: ${notIgnored}`);
+        
+        return monthMatch && yearMatch && notIgnored;
     });
     
     console.log(`Current month: ${currentMonth} (${currentMonthNumber})`);
