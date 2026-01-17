@@ -275,8 +275,15 @@ function updateBudgetFromTransactions() {
     console.log('Current month:', currentMonth);
     console.log('Total transactions:', transactions.length);
     
+    // Show ALL transactions to debug
+    console.log('ALL transactions:', transactions);
+    
     // Show first few transactions to debug date format
-    console.log('Sample transactions:', transactions.slice(0, 5));
+    if (transactions.length > 0) {
+        console.log('Sample transactions:', transactions.slice(0, 5));
+    } else {
+        console.log('NO TRANSACTIONS FOUND!');
+    }
     
     // Reset all actual amounts
     const actualSpans = document.querySelectorAll('.actual-amount');
