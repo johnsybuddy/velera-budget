@@ -271,8 +271,13 @@ function calculatePeriodicBuckets() {
 
 // Calculate budget totals from transactions for current month
 function updateBudgetFromTransactions() {
+    console.log('=== updateBudgetFromTransactions called ===');
+    console.log('Current month:', currentMonth);
+    console.log('Total transactions:', transactions.length);
+    
     // Reset all actual amounts
     const actualSpans = document.querySelectorAll('.actual-amount');
+    console.log('Found actual spans:', actualSpans.length);
     actualSpans.forEach(span => {
         span.textContent = '$0.00';
     });
