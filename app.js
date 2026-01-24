@@ -475,9 +475,9 @@ function parseCSV(csv) {
         return;
     }
     
-    // Parse headers more carefully - handle quoted headers
+    // Parse headers
     const headerLine = lines[0];
-    const headers = parseCSVLine(headerLine);
+    const headers = headerLine.split('\t').length > 1 ? headerLine.split('\t') : headerLine.split(',');
     console.log('Raw header line:', headerLine);
     console.log('Parsed headers:', headers);
     
@@ -494,26 +494,30 @@ function parseCSV(csv) {
     showNotification(`Detected ${bankConfig.name} format`);
     console.log('Bank config:', bankConfig);
     
-    // Parse data rows - process ALL rows, not just first 100
+    // Parse data rows - simple split, no complex quote handling
     let skippedRows = [];
     for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line) continue;
         
-        // Better CSV parsing - handle commas within fields
-        const cols = parseCSVLine(line);
+        // Try tab-delimited first, then comma
+        const cols = line.split('\t').length > 1 ? line.split('\t') : line.split(',');
+        const cleanCols = cols.map(c => c.trim().replace(/^["']|["']$/g, ''));
         
-        if (cols.length >= 3) {
-            const transaction = parseTransaction(cols, bankConfig, i + 1); // Pass row number
-            if (transaction && !isDuplicate(transaction)) {
-                csvData.push(transaction);
-            } else if (transaction) {
-                console.log('Duplicate transaction skipped:', transaction);
-            } else {
-                skippedRows.push({ row: i + 1, data: cols, reason: 'Failed to parse' });
-            }
+        // Skip rows that don't have enough columns
+        if (cleanCols.length < 4) {
+            console.log(`Skipping row ${i + 1} - only ${cleanCols.length} columns:`, cleanCols);
+            skippedRows.push({ row: i + 1, data: cleanCols, reason: `Only ${cleanCols.length} columns` });
+            continue;
+        }
+        
+        const transaction = parseTransaction(cleanCols, bankConfig, i + 1);
+        if (transaction && !isDuplicate(transaction)) {
+            csvData.push(transaction);
+        } else if (transaction) {
+            console.log('Duplicate transaction skipped:', transaction);
         } else {
-            skippedRows.push({ row: i + 1, data: cols, reason: 'Not enough columns' });
+            skippedRows.push({ row: i + 1, data: cleanCols, reason: 'Failed to parse' });
         }
     }
     
@@ -525,53 +529,6 @@ function parseCSV(csv) {
         });
     }
     displayCSVPreview();
-}
-
-// Better CSV line parser that handles quoted fields with commas
-function parseCSVLine(line) {
-    const result = [];
-    let current = '';
-    let inQuotes = false;
-    let quoteChar = null;
-    
-    for (let i = 0; i < line.length; i++) {
-        const char = line[i];
-        const nextChar = line[i + 1];
-        const prevChar = i > 0 ? line[i - 1] : null;
-        
-        // Check if this is a quote at the start of a field or after a comma
-        const isFieldStart = prevChar === null || prevChar === ',';
-        
-        if ((char === '"' || char === "'") && isFieldStart && !inQuotes) {
-            // Start of quoted field
-            inQuotes = true;
-            quoteChar = char;
-        } else if (char === quoteChar && inQuotes) {
-            if (nextChar === quoteChar) {
-                // Escaped quote
-                current += char;
-                i++; // Skip next quote
-            } else if (nextChar === ',' || nextChar === undefined) {
-                // End of quoted field
-                inQuotes = false;
-                quoteChar = null;
-            } else {
-                // Quote in the middle of field, treat as regular character
-                current += char;
-            }
-        } else if (char === ',' && !inQuotes) {
-            // End of field
-            result.push(current.trim());
-            current = '';
-        } else {
-            current += char;
-        }
-    }
-    
-    // Add last field
-    result.push(current.trim());
-    
-    return result;
 }
 
 function detectBankType(headers) {
