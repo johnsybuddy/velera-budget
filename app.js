@@ -1888,6 +1888,38 @@ function editBill(billName, amount) {
     document.getElementById('billAmount').value = amount;
     document.getElementById('deleteBillBtn').style.display = 'inline-block';
     document.getElementById('addBillForm').dataset.editBill = billName;
+    
+    // Show month selection for editing
+    document.getElementById('monthSelectionGroup').style.display = 'block';
+    
+    // Check current month by default
+    clearAllMonths();
+    document.getElementById(`month-${currentMonth}`).checked = true;
+}
+
+function showAddBill() {
+    document.getElementById('addBillModal').style.display = 'block';
+    document.getElementById('billModalTitle').textContent = 'Add Bill';
+    document.getElementById('addBillForm').reset();
+    document.getElementById('deleteBillBtn').style.display = 'none';
+    delete document.getElementById('addBillForm').dataset.editBill;
+    
+    // Hide month selection for new bills
+    document.getElementById('monthSelectionGroup').style.display = 'none';
+}
+
+function selectAllMonths() {
+    const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    months.forEach(month => {
+        document.getElementById(`month-${month}`).checked = true;
+    });
+}
+
+function clearAllMonths() {
+    const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    months.forEach(month => {
+        document.getElementById(`month-${month}`).checked = false;
+    });
 }
 
 function closeAddBill() {
@@ -1911,31 +1943,54 @@ document.getElementById('addBillForm').addEventListener('submit', function(e) {
     const isEdit = this.dataset.editBill;
     
     if (isEdit) {
-        // Update the bill amount in the table
-        const rows = document.querySelectorAll('.budget-table tbody tr');
-        rows.forEach(row => {
-            if (row.cells[0] && row.cells[0].textContent.trim() === isEdit) {
-                row.cells[2].textContent = `$${amount.toFixed(2)}`;
-                // Update the over/under calculation
-                const actualText = row.cells[3]?.querySelector('.actual-amount')?.textContent || '$0.00';
-                const actual = parseFloat(actualText.replace(/[$,]/g, '')) || 0;
-                const overUnder = actual - amount;
-                if (row.cells[4]) {
-                    row.cells[4].textContent = `$${overUnder.toFixed(2)}`;
-                    row.cells[4].style.color = overUnder >= 0 ? 'var(--success)' : 'var(--danger)';
-                }
+        // Get selected months
+        const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+        const selectedMonths = months.filter(month => 
+            document.getElementById(`month-${month}`).checked
+        );
+        
+        if (selectedMonths.length === 0) {
+            showNotification('Please select at least one month to apply changes to', 'error');
+            return;
+        }
+        
+        // Update the bill amount for selected months
+        selectedMonths.forEach(month => {
+            if (!monthlyBudgets[month]) {
+                monthlyBudgets[month] = {};
             }
+            monthlyBudgets[month][isEdit] = amount;
         });
         
-        // Save to monthly budgets
-        monthlyBudgets[currentMonth][isEdit] = amount;
-        saveMonthlyBudgets();
+        // Update the table display if current month is selected
+        if (selectedMonths.includes(currentMonth)) {
+            const rows = document.querySelectorAll('.budget-table tbody tr');
+            rows.forEach(row => {
+                if (row.cells[0] && row.cells[0].textContent.trim() === isEdit) {
+                    row.cells[2].textContent = `$${amount.toFixed(2)}`;
+                    // Update the over/under calculation
+                    const actualText = row.cells[3]?.querySelector('.actual-amount')?.textContent || '$0.00';
+                    const actual = parseFloat(actualText.replace(/[$,]/g, '')) || 0;
+                    const overUnder = actual - amount;
+                    if (row.cells[4]) {
+                        row.cells[4].textContent = `$${overUnder.toFixed(2)}`;
+                        row.cells[4].style.color = overUnder >= 0 ? 'var(--success)' : 'var(--danger)';
+                    }
+                }
+            });
+            
+            // Update totals
+            updateBudgetTotals();
+        }
         
-        // Update totals
-        updateBudgetTotals();
+        // Save to cloud/localStorage
+        saveMonthlyBudgets();
         updateDashboard();
         
-        showNotification(`${billName} updated to $${amount.toFixed(2)}!`);
+        const monthText = selectedMonths.length === 1 ? 
+            selectedMonths[0].toUpperCase() : 
+            `${selectedMonths.length} months`;
+        showNotification(`${billName} updated to $${amount.toFixed(2)} for ${monthText}!`);
     } else {
         showNotification(`${billName} added!`);
     }

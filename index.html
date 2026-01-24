@@ -672,6 +672,51 @@
                     <label for="billAmount">Monthly Amount:</label>
                     <input type="number" id="billAmount" step="0.01" required>
                 </div>
+                <div class="form-group" id="monthSelectionGroup" style="display: none;">
+                    <label>Apply to which months:</label>
+                    <div class="month-checkboxes" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-top: 0.5rem;">
+                        <label style="display: flex; align-items: center; font-size: 0.875rem;">
+                            <input type="checkbox" id="month-jan" value="jan" style="margin-right: 0.25rem;"> Jan
+                        </label>
+                        <label style="display: flex; align-items: center; font-size: 0.875rem;">
+                            <input type="checkbox" id="month-feb" value="feb" style="margin-right: 0.25rem;"> Feb
+                        </label>
+                        <label style="display: flex; align-items: center; font-size: 0.875rem;">
+                            <input type="checkbox" id="month-mar" value="mar" style="margin-right: 0.25rem;"> Mar
+                        </label>
+                        <label style="display: flex; align-items: center; font-size: 0.875rem;">
+                            <input type="checkbox" id="month-apr" value="apr" style="margin-right: 0.25rem;"> Apr
+                        </label>
+                        <label style="display: flex; align-items: center; font-size: 0.875rem;">
+                            <input type="checkbox" id="month-may" value="may" style="margin-right: 0.25rem;"> May
+                        </label>
+                        <label style="display: flex; align-items: center; font-size: 0.875rem;">
+                            <input type="checkbox" id="month-jun" value="jun" style="margin-right: 0.25rem;"> Jun
+                        </label>
+                        <label style="display: flex; align-items: center; font-size: 0.875rem;">
+                            <input type="checkbox" id="month-jul" value="jul" style="margin-right: 0.25rem;"> Jul
+                        </label>
+                        <label style="display: flex; align-items: center; font-size: 0.875rem;">
+                            <input type="checkbox" id="month-aug" value="aug" style="margin-right: 0.25rem;"> Aug
+                        </label>
+                        <label style="display: flex; align-items: center; font-size: 0.875rem;">
+                            <input type="checkbox" id="month-sep" value="sep" style="margin-right: 0.25rem;"> Sep
+                        </label>
+                        <label style="display: flex; align-items: center; font-size: 0.875rem;">
+                            <input type="checkbox" id="month-oct" value="oct" style="margin-right: 0.25rem;"> Oct
+                        </label>
+                        <label style="display: flex; align-items: center; font-size: 0.875rem;">
+                            <input type="checkbox" id="month-nov" value="nov" style="margin-right: 0.25rem;"> Nov
+                        </label>
+                        <label style="display: flex; align-items: center; font-size: 0.875rem;">
+                            <input type="checkbox" id="month-dec" value="dec" style="margin-right: 0.25rem;"> Dec
+                        </label>
+                    </div>
+                    <div style="margin-top: 0.5rem;">
+                        <button type="button" class="btn-secondary" onclick="selectAllMonths()" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">Select All</button>
+                        <button type="button" class="btn-secondary" onclick="clearAllMonths()" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; margin-left: 0.5rem;">Clear All</button>
+                    </div>
+                </div>
                 <div class="form-group">
                     <label for="billCategory">Category:</label>
                     <select id="billCategory" required>
