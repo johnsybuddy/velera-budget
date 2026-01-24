@@ -532,19 +532,32 @@ function parseCSVLine(line) {
     const result = [];
     let current = '';
     let inQuotes = false;
+    let quoteChar = null;
     
     for (let i = 0; i < line.length; i++) {
         const char = line[i];
         const nextChar = line[i + 1];
+        const prevChar = i > 0 ? line[i - 1] : null;
         
-        if (char === '"' || char === "'") {
-            if (inQuotes && nextChar === char) {
+        // Check if this is a quote at the start of a field or after a comma
+        const isFieldStart = prevChar === null || prevChar === ',';
+        
+        if ((char === '"' || char === "'") && isFieldStart && !inQuotes) {
+            // Start of quoted field
+            inQuotes = true;
+            quoteChar = char;
+        } else if (char === quoteChar && inQuotes) {
+            if (nextChar === quoteChar) {
                 // Escaped quote
                 current += char;
                 i++; // Skip next quote
+            } else if (nextChar === ',' || nextChar === undefined) {
+                // End of quoted field
+                inQuotes = false;
+                quoteChar = null;
             } else {
-                // Toggle quote state
-                inQuotes = !inQuotes;
+                // Quote in the middle of field, treat as regular character
+                current += char;
             }
         } else if (char === ',' && !inQuotes) {
             // End of field
