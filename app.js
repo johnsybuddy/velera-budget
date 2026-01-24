@@ -641,24 +641,24 @@ function parseTransaction(cols, config) {
     } else {
         // Single amount column
         const amountStr = cols[config.amountCol];
-        if (!amountStr || amountStr.includes('#')) {
+        if (!amountStr || amountStr.trim() === '' || amountStr.includes('#')) {
             console.log('Skipping row - invalid amount:', amountStr, 'for', desc);
-            return null; // Skip ### amounts
+            return null; // Skip ### amounts or empty
         }
         
-        // Handle negative amounts in parentheses: ($100.00) or negative sign
-        let cleanAmount = amountStr.replace(/[$,]/g, '');
-        const isNegative = cleanAmount.includes('(') || cleanAmount.includes('-');
-        cleanAmount = cleanAmount.replace(/[()]/g, '').replace(/-/g, '');
-        amount = parseFloat(cleanAmount) || 0;
+        // Handle negative amounts in parentheses: ($100.00) or negative sign: -100.00 or bare: 100.00
+        let cleanAmount = amountStr.replace(/[$,\s]/g, ''); // Remove $, commas, and spaces
+        const isNegative = cleanAmount.includes('(') || cleanAmount.startsWith('-');
+        cleanAmount = cleanAmount.replace(/[()-]/g, ''); // Remove parentheses and negative signs
+        amount = parseFloat(cleanAmount);
+        
+        if (isNaN(amount) || amount === 0) {
+            console.log('Skipping row - could not parse amount:', amountStr, '(cleaned:', cleanAmount, ') for', desc);
+            return null;
+        }
         
         // Keep the sign (don't use Math.abs for negative amounts)
         if (isNegative) amount = -amount;
-    }
-    
-    if (amount === 0) {
-        console.log('Skipping row - zero amount for', desc);
-        return null;
     }
     
     // Parse and normalize date
