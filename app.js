@@ -531,15 +531,24 @@ function detectBankType(headers) {
     const headerStr = headers.join('|').toLowerCase();
     console.log('CSV Headers detected:', headers);
     console.log('Header string:', headerStr);
+    console.log('Number of columns:', headers.length);
     
-    // Custom format: Date, Description, Amount, Type (where Type is the account)
-    if (headerStr.includes('date') && headerStr.includes('description') && headerStr.includes('amount') && headerStr.includes('type')) {
+    // Custom format with 5 columns: Date, Description, Amount, Category, Type (where Type is the account)
+    // But header only shows 4: Date, Description, Amount, Type
+    // The 5th column (actual account) has no header
+    if (headers.length >= 4 && headerStr.includes('date') && headerStr.includes('description') && headerStr.includes('amount')) {
+        const dateCol = headers.findIndex(h => /^date$/i.test(h));
+        const descCol = headers.findIndex(h => /^description$/i.test(h));
+        const amountCol = headers.findIndex(h => /^amount$/i.test(h));
+        
+        // Check if there's a 5th column (account) by looking at data rows
         return {
-            name: 'Custom Format (Date/Description/Amount/Type)',
-            dateCol: headers.findIndex(h => /^date$/i.test(h)),
-            descCol: headers.findIndex(h => /^description$/i.test(h)),
-            amountCol: headers.findIndex(h => /^amount$/i.test(h)),
-            accountCol: headers.findIndex(h => /^type$/i.test(h))
+            name: 'Custom Format (Date/Description/Amount/[Category]/Account)',
+            dateCol: dateCol,
+            descCol: descCol,
+            amountCol: amountCol,
+            categoryCol: 3, // Optional category column (might be empty)
+            accountCol: 4   // Actual account column (Sams/RCU)
         };
     }
     
@@ -607,6 +616,8 @@ function detectBankType(headers) {
 function parseTransaction(cols, config) {
     let dateStr, desc, amount, accountName;
     
+    console.log('Parsing row with', cols.length, 'columns:', cols);
+    
     // Extract date
     dateStr = cols[config.dateCol];
     if (!dateStr || dateStr.includes('#')) {
@@ -657,32 +668,36 @@ function parseTransaction(cols, config) {
         return null;
     }
     
-    // Extract account from Type column if available
-    if (config.accountCol !== undefined && cols[config.accountCol]) {
+    // Extract account - check column 4 (5th column in 0-indexed array)
+    if (cols.length > 4 && cols[4] && cols[4].trim()) {
+        accountName = cols[4].trim();
+        console.log('Found account in column 4:', accountName);
+    } else if (config.accountCol !== undefined && cols[config.accountCol]) {
         accountName = cols[config.accountCol].trim();
-        // Normalize account names
-        if (accountName.toLowerCase().includes('sam')) accountName = 'Sam\'s';
-        if (accountName.toLowerCase().includes('rcu')) accountName = 'RCU';
+        console.log('Found account in config.accountCol:', accountName);
     } else {
-        // Map bank names to account types
-        accountName = 'RCU'; // Default
-        if (config.name.toLowerCase().includes('sam') || 
-            config.name.toLowerCase().includes('sams') ||
-            config.name.toLowerCase().includes('walmart')) {
-            accountName = 'Sam\'s';
-        }
+        // Default
+        accountName = 'RCU';
+        console.log('Using default account: RCU');
     }
+    
+    // Normalize account names
+    if (accountName.toLowerCase().includes('sam')) accountName = 'Sam\'s';
+    if (accountName.toLowerCase().includes('rcu')) accountName = 'RCU';
     
     // Auto-categorize transaction
     const category = autoCategorizeBill(desc);
     
-    return {
+    const transaction = {
         date,
         source: cleanDescription(desc),
         amount: Math.abs(amount), // Store as positive, we'll handle display separately
         bill: category,
         account: accountName
     };
+    
+    console.log('✓ Parsed transaction:', transaction);
+    return transaction;
 }
 
 function normalizeDate(dateStr) {
