@@ -494,19 +494,17 @@ function parseCSV(csv) {
     showNotification(`Detected ${bankConfig.name} format`);
     console.log('Bank config:', bankConfig);
     
-    // Parse data rows
-    for (let i = 1; i < Math.min(lines.length, 101); i++) { // Preview first 100 rows
+    // Parse data rows - process ALL rows, not just first 100
+    for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line) continue;
         
         // Handle quoted CSV values better
         const cols = line.split(',').map(c => c.trim().replace(/^["']|["']$/g, ''));
-        console.log(`Row ${i}:`, cols);
         
         if (cols.length >= 3) {
             const transaction = parseTransaction(cols, bankConfig);
             if (transaction && !isDuplicate(transaction)) {
-                console.log('Parsed transaction:', transaction);
                 csvData.push(transaction);
             } else if (transaction) {
                 console.log('Duplicate transaction skipped:', transaction);
@@ -514,7 +512,7 @@ function parseCSV(csv) {
         }
     }
     
-    console.log('Total parsed transactions:', csvData.length);
+    console.log(`Total parsed transactions: ${csvData.length} (from ${lines.length - 1} rows)`);
     displayCSVPreview();
 }
 
@@ -949,9 +947,12 @@ function autoCategorizeBill(description) {
 }
 
 function isDuplicate(newTransaction) {
+    // Only consider it a duplicate if ALL fields match exactly
     return transactions.some(existing => 
         existing.date === newTransaction.date &&
         existing.source === newTransaction.source &&
+        existing.account === newTransaction.account &&
+        existing.bill === newTransaction.bill &&
         Math.abs(existing.amount - newTransaction.amount) < 0.01
     );
 }
@@ -988,7 +989,11 @@ function displayCSVPreview() {
             <tbody>
     `;
     
-    csvData.forEach(row => {
+    // Show first 50 transactions in preview (but import all)
+    const previewLimit = 50;
+    const transactionsToShow = csvData.slice(0, previewLimit);
+    
+    transactionsToShow.forEach(row => {
         const formattedDate = new Date(row.date).toLocaleDateString('en-US', {
             month: 'numeric',
             day: 'numeric',
@@ -1009,6 +1014,16 @@ function displayCSVPreview() {
             </tr>
         `;
     });
+    
+    if (csvData.length > previewLimit) {
+        html += `
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 1rem; color: var(--text-muted); font-style: italic;">
+                    ... and ${csvData.length - previewLimit} more transactions (all will be imported)
+                </td>
+            </tr>
+        `;
+    }
     
     html += '</tbody></table>';
     preview.innerHTML = html;
