@@ -969,11 +969,22 @@ function displayCSVPreview() {
     const newTransactions = csvData.length - duplicates;
     
     let html = `
-        <div style="margin-bottom: 1rem; padding: 0.75rem; background: var(--neutral-100); border-radius: 8px;">
-            <strong>Import Summary:</strong><br>
-            📊 Total transactions: ${csvData.length}<br>
-            ✅ New transactions: ${newTransactions}<br>
-            ⚠️ Duplicates (will be skipped): ${duplicates}
+        <div style="margin-bottom: 1rem; padding: 1rem; background: var(--bg-main); border-radius: var(--radius-md); border: 1px solid var(--border-light);">
+            <div style="font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">📊 Import Summary</div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; font-size: 0.875rem;">
+                <div style="text-align: center; padding: 0.5rem; background: var(--bg-card); border-radius: var(--radius-sm);">
+                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">${csvData.length}</div>
+                    <div style="color: var(--text-muted); font-size: 0.75rem;">CSV Rows</div>
+                </div>
+                <div style="text-align: center; padding: 0.5rem; background: var(--bg-card); border-radius: var(--radius-sm);">
+                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--success);">${newTransactions}</div>
+                    <div style="color: var(--text-muted); font-size: 0.75rem;">Will Import</div>
+                </div>
+                <div style="text-align: center; padding: 0.5rem; background: var(--bg-card); border-radius: var(--radius-sm);">
+                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--warning);">${duplicates}</div>
+                    <div style="color: var(--text-muted); font-size: 0.75rem;">Duplicates</div>
+                </div>
+            </div>
         </div>
         <table>
             <thead>
@@ -1037,11 +1048,14 @@ function displayCSVPreview() {
 function confirmCSVImport() {
     if (csvData.length === 0) return;
     
+    const totalInCSV = csvData.length;
+    
     // Filter out duplicates
     const newTransactions = csvData.filter(t => !isDuplicate(t));
+    const duplicateCount = totalInCSV - newTransactions.length;
     
     if (newTransactions.length === 0) {
-        showNotification('No new transactions to import', 'warning');
+        showNotification('No new transactions to import - all are duplicates', 'warning');
         return;
     }
     
@@ -1055,7 +1069,21 @@ function confirmCSVImport() {
     updateDashboard();
     closeImportCSV();
     
-    showNotification(`🎉 Imported ${newTransactions.length} new transactions successfully!`);
+    // Show detailed import metrics
+    const message = `
+        ✅ Import Complete!<br>
+        📊 CSV Rows: ${totalInCSV}<br>
+        ✅ Imported: ${newTransactions.length}<br>
+        ${duplicateCount > 0 ? `⚠️ Skipped (duplicates): ${duplicateCount}` : ''}
+    `;
+    
+    showNotification(message, 'success');
+    
+    console.log(`CSV Import Summary:
+    - Total rows in CSV: ${totalInCSV}
+    - New transactions imported: ${newTransactions.length}
+    - Duplicates skipped: ${duplicateCount}
+    - Total transactions now: ${transactions.length}`);
 }
 
 // Monthly budget management
@@ -1969,15 +1997,21 @@ function showNotification(message, type = 'success') {
         transform: translateX(100%);
         transition: transform 0.3s ease;
         box-shadow: var(--shadow-lg);
-        max-width: 300px;
+        max-width: 350px;
+        font-size: 0.875rem;
+        line-height: 1.5;
     `;
     
-    notification.textContent = message;
+    // Support HTML content
+    notification.innerHTML = message;
     document.body.appendChild(notification);
     
     setTimeout(() => {
         notification.style.transform = 'translateX(0)';
     }, 100);
+    
+    // Longer display time for success messages with metrics
+    const displayTime = message.includes('<br>') ? 5000 : (type === 'error' ? 5000 : 3000);
     
     setTimeout(() => {
         notification.style.transform = 'translateX(100%)';
@@ -1986,7 +2020,7 @@ function showNotification(message, type = 'success') {
                 document.body.removeChild(notification);
             }
         }, 300);
-    }, type === 'error' ? 5000 : 3000);
+    }, displayTime);
 }
 
 // Bill management functions
