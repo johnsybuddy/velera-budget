@@ -499,6 +499,7 @@
             <div class="add-transaction">
                 <button class="btn-primary" onclick="showAddTransaction()">Add Transaction</button>
                 <button class="btn-secondary" onclick="showImportCSV()">Import CSV</button>
+                <button class="btn-secondary" onclick="showLearnedPatterns()">🧠 View Learned Patterns</button>
             </div>
             <div class="transactions-table-container">
                 <div class="bulk-actions" style="margin-bottom: 1rem; display: none;" id="bulkActions">
@@ -733,6 +734,24 @@
                     <button type="button" class="btn-danger" id="deleteBillBtn" onclick="deleteBill()" style="display:none;">Delete</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Learned Patterns Modal -->
+    <div id="learnedPatternsModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <span class="close" onclick="closeLearnedPatterns()">&times;</span>
+            <h2>🧠 Learned Categorization Patterns</h2>
+            <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1rem;">
+                The system learns from your categorization choices. Merchants with higher confidence will be auto-categorized more accurately.
+            </p>
+            <div id="learnedPatternsContent" style="max-height: 400px; overflow-y: auto;">
+                <!-- Patterns will be populated by JavaScript -->
+            </div>
+            <div class="form-actions" style="margin-top: 1rem;">
+                <button type="button" class="btn-danger" onclick="clearLearnedPatterns()">Clear All Patterns</button>
+                <button type="button" class="btn-secondary" onclick="closeLearnedPatterns()">Close</button>
+            </div>
         </div>
     </div>
 

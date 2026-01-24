@@ -83,23 +83,33 @@ let transactions = [
     { date: '2025-09-20', source: 'Walmart', amount: 89.75, bill: 'Gas', account: 'Sam\'s' }
 ];
 
+// Learning system for auto-categorization
+let learnedPatterns = {};
+let categoryConfidence = {};
+
 // Enhanced cloud storage functions
 async function saveTransactions() {
     if (isFirebaseEnabled) {
         try {
             await db.collection('users').doc(userId).set({
                 transactions: transactions,
+                learnedPatterns: learnedPatterns,
+                categoryConfidence: categoryConfidence,
                 lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
             }, { merge: true });
-            console.log('Transactions saved to cloud');
+            console.log('Transactions and learned patterns saved to cloud');
         } catch (error) {
             console.error('Error saving to cloud:', error);
             // Fallback to localStorage
             localStorage.setItem('billsTransactions', JSON.stringify(transactions));
+            localStorage.setItem('learnedPatterns', JSON.stringify(learnedPatterns));
+            localStorage.setItem('categoryConfidence', JSON.stringify(categoryConfidence));
         }
     } else {
         // Fallback to localStorage
         localStorage.setItem('billsTransactions', JSON.stringify(transactions));
+        localStorage.setItem('learnedPatterns', JSON.stringify(learnedPatterns));
+        localStorage.setItem('categoryConfidence', JSON.stringify(categoryConfidence));
     }
 }
 
@@ -110,6 +120,17 @@ async function loadTransactions() {
             if (doc.exists && doc.data().transactions) {
                 transactions = doc.data().transactions;
                 console.log('Transactions loaded from cloud:', transactions.length);
+                
+                // Load learned patterns
+                if (doc.data().learnedPatterns) {
+                    learnedPatterns = doc.data().learnedPatterns;
+                    console.log('Learned patterns loaded from cloud:', Object.keys(learnedPatterns).length);
+                }
+                
+                if (doc.data().categoryConfidence) {
+                    categoryConfidence = doc.data().categoryConfidence;
+                    console.log('Category confidence loaded from cloud');
+                }
                 return;
             }
         } catch (error) {
@@ -122,6 +143,19 @@ async function loadTransactions() {
     if (saved) {
         transactions = JSON.parse(saved);
         console.log('Transactions loaded from localStorage:', transactions.length);
+    }
+    
+    // Load learned patterns from localStorage
+    const savedPatterns = localStorage.getItem('learnedPatterns');
+    if (savedPatterns) {
+        learnedPatterns = JSON.parse(savedPatterns);
+        console.log('Learned patterns loaded from localStorage:', Object.keys(learnedPatterns).length);
+    }
+    
+    const savedConfidence = localStorage.getItem('categoryConfidence');
+    if (savedConfidence) {
+        categoryConfidence = JSON.parse(savedConfidence);
+        console.log('Category confidence loaded from localStorage');
     }
 }
 
@@ -645,9 +679,85 @@ function cleanDescription(desc) {
         .trim();
 }
 
+// Learning system functions
+function learnFromCategorization(source, category) {
+    const cleanSource = cleanMerchantName(source);
+    
+    if (!learnedPatterns[cleanSource]) {
+        learnedPatterns[cleanSource] = {};
+    }
+    
+    if (!learnedPatterns[cleanSource][category]) {
+        learnedPatterns[cleanSource][category] = 0;
+    }
+    
+    learnedPatterns[cleanSource][category]++;
+    
+    // Update confidence - more occurrences = higher confidence
+    const totalOccurrences = Object.values(learnedPatterns[cleanSource]).reduce((sum, count) => sum + count, 0);
+    const categoryOccurrences = learnedPatterns[cleanSource][category];
+    const confidence = categoryOccurrences / totalOccurrences;
+    
+    if (!categoryConfidence[cleanSource]) {
+        categoryConfidence[cleanSource] = {};
+    }
+    categoryConfidence[cleanSource][category] = confidence;
+    
+    console.log(`Learned: ${cleanSource} -> ${category} (confidence: ${(confidence * 100).toFixed(1)}%)`);
+    
+    // Save the learning
+    saveTransactions();
+}
+
+function cleanMerchantName(source) {
+    // Clean up merchant names for better pattern matching
+    return source.toLowerCase()
+        .replace(/\s+/g, ' ')
+        .replace(/[#\d]+$/, '') // Remove trailing numbers
+        .replace(/\s+(store|location|branch)\s*\d*$/i, '') // Remove store numbers
+        .replace(/\s+inc\.?$/i, '') // Remove Inc
+        .replace(/\s+llc\.?$/i, '') // Remove LLC
+        .replace(/\s+corp\.?$/i, '') // Remove Corp
+        .replace(/\s+co\.?$/i, '') // Remove Co
+        .trim();
+}
+
+function getLearnedCategory(source) {
+    const cleanSource = cleanMerchantName(source);
+    
+    if (learnedPatterns[cleanSource]) {
+        // Find the category with the highest count
+        let bestCategory = null;
+        let bestCount = 0;
+        let bestConfidence = 0;
+        
+        for (const [category, count] of Object.entries(learnedPatterns[cleanSource])) {
+            if (count > bestCount) {
+                bestCount = count;
+                bestCategory = category;
+                bestConfidence = categoryConfidence[cleanSource]?.[category] || 0;
+            }
+        }
+        
+        // Only return if we have reasonable confidence (at least 60% or 3+ occurrences)
+        if (bestConfidence >= 0.6 || bestCount >= 3) {
+            console.log(`Using learned pattern: ${cleanSource} -> ${bestCategory} (${bestCount} times, ${(bestConfidence * 100).toFixed(1)}% confidence)`);
+            return { category: bestCategory, confidence: bestConfidence, learned: true };
+        }
+    }
+    
+    return null;
+}
+
 function autoCategorizeBill(description) {
     const desc = description.toLowerCase();
     console.log('Categorizing:', desc);
+    
+    // First, check learned patterns
+    const learnedResult = getLearnedCategory(description);
+    if (learnedResult) {
+        return learnedResult.category;
+    }
     
     // Check for internal transfers first
     if (desc.includes('transfer') || desc.includes('internal') || desc.includes('deposit') ||
@@ -1609,6 +1719,13 @@ document.getElementById('addTransactionForm').addEventListener('submit', functio
     const editIndex = this.dataset.editIndex;
     
     if (editIndex !== undefined) {
+        // Learn from category changes when editing
+        const oldBill = transactions[editIndex].bill;
+        if (oldBill !== bill) {
+            learnFromCategorization(source, bill);
+            console.log(`Learning from edit: ${source} -> ${bill}`);
+        }
+        
         // Update existing transaction
         transactions[editIndex] = {
             date: date,
@@ -1620,6 +1737,10 @@ document.getElementById('addTransactionForm').addEventListener('submit', functio
         saveTransactions();
         showNotification('Transaction updated successfully!');
     } else {
+        // Learn from manual categorization when adding
+        learnFromCategorization(source, bill);
+        console.log(`Learning from new transaction: ${source} -> ${bill}`);
+        
         // Add new transaction
         transactions.push({
             date: date,
@@ -1714,6 +1835,13 @@ function editField(cell) {
             showNotification('Date is required', 'error');
             input.focus();
             return;
+        }
+        
+        // Learn from category changes
+        if (field === 'bill' && newValue !== currentValue) {
+            const source = transactions[index].source;
+            learnFromCategorization(source, newValue);
+            console.log(`Learning: ${source} -> ${newValue}`);
         }
         
         // Update transaction
@@ -2377,6 +2505,112 @@ function capitalizeWords(str) {
     return str.replace(/\w\S*/g, (txt) => {
         return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
     });
+}
+
+// Learned Patterns Management
+function showLearnedPatterns() {
+    document.getElementById('learnedPatternsModal').style.display = 'block';
+    displayLearnedPatterns();
+}
+
+function closeLearnedPatterns() {
+    document.getElementById('learnedPatternsModal').style.display = 'none';
+}
+
+function displayLearnedPatterns() {
+    const content = document.getElementById('learnedPatternsContent');
+    
+    if (Object.keys(learnedPatterns).length === 0) {
+        content.innerHTML = `
+            <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                <p>No learned patterns yet.</p>
+                <p style="font-size: 0.875rem; margin-top: 0.5rem;">
+                    The system will learn as you categorize transactions. Try importing a CSV or manually categorizing some expenses!
+                </p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Sort merchants by total occurrences
+    const sortedMerchants = Object.entries(learnedPatterns).sort((a, b) => {
+        const totalA = Object.values(a[1]).reduce((sum, count) => sum + count, 0);
+        const totalB = Object.values(b[1]).reduce((sum, count) => sum + count, 0);
+        return totalB - totalA;
+    });
+    
+    let html = '<div style="display: flex; flex-direction: column; gap: 0.75rem;">';
+    
+    sortedMerchants.forEach(([merchant, categories]) => {
+        const totalOccurrences = Object.values(categories).reduce((sum, count) => sum + count, 0);
+        
+        // Find the primary category (highest count)
+        let primaryCategory = '';
+        let primaryCount = 0;
+        let primaryConfidence = 0;
+        
+        for (const [category, count] of Object.entries(categories)) {
+            if (count > primaryCount) {
+                primaryCount = count;
+                primaryCategory = category;
+                primaryConfidence = categoryConfidence[merchant]?.[category] || 0;
+            }
+        }
+        
+        const confidencePercent = (primaryConfidence * 100).toFixed(0);
+        const confidenceColor = primaryConfidence >= 0.8 ? 'var(--success)' : 
+                               primaryConfidence >= 0.6 ? 'var(--warning)' : 
+                               'var(--text-muted)';
+        
+        html += `
+            <div style="background: var(--bg-main); padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-light);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem;">${merchant}</div>
+                        <div style="font-size: 0.8125rem; color: var(--text-secondary);">→ ${primaryCategory}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 0.75rem; color: ${confidenceColor}; font-weight: 600;">${confidencePercent}% confident</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">${totalOccurrences} occurrence${totalOccurrences > 1 ? 's' : ''}</div>
+                    </div>
+                </div>
+                ${Object.keys(categories).length > 1 ? `
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border-light);">
+                        Also categorized as: ${Object.entries(categories)
+                            .filter(([cat]) => cat !== primaryCategory)
+                            .map(([cat, count]) => `${cat} (${count}x)`)
+                            .join(', ')}
+                    </div>
+                ` : ''}
+                <button class="btn-delete" onclick="deleteLearnedPattern('${merchant.replace(/'/g, "\\'")}');" style="margin-top: 0.5rem; font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+                    Forget this pattern
+                </button>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    content.innerHTML = html;
+}
+
+function deleteLearnedPattern(merchant) {
+    if (confirm(`Forget all learned patterns for "${merchant}"?`)) {
+        delete learnedPatterns[merchant];
+        delete categoryConfidence[merchant];
+        saveTransactions();
+        displayLearnedPatterns();
+        showNotification(`Forgot patterns for ${merchant}`);
+    }
+}
+
+function clearLearnedPatterns() {
+    if (confirm('Clear ALL learned patterns? This cannot be undone.')) {
+        learnedPatterns = {};
+        categoryConfidence = {};
+        saveTransactions();
+        displayLearnedPatterns();
+        showNotification('All learned patterns cleared');
+    }
 }
 
 // Initialize voice recognition when page loads
