@@ -56,6 +56,9 @@ body {
     font-size: 14px;
     -webkit-font-smoothing: antialiased;
     min-height: 100vh;
+    /* Prevent layout shifts from dropdowns */
+    overflow-x: hidden;
+    position: relative;
 }
 
 
@@ -134,6 +137,11 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 1.5rem;
+    /* Prevent layout shifts */
+    position: relative;
+    min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: visible;
 }
 
 /* Tab Content */
@@ -691,6 +699,10 @@ body {
     display: flex;
     gap: 0.5rem;
     flex-wrap: wrap;
+    /* Lock height to prevent shifts */
+    min-height: 40px;
+    position: relative;
+    z-index: 5;
 }
 
 .btn-primary {
@@ -869,16 +881,34 @@ body {
     background: var(--bg-card);
 }
 
-/* Prevent layout shifts from select dropdowns */
+/* Prevent layout shifts from dropdowns */
 .form-group select {
     position: relative;
     z-index: 10;
+    /* Force dropdown to overlay without affecting layout */
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+/* More aggressive prevention of layout shifts */
+.form-group select:focus {
+    position: relative;
+    z-index: 50;
+}
+
+/* Lock the form container height */
+.modal-content form {
+    min-height: 300px;
+    position: relative;
 }
 
 /* Ensure select dropdowns don't cause scrollbars or layout shifts */
 .form-group {
     position: relative;
     overflow: visible;
+    /* Reserve space for dropdown */
+    margin-bottom: 1rem;
+    min-height: 60px;
 }
 
 .form-group input:focus,
