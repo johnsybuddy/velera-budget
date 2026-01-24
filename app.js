@@ -504,7 +504,7 @@ function parseCSV(csv) {
         const cols = line.split(',').map(c => c.trim().replace(/^["']|["']$/g, ''));
         
         if (cols.length >= 3) {
-            const transaction = parseTransaction(cols, bankConfig);
+            const transaction = parseTransaction(cols, bankConfig, i + 1); // Pass row number
             if (transaction && !isDuplicate(transaction)) {
                 csvData.push(transaction);
             } else if (transaction) {
@@ -613,22 +613,23 @@ function detectBankType(headers) {
     return null;
 }
 
-function parseTransaction(cols, config) {
+function parseTransaction(cols, config, rowNum) {
     let dateStr, desc, amount, accountName;
     
+    if (rowNum) console.log(`\n=== Parsing Row ${rowNum} ===`);
     console.log('Parsing row with', cols.length, 'columns:', cols);
     
     // Extract date
     dateStr = cols[config.dateCol];
     if (!dateStr || dateStr.includes('#')) {
-        console.log('Skipping row - invalid date:', dateStr);
+        console.log(`❌ Row ${rowNum || '?'}: Skipping - invalid date:`, dateStr);
         return null; // Skip rows with ### (Excel overflow)
     }
     
     // Extract description
     desc = cols[config.descCol];
     if (!desc) {
-        console.log('Skipping row - no description');
+        console.log(`❌ Row ${rowNum || '?'}: Skipping - no description`);
         return null;
     }
     
@@ -641,19 +642,25 @@ function parseTransaction(cols, config) {
     } else {
         // Single amount column
         const amountStr = cols[config.amountCol];
+        console.log(`  Amount string: "${amountStr}"`);
+        
         if (!amountStr || amountStr.trim() === '' || amountStr.includes('#')) {
-            console.log('Skipping row - invalid amount:', amountStr, 'for', desc);
+            console.log(`❌ Row ${rowNum || '?'}: Skipping - invalid amount:`, amountStr, 'for', desc);
             return null; // Skip ### amounts or empty
         }
         
         // Handle negative amounts in parentheses: ($100.00) or negative sign: -100.00 or bare: 100.00
         let cleanAmount = amountStr.replace(/[$,\s]/g, ''); // Remove $, commas, and spaces
+        console.log(`  Cleaned amount: "${cleanAmount}"`);
+        
         const isNegative = cleanAmount.includes('(') || cleanAmount.startsWith('-');
         cleanAmount = cleanAmount.replace(/[()-]/g, ''); // Remove parentheses and negative signs
         amount = parseFloat(cleanAmount);
         
+        console.log(`  Parsed amount: ${amount}, isNegative: ${isNegative}`);
+        
         if (isNaN(amount) || amount === 0) {
-            console.log('Skipping row - could not parse amount:', amountStr, '(cleaned:', cleanAmount, ') for', desc);
+            console.log(`❌ Row ${rowNum || '?'}: Skipping - could not parse amount:`, amountStr, '(cleaned:', cleanAmount, ') for', desc);
             return null;
         }
         
@@ -664,7 +671,7 @@ function parseTransaction(cols, config) {
     // Parse and normalize date
     const date = normalizeDate(dateStr);
     if (!date) {
-        console.log('Skipping row - could not parse date:', dateStr, 'for', desc);
+        console.log(`❌ Row ${rowNum || '?'}: Skipping - could not parse date:`, dateStr, 'for', desc);
         return null;
     }
     
@@ -696,7 +703,7 @@ function parseTransaction(cols, config) {
         account: accountName
     };
     
-    console.log('✓ Parsed transaction:', transaction);
+    console.log(`✅ Row ${rowNum || '?'}: Parsed successfully:`, transaction);
     return transaction;
 }
 
