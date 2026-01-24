@@ -521,6 +521,17 @@ function detectBankType(headers) {
     console.log('CSV Headers detected:', headers);
     console.log('Header string:', headerStr);
     
+    // Custom format: Date, Description, Amount, Type (where Type is the account)
+    if (headerStr.includes('date') && headerStr.includes('description') && headerStr.includes('amount') && headerStr.includes('type')) {
+        return {
+            name: 'Custom Format (Date/Description/Amount/Type)',
+            dateCol: headers.findIndex(h => /^date$/i.test(h)),
+            descCol: headers.findIndex(h => /^description$/i.test(h)),
+            amountCol: headers.findIndex(h => /^amount$/i.test(h)),
+            accountCol: headers.findIndex(h => /^type$/i.test(h))
+        };
+    }
+    
     // Chase Bank
     if (headerStr.includes('transaction date') && headerStr.includes('description') && headerStr.includes('amount')) {
         return {
@@ -583,11 +594,11 @@ function detectBankType(headers) {
 }
 
 function parseTransaction(cols, config) {
-    let dateStr, desc, amount;
+    let dateStr, desc, amount, accountName;
     
     // Extract date
     dateStr = cols[config.dateCol];
-    if (!dateStr) return null;
+    if (!dateStr || dateStr.includes('#')) return null; // Skip rows with ### (Excel overflow)
     
     // Extract description
     desc = cols[config.descCol];
@@ -596,13 +607,22 @@ function parseTransaction(cols, config) {
     // Extract amount based on bank format
     if (config.debitCol !== undefined && config.creditCol !== undefined) {
         // Capital One format (separate debit/credit columns)
-        const debit = parseFloat(cols[config.debitCol]?.replace(/[$,]/g, '')) || 0;
-        const credit = parseFloat(cols[config.creditCol]?.replace(/[$,]/g, '')) || 0;
+        const debit = parseFloat(cols[config.debitCol]?.replace(/[$,()]/g, '')) || 0;
+        const credit = parseFloat(cols[config.creditCol]?.replace(/[$,()]/g, '')) || 0;
         amount = debit > 0 ? debit : credit;
     } else {
         // Single amount column
         const amountStr = cols[config.amountCol];
-        amount = Math.abs(parseFloat(amountStr?.replace(/[$,]/g, '')) || 0);
+        if (!amountStr || amountStr.includes('#')) return null; // Skip ### amounts
+        
+        // Handle negative amounts in parentheses: ($100.00) or negative sign
+        let cleanAmount = amountStr.replace(/[$,]/g, '');
+        const isNegative = cleanAmount.includes('(') || cleanAmount.includes('-');
+        cleanAmount = cleanAmount.replace(/[()]/g, '').replace(/-/g, '');
+        amount = parseFloat(cleanAmount) || 0;
+        
+        // Keep the sign (don't use Math.abs for negative amounts)
+        if (isNegative) amount = -amount;
     }
     
     if (amount === 0) return null;
@@ -611,21 +631,29 @@ function parseTransaction(cols, config) {
     const date = normalizeDate(dateStr);
     if (!date) return null;
     
+    // Extract account from Type column if available
+    if (config.accountCol !== undefined && cols[config.accountCol]) {
+        accountName = cols[config.accountCol].trim();
+        // Normalize account names
+        if (accountName.toLowerCase().includes('sam')) accountName = 'Sam\'s';
+        if (accountName.toLowerCase().includes('rcu')) accountName = 'RCU';
+    } else {
+        // Map bank names to account types
+        accountName = 'RCU'; // Default
+        if (config.name.toLowerCase().includes('sam') || 
+            config.name.toLowerCase().includes('sams') ||
+            config.name.toLowerCase().includes('walmart')) {
+            accountName = 'Sam\'s';
+        }
+    }
+    
     // Auto-categorize transaction
     const category = autoCategorizeBill(desc);
-    
-    // Map bank names to account types
-    let accountName = 'RCU'; // Default
-    if (config.name.toLowerCase().includes('sam') || 
-        config.name.toLowerCase().includes('sams') ||
-        config.name.toLowerCase().includes('walmart')) {
-        accountName = 'Sam\'s';
-    }
     
     return {
         date,
         source: cleanDescription(desc),
-        amount,
+        amount: Math.abs(amount), // Store as positive, we'll handle display separately
         bill: category,
         account: accountName
     };
