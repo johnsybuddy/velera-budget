@@ -1229,6 +1229,12 @@ function updateDashboard() {
         reservedDisplay.textContent = `$${totalReserved.toFixed(2)}`;
     }
     
+    // Update periodic bills breakdown
+    updatePeriodicBillsBreakdown();
+    
+    // Update dashboard month
+    updateDashboardMonth();
+    
     // Financial Health shows actual surplus (buckets shown separately)
     overallAmount.textContent = `${overallTotal >= 0 ? '+' : ''}$${Math.abs(overallTotal).toFixed(2)}`;
     overallAmount.className = `status-amount ${overallTotal >= 0 ? 'positive' : 'negative'}`;
@@ -1257,6 +1263,64 @@ function updateDashboard() {
         statusIndicator.textContent = '🟡';
         overallProgress.style.background = 'var(--primary)';
     }
+}
+
+function updatePeriodicBillsBreakdown() {
+    const breakdownDiv = document.getElementById('periodicBillsBreakdown');
+    if (!breakdownDiv) return;
+    
+    let html = '';
+    const monthNames = {
+        1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun',
+        7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'
+    };
+    
+    for (const billName in periodicBuckets) {
+        const amount = periodicBuckets[billName] || 0;
+        if (amount > 0) {
+            const config = periodicBillsConfig[billName];
+            let dueText = '';
+            
+            if (config && config.dueMonth) {
+                dueText = `Due: ${monthNames[config.dueMonth]}`;
+            } else if (config) {
+                dueText = `${config.frequency}`;
+            }
+            
+            html += `
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; padding: 0.25rem 0; border-bottom: 1px solid var(--border-light);">
+                    <span style="font-weight: 500;">${billName}</span>
+                    <div style="text-align: right;">
+                        <div style="font-weight: 600; color: var(--primary);">$${amount.toFixed(2)}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">${dueText}</div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+    
+    if (html === '') {
+        html = '<div style="color: var(--text-secondary); font-style: italic;">No periodic bills currently accumulating</div>';
+    }
+    
+    breakdownDiv.innerHTML = html;
+}
+
+function updateDashboardMonth() {
+    const dashboardMonth = document.getElementById('dashboardMonth');
+    if (!dashboardMonth) return;
+    
+    const monthNames = {
+        jan: 'January', feb: 'February', mar: 'March', apr: 'April',
+        may: 'May', jun: 'June', jul: 'July', aug: 'August',
+        sep: 'September', oct: 'October', nov: 'November', dec: 'December'
+    };
+    
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const monthName = monthNames[currentMonth] || 'January';
+    
+    dashboardMonth.textContent = `${monthName} ${currentYear}`;
 }
 
 // Initialize on page load
@@ -1789,6 +1853,19 @@ function showFamilyExpenses() {
     document.querySelector('.family-tab').classList.add('active');
     
     updateFamilyExpenseTable();
+}
+
+function showMonthlyBudget() {
+    // Show budget table and hide family expense content
+    document.querySelector('.budget-table-container').style.display = 'block';
+    document.getElementById('familyExpenseContent').style.display = 'none';
+    document.getElementById('currentMonthTitle').style.display = 'block';
+    document.querySelector('.add-transaction').style.display = 'flex';
+    
+    // Update active tab back to current month
+    document.querySelectorAll('.month-tab').forEach(tab => tab.classList.remove('active'));
+    const currentMonthTab = document.querySelector(`[onclick="showMonth('${currentMonth}')"]`);
+    if (currentMonthTab) currentMonthTab.classList.add('active');
 }
 
 function showAddFamilyExpense() {

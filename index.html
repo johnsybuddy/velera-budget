@@ -29,7 +29,7 @@
         <!-- Dashboard Tab -->
         <div id="dashboard" class="tab-content active">
             <div class="dashboard-header">
-                <h2>💰 Financial Dashboard</h2>
+                <h2>💰 Financial Dashboard - <span id="dashboardMonth">January 2026</span></h2>
                 <div class="dashboard-stats">
                     <div class="stat-card">
                         <div class="stat-icon">📊</div>
@@ -81,6 +81,9 @@
                             <div class="status-content">
                                 <p class="status-amount" id="reservedAmount" style="font-size: 1.5rem; color: var(--text-secondary);">$0.00</p>
                                 <span class="status-label">Quarterly/Annual Bills</span>
+                                <div id="periodicBillsBreakdown" style="margin-top: 1rem; font-size: 0.875rem;">
+                                    <!-- Periodic bills breakdown will be populated by JavaScript -->
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -186,7 +189,10 @@
                         <button class="btn-primary" onclick="showAddBill()">Add Bill</button>
                     </div>
                     <div id="familyExpenseContent" class="family-expense-content" style="display: none;">
-                        <h2>👨‍👩‍👧‍👦 Family Expense Tracking</h2>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h2>👨‍👩‍👧‍👦 Family Expense Tracking</h2>
+                            <button class="btn-secondary" onclick="showMonthlyBudget()">← Back to Monthly Budget</button>
+                        </div>
                         <div class="add-transaction">
                             <button class="btn-primary" onclick="showAddFamilyExpense()">Add Family Expense</button>
                         </div>
