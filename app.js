@@ -477,7 +477,7 @@ function parseCSV(csv) {
     
     // Parse headers more carefully - handle quoted headers
     const headerLine = lines[0];
-    const headers = headerLine.split(',').map(h => h.trim().replace(/^["']|["']$/g, ''));
+    const headers = parseCSVLine(headerLine);
     console.log('Raw header line:', headerLine);
     console.log('Parsed headers:', headers);
     
@@ -500,8 +500,8 @@ function parseCSV(csv) {
         const line = lines[i].trim();
         if (!line) continue;
         
-        // Handle quoted CSV values better
-        const cols = line.split(',').map(c => c.trim().replace(/^["']|["']$/g, ''));
+        // Better CSV parsing - handle commas within fields
+        const cols = parseCSVLine(line);
         
         if (cols.length >= 3) {
             const transaction = parseTransaction(cols, bankConfig, i + 1); // Pass row number
@@ -525,6 +525,40 @@ function parseCSV(csv) {
         });
     }
     displayCSVPreview();
+}
+
+// Better CSV line parser that handles quoted fields with commas
+function parseCSVLine(line) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        const nextChar = line[i + 1];
+        
+        if (char === '"' || char === "'") {
+            if (inQuotes && nextChar === char) {
+                // Escaped quote
+                current += char;
+                i++; // Skip next quote
+            } else {
+                // Toggle quote state
+                inQuotes = !inQuotes;
+            }
+        } else if (char === ',' && !inQuotes) {
+            // End of field
+            result.push(current.trim());
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+    
+    // Add last field
+    result.push(current.trim());
+    
+    return result;
 }
 
 function detectBankType(headers) {
