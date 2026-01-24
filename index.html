@@ -514,6 +514,7 @@
                             <th>Date</th>
                             <th>Source/Store</th>
                             <th>Amount</th>
+                            <th>Account</th>
                             <th>Bill Category</th>
                             <th>Actions</th>
                         </tr>
@@ -567,6 +568,14 @@
                         <input type="number" id="transactionAmount" step="0.01" required>
                         <button type="button" class="voice-btn" onclick="startVoiceInput('amount')" title="Voice input for amount">🎤</button>
                     </div>
+                </div>
+                <div class="form-group">
+                    <label for="transactionAccount">Account:</label>
+                    <select id="transactionAccount" required>
+                        <option value="">Select Account</option>
+                        <option value="RCU">RCU</option>
+                        <option value="Sam's">Sam's</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label for="transactionBill">Bill Category:</label>

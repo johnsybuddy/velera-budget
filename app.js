@@ -79,8 +79,8 @@ const userId = 'johnsybuddy'; // Your username
 
 // Store transactions
 let transactions = [
-    { date: '2025-10-15', source: 'Target', amount: 125.50, bill: 'Groceries' },
-    { date: '2025-09-20', source: 'Walmart', amount: 89.75, bill: 'Gas' }
+    { date: '2025-10-15', source: 'Target', amount: 125.50, bill: 'Groceries', account: 'RCU' },
+    { date: '2025-09-20', source: 'Walmart', amount: 89.75, bill: 'Gas', account: 'Sam\'s' }
 ];
 
 // Enhanced cloud storage functions
@@ -582,12 +582,20 @@ function parseTransaction(cols, config) {
     // Auto-categorize transaction
     const category = autoCategorizeBill(desc);
     
+    // Map bank names to account types
+    let accountName = 'RCU'; // Default
+    if (config.name.toLowerCase().includes('sam') || 
+        config.name.toLowerCase().includes('sams') ||
+        config.name.toLowerCase().includes('walmart')) {
+        accountName = 'Sam\'s';
+    }
+    
     return {
         date,
         source: cleanDescription(desc),
         amount,
         bill: category,
-        account: config.name
+        account: accountName
     };
 }
 
@@ -648,67 +656,89 @@ function autoCategorizeBill(description) {
         return 'Ignore/Internal Transfer';
     }
     
-    // Mortgage and Housing
+    // Mortgage and Housing - Enhanced matching
     if (desc.includes('mortgage') || desc.includes('loan') || desc.includes('escrow') ||
-        desc.includes('home loan') || desc.includes('property tax')) {
+        desc.includes('home loan') || desc.includes('property tax') || desc.includes('homeowners') ||
+        desc.includes('wells fargo home') || desc.includes('quicken loans') || desc.includes('rocket mortgage')) {
         return 'Mortgage + Escrow (Ins-Taxes)';
     }
     
-    // Car Payment
+    // Car Payment - Enhanced matching
     if (desc.includes('auto loan') || desc.includes('car payment') || desc.includes('vehicle') ||
-        desc.includes('car loan') || desc.includes('auto finance')) {
+        desc.includes('car loan') || desc.includes('auto finance') || desc.includes('toyota financial') ||
+        desc.includes('honda financial') || desc.includes('ford credit') || desc.includes('gm financial') ||
+        desc.includes('ally auto') || desc.includes('capital one auto')) {
         return 'Car Payment';
     }
     
-    // Insurance
+    // Insurance - More specific matching
     if (desc.includes('insurance') && !desc.includes('health')) {
-        if (desc.includes('auto') || desc.includes('car') || desc.includes('vehicle')) {
+        if (desc.includes('auto') || desc.includes('car') || desc.includes('vehicle') || 
+            desc.includes('geico') || desc.includes('state farm') || desc.includes('progressive') ||
+            desc.includes('allstate') || desc.includes('farmers') || desc.includes('usaa')) {
             return 'Auto Insurance';
         }
-        if (desc.includes('aaa') || desc.includes('roadside')) {
+        if (desc.includes('aaa') || desc.includes('roadside') || desc.includes('triple a')) {
             return 'AAA Roadside Assistance';
         }
-        return 'Jewelers Insurance';
+        if (desc.includes('jewelers') || desc.includes('jewelry') || desc.includes('personal property')) {
+            return 'Jewelers Insurance';
+        }
+        return 'Auto Insurance'; // Default insurance to auto
     }
     
-    // Utilities
+    // Utilities - Enhanced matching
     if (desc.includes('xcel') || desc.includes('excel energy') || desc.includes('electric') ||
-        desc.includes('power company') || desc.includes('utility')) {
+        desc.includes('power company') || desc.includes('utility') || desc.includes('xcel energy') ||
+        desc.includes('excel') || desc.includes('electricity') || desc.includes('power bill')) {
         return 'Xcel Energy';
     }
     if (desc.includes('spectrum') || desc.includes('charter') || desc.includes('internet') ||
-        desc.includes('cable') || desc.includes('phone service')) {
+        desc.includes('cable') || desc.includes('phone service') || desc.includes('comcast') ||
+        desc.includes('verizon') || desc.includes('at&t') || desc.includes('centurylink') ||
+        desc.includes('broadband') || desc.includes('wifi')) {
         return 'Spectrum Phone';
     }
-    if (desc.includes('water') || desc.includes('sewer') || desc.includes('water dept')) {
+    if (desc.includes('water') || desc.includes('sewer') || desc.includes('water dept') ||
+        desc.includes('water district') || desc.includes('municipal water') || desc.includes('h2o')) {
         return 'Water';
     }
     if (desc.includes('garbage') || desc.includes('waste') || desc.includes('earthbound') ||
-        desc.includes('trash') || desc.includes('recycling')) {
+        desc.includes('trash') || desc.includes('recycling') || desc.includes('sanitation') ||
+        desc.includes('refuse') || desc.includes('waste management')) {
         return 'Earthbound Garbage';
     }
     
-    // Gas Stations - Enhanced list
+    // Gas Stations - Enhanced with more stations
     if (desc.includes('shell') || desc.includes('exxon') || desc.includes('bp ') || 
         desc.includes('chevron') || desc.includes('mobil') || desc.includes('conoco') ||
         desc.includes('phillips 66') || desc.includes('speedway') || desc.includes('casey') ||
         desc.includes('kwik trip') || desc.includes('holiday') || desc.includes('sinclair') ||
         desc.includes('valero') || desc.includes('marathon') || desc.includes('citgo') ||
-        desc.includes('gas station') || desc.includes('fuel') || desc.includes('petro')) {
+        desc.includes('gas station') || desc.includes('fuel') || desc.includes('petro') ||
+        desc.includes('kum & go') || desc.includes('wawa') || desc.includes('sheetz') ||
+        desc.includes('circle k') || desc.includes('7-eleven') || desc.includes('pilot') ||
+        desc.includes('loves') || desc.includes('flying j') || desc.includes('gas ') ||
+        desc.includes('gasoline') || desc.includes('pump')) {
         return 'Gas';
     }
     
-    // Groceries - Enhanced list
+    // Groceries - Enhanced with more stores
     if (desc.includes('walmart') || desc.includes('target') || desc.includes('hy-vee') ||
         desc.includes('kroger') || desc.includes('safeway') || desc.includes('costco') ||
         desc.includes('sams club') || desc.includes('aldi') || desc.includes('whole foods') ||
         desc.includes('trader joe') || desc.includes('grocery') || desc.includes('supermarket') ||
         desc.includes('food store') || desc.includes('market') || desc.includes('king soopers') ||
-        desc.includes('city market') || desc.includes('sprouts')) {
+        desc.includes('city market') || desc.includes('sprouts') || desc.includes('meijer') ||
+        desc.includes('publix') || desc.includes('wegmans') || desc.includes('giant') ||
+        desc.includes('stop & shop') || desc.includes('food lion') || desc.includes('harris teeter') ||
+        desc.includes('fresh market') || desc.includes('food 4 less') || desc.includes('ralphs') ||
+        desc.includes('vons') || desc.includes('albertsons') || desc.includes('jewel') ||
+        desc.includes('festival foods') || desc.includes('fareway')) {
         return 'Groceries';
     }
     
-    // Restaurants - Enhanced list
+    // Restaurants - Enhanced with more chains
     if (desc.includes('restaurant') || desc.includes('mcdonald') || desc.includes('burger') ||
         desc.includes('pizza') || desc.includes('taco') || desc.includes('subway') ||
         desc.includes('starbucks') || desc.includes('coffee') || desc.includes('cafe') ||
@@ -717,53 +747,90 @@ function autoCategorizeBill(description) {
         desc.includes('panera') || desc.includes('domino') || desc.includes('papa') ||
         desc.includes('dunkin') || desc.includes('sonic') || desc.includes('arbys') ||
         desc.includes('dairy queen') || desc.includes('chick-fil-a') || desc.includes('applebee') ||
-        desc.includes('olive garden') || desc.includes('red lobster') || desc.includes('outback')) {
+        desc.includes('olive garden') || desc.includes('red lobster') || desc.includes('outback') ||
+        desc.includes('buffalo wild') || desc.includes('texas roadhouse') || desc.includes('ihop') ||
+        desc.includes('denny') || desc.includes('cracker barrel') || desc.includes('chili') ||
+        desc.includes('tgi friday') || desc.includes('red robin') || desc.includes('five guys') ||
+        desc.includes('in-n-out') || desc.includes('whataburger') || desc.includes('culver') ||
+        desc.includes('shake shack') || desc.includes('panda express') || desc.includes('qdoba') ||
+        desc.includes('noodles') || desc.includes('jimmy john') || desc.includes('firehouse') ||
+        desc.includes('jersey mike') || desc.includes('which wich') || desc.includes('potbelly')) {
         return 'Restaurants/Entertainment';
     }
     
-    // Daycare
+    // Daycare - Enhanced matching
     if (desc.includes('daycare') || desc.includes('childcare') || desc.includes('preschool') ||
-        desc.includes('child care') || desc.includes('nursery') || desc.includes('learning center')) {
+        desc.includes('child care') || desc.includes('nursery') || desc.includes('learning center') ||
+        desc.includes('kindercare') || desc.includes('bright horizons') || desc.includes('goddard') ||
+        desc.includes('primrose') || desc.includes('little sprouts') || desc.includes('kids academy')) {
         return 'Daycare';
     }
     
-    // YMCA
+    // YMCA - Enhanced matching
     if (desc.includes('ymca') || desc.includes('gym') || desc.includes('fitness') ||
-        desc.includes('recreation center') || desc.includes('health club')) {
+        desc.includes('recreation center') || desc.includes('health club') || desc.includes('y.m.c.a') ||
+        desc.includes('young mens christian') || desc.includes('planet fitness') || desc.includes('anytime fitness') ||
+        desc.includes('la fitness') || desc.includes('lifetime fitness') || desc.includes('24 hour fitness')) {
         return 'YMCA Membership';
     }
     
-    // Subscriptions
+    // Subscriptions - Enhanced matching
     if (desc.includes('roku') || desc.includes('disney') || desc.includes('netflix') ||
         desc.includes('hulu') || desc.includes('amazon prime') || desc.includes('spotify') ||
-        desc.includes('streaming') || desc.includes('subscription')) {
+        desc.includes('streaming') || desc.includes('subscription') || desc.includes('apple music') ||
+        desc.includes('youtube premium') || desc.includes('paramount') || desc.includes('hbo') ||
+        desc.includes('showtime') || desc.includes('peacock') || desc.includes('discovery') ||
+        desc.includes('espn+') || desc.includes('disney+')) {
         return 'Roku / Disney Subscriptions';
     }
     
-    // Pharmacy/Medical
+    // Pharmacy/Medical - Enhanced matching
     if (desc.includes('pharmacy') || desc.includes('cvs') || desc.includes('walgreens') ||
         desc.includes('medical') || desc.includes('doctor') || desc.includes('clinic') ||
         desc.includes('hospital') || desc.includes('health') || desc.includes('prescription') ||
-        desc.includes('medicine') || desc.includes('drug store')) {
+        desc.includes('medicine') || desc.includes('drug store') || desc.includes('rite aid') ||
+        desc.includes('meijer pharmacy') || desc.includes('walmart pharmacy') || desc.includes('target pharmacy') ||
+        desc.includes('costco pharmacy') || desc.includes('kroger pharmacy') || desc.includes('safeway pharmacy')) {
         return "Dylan's Medication";
     }
     
-    // School related
+    // School related - Enhanced matching
     if (desc.includes('school') || desc.includes('lunch') || desc.includes('cafeteria') ||
-        desc.includes('student') || desc.includes('education')) {
+        desc.includes('student') || desc.includes('education') || desc.includes('school district') ||
+        desc.includes('elementary') || desc.includes('middle school') || desc.includes('high school') ||
+        desc.includes('meal plan') || desc.includes('school meals')) {
         return "Dylan's School Lunches";
     }
     
-    // Pet supplies
+    // Pet supplies - Enhanced matching
     if (desc.includes('pet') || desc.includes('cat') || desc.includes('dog') || desc.includes('animal') ||
-        desc.includes('veterinary') || desc.includes('vet') || desc.includes('petco') || desc.includes('petsmart')) {
+        desc.includes('veterinary') || desc.includes('vet') || desc.includes('petco') || desc.includes('petsmart') ||
+        desc.includes('pet supplies') || desc.includes('animal hospital') || desc.includes('pet food') ||
+        desc.includes('chewy') || desc.includes('pet store') || desc.includes('tractor supply')) {
         return 'Cat Food';
     }
     
-    // Charity
+    // Charity - Enhanced matching
     if (desc.includes('charity') || desc.includes('donation') || desc.includes('church') ||
-        desc.includes('tithe') || desc.includes('offering') || desc.includes('nonprofit')) {
+        desc.includes('tithe') || desc.includes('offering') || desc.includes('nonprofit') ||
+        desc.includes('salvation army') || desc.includes('goodwill') || desc.includes('united way') ||
+        desc.includes('red cross') || desc.includes('catholic') || desc.includes('baptist') ||
+        desc.includes('methodist') || desc.includes('lutheran') || desc.includes('presbyterian')) {
         return 'Charity';
+    }
+    
+    // Investment/Savings - Enhanced matching
+    if (desc.includes('investment') || desc.includes('savings') || desc.includes('401k') ||
+        desc.includes('ira') || desc.includes('retirement') || desc.includes('mutual fund') ||
+        desc.includes('vanguard') || desc.includes('fidelity') || desc.includes('schwab') ||
+        desc.includes('edward jones') || desc.includes('ameriprise') || desc.includes('merrill lynch')) {
+        if (desc.includes('dylan') || desc.includes('child') || desc.includes('kid')) {
+            return 'Dylan Investment';
+        } else if (desc.includes('brooks') || desc.includes('baby')) {
+            return 'Brooks Investment';
+        } else {
+            return 'Emergency Fund';
+        }
     }
     
     console.log('No category match found, defaulting to Miscellaneous');
@@ -1275,32 +1342,53 @@ function updatePeriodicBillsBreakdown() {
         7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'
     };
     
-    for (const billName in periodicBuckets) {
-        const amount = periodicBuckets[billName] || 0;
-        if (amount > 0) {
-            const config = periodicBillsConfig[billName];
-            let dueText = '';
-            
-            if (config && config.dueMonth) {
-                dueText = `Due: ${monthNames[config.dueMonth]}`;
-            } else if (config) {
-                dueText = `${config.frequency}`;
-            }
-            
-            html += `
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; padding: 0.25rem 0; border-bottom: 1px solid var(--border-light);">
-                    <span style="font-weight: 500;">${billName}</span>
+    // Show all periodic bills, even if bucket is 0 (to show progress)
+    for (const billName in periodicBillsConfig) {
+        const config = periodicBillsConfig[billName];
+        const savedAmount = periodicBuckets[billName] || 0;
+        const totalNeeded = config.totalAmount;
+        const progressPercent = (savedAmount / totalNeeded) * 100;
+        
+        let dueText = '';
+        if (config.dueMonth) {
+            dueText = `Due: ${monthNames[config.dueMonth]}`;
+        } else {
+            dueText = `${config.frequency}`;
+        }
+        
+        // Determine status color
+        let statusColor = 'var(--text-secondary)';
+        let statusText = '';
+        
+        if (savedAmount >= totalNeeded) {
+            statusColor = 'var(--success)';
+            statusText = ' ✓ Ready';
+        } else if (progressPercent >= 75) {
+            statusColor = 'var(--warning)';
+            statusText = ' ⚠ Almost Ready';
+        }
+        
+        html += `
+            <div style="margin-bottom: 0.75rem; padding: 0.5rem; border: 1px solid var(--border-light); border-radius: var(--radius-sm); background: var(--bg-main);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                    <span style="font-weight: 500; font-size: 0.875rem;">${billName}</span>
                     <div style="text-align: right;">
-                        <div style="font-weight: 600; color: var(--primary);">$${amount.toFixed(2)}</div>
+                        <div style="font-weight: 600; color: ${statusColor};">$${savedAmount.toFixed(2)} / $${totalNeeded.toFixed(2)}${statusText}</div>
                         <div style="font-size: 0.75rem; color: var(--text-secondary);">${dueText}</div>
                     </div>
                 </div>
-            `;
-        }
+                <div style="background: var(--border-light); height: 4px; border-radius: 2px; overflow: hidden;">
+                    <div style="background: ${statusColor}; height: 100%; width: ${Math.min(progressPercent, 100)}%; transition: width 0.3s ease;"></div>
+                </div>
+                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                    ${progressPercent.toFixed(1)}% saved • $${(config.totalAmount / config.monthsInCycle).toFixed(2)}/month
+                </div>
+            </div>
+        `;
     }
     
-    if (html === '') {
-        html = '<div style="color: var(--text-secondary); font-style: italic;">No periodic bills currently accumulating</div>';
+    if (Object.keys(periodicBillsConfig).length === 0) {
+        html = '<div style="color: var(--text-secondary); font-style: italic;">No periodic bills configured</div>';
     }
     
     breakdownDiv.innerHTML = html;
@@ -1456,7 +1544,7 @@ function updateTransactionTable() {
             const dividerRow = document.createElement('tr');
             dividerRow.className = 'transaction-divider-row';
             dividerRow.innerHTML = `
-                <td colspan="6"><div class="transaction-divider"></div></td>
+                <td colspan="7"><div class="transaction-divider"></div></td>
             `;
             tbody.appendChild(dividerRow);
             isFirstMonth = false;
@@ -1466,7 +1554,7 @@ function updateTransactionTable() {
         const monthRow = document.createElement('tr');
         monthRow.className = 'month-header';
         monthRow.innerHTML = `
-            <td colspan="6"><strong>${monthData.name}</strong></td>
+            <td colspan="7"><strong>${monthData.name}</strong></td>
         `;
         tbody.appendChild(monthRow);
         
@@ -1479,11 +1567,24 @@ function updateTransactionTable() {
                 year: 'numeric'
             });
             
+            // Determine if this is a credit/deposit (negative amount or specific bill categories)
+            const isCredit = transaction.amount < 0 || 
+                           transaction.bill === 'Ignore/Internal Transfer' ||
+                           transaction.source.toLowerCase().includes('deposit') ||
+                           transaction.source.toLowerCase().includes('credit') ||
+                           transaction.source.toLowerCase().includes('refund') ||
+                           transaction.source.toLowerCase().includes('return');
+            
+            const amountClass = isCredit ? 'amount-credit' : '';
+            const displayAmount = Math.abs(transaction.amount).toFixed(2);
+            const amountPrefix = isCredit ? '+' : '';
+            
             row.innerHTML = `
                 <td><input type="checkbox" class="transaction-checkbox" data-index="${transaction.originalIndex}" onchange="updateBulkActions()"></td>
                 <td class="editable-date" data-field="date" data-index="${transaction.originalIndex}" onclick="editField(this)">${formattedDate}</td>
                 <td class="editable-text" data-field="source" data-index="${transaction.originalIndex}" onclick="editField(this)">${transaction.source}</td>
-                <td class="editable-amount" data-field="amount" data-index="${transaction.originalIndex}" onclick="editField(this)">$${transaction.amount.toFixed(2)}</td>
+                <td class="editable-amount ${amountClass}" data-field="amount" data-index="${transaction.originalIndex}" onclick="editField(this)">${amountPrefix}$${displayAmount}</td>
+                <td class="editable-select" data-field="account" data-index="${transaction.originalIndex}" onclick="editField(this)">${transaction.account || 'RCU'}</td>
                 <td class="editable-select" data-field="bill" data-index="${transaction.originalIndex}" onclick="editField(this)">${transaction.bill}</td>
                 <td>
                     <button class="btn-edit" onclick="editTransaction(${transaction.originalIndex})">Edit</button>
@@ -1502,6 +1603,7 @@ document.getElementById('addTransactionForm').addEventListener('submit', functio
     const date = document.getElementById('transactionDate').value;
     const source = document.getElementById('transactionSource').value;
     const amount = parseFloat(document.getElementById('transactionAmount').value);
+    const account = document.getElementById('transactionAccount').value;
     const bill = document.getElementById('transactionBill').value;
     
     const editIndex = this.dataset.editIndex;
@@ -1512,6 +1614,7 @@ document.getElementById('addTransactionForm').addEventListener('submit', functio
             date: date,
             source: source,
             amount: amount,
+            account: account,
             bill: bill
         };
         saveTransactions();
@@ -1522,6 +1625,7 @@ document.getElementById('addTransactionForm').addEventListener('submit', functio
             date: date,
             source: source,
             amount: amount,
+            account: account,
             bill: bill
         });
         showNotification('Transaction added successfully!');
@@ -1573,6 +1677,17 @@ function editField(cell) {
             option.value = cat;
             option.textContent = cat;
             if (cat === currentValue) option.selected = true;
+            input.appendChild(option);
+        });
+    } else if (field === 'account') {
+        input = document.createElement('select');
+        input.className = 'inline-edit-select';
+        const accounts = ['RCU', 'Sam\'s'];
+        accounts.forEach(acc => {
+            const option = document.createElement('option');
+            option.value = acc;
+            option.textContent = acc;
+            if (acc === currentValue) option.selected = true;
             input.appendChild(option);
         });
     } else {
@@ -1654,6 +1769,7 @@ function editTransaction(index) {
     document.getElementById('transactionDate').value = transaction.date;
     document.getElementById('transactionSource').value = transaction.source;
     document.getElementById('transactionAmount').value = transaction.amount;
+    document.getElementById('transactionAccount').value = transaction.account || 'RCU';
     document.getElementById('transactionBill').value = transaction.bill;
     
     // Change form title and button

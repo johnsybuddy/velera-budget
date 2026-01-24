@@ -965,6 +965,12 @@ body {
     transition: background 0.15s ease;
 }
 
+/* Credit/deposit styling */
+.editable-amount.amount-credit {
+    color: var(--success);
+    font-weight: 600;
+}
+
 .editable-date:hover,
 .editable-text:hover,
 .editable-amount:hover,
