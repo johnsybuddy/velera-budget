@@ -2245,12 +2245,20 @@ function deleteBill() {
             }
         });
         
+        // Remove the row from the table
+        const rows = document.querySelectorAll('.budget-table tbody tr');
+        rows.forEach(row => {
+            if (row.cells[0] && row.cells[0].textContent.trim() === billName) {
+                row.remove();
+            }
+        });
+        
         // Save changes
         saveMonthlyBudgets();
         
         // Update displays
-        displayMonthlyBudget();
         updateDashboard();
+        updateBudgetTotals();
         
         showNotification(`${billName} deleted from all months!`);
         closeAddBill();
