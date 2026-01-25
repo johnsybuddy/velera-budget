@@ -27,17 +27,31 @@ function showTab(tabName) {
 }
 
 // Periodic Bills Configuration
-// frequency: 'monthly', 'quarterly', 'semi-annual', 'annual'
-// monthsInCycle: how many months between payments
-// dueMonth: 1-12 for the month the bill is due (for annual/semi-annual)
+// This defines which bills are periodic (not monthly) and their payment schedule
+// The totalAmount will be calculated from the actual monthly budget
 const periodicBillsConfig = {
-    'Auto Insurance': { frequency: 'semi-annual', monthsInCycle: 6, totalAmount: 750, dueMonth: 8 },  // Aug 26
-    'AAA Roadside Assistance': { frequency: 'annual', monthsInCycle: 12, totalAmount: 180, dueMonth: 5 },  // May 26
-    'Jewelers Insurance': { frequency: 'annual', monthsInCycle: 12, totalAmount: 84 },
-    'Earthbound Garbage': { frequency: 'quarterly', monthsInCycle: 3, totalAmount: 294, dueMonth: 1 },  // Jan 26
-    'Water': { frequency: 'quarterly', monthsInCycle: 3, totalAmount: 210, dueMonth: 1 },  // Jan 26
-    'YMCA Membership': { frequency: 'annual', monthsInCycle: 12, totalAmount: 420, dueMonth: 12 }  // Dec 26
+    'Auto Insurance': { frequency: 'semi-annual', monthsInCycle: 6, dueMonth: 8 },  // Aug 26
+    'AAA Roadside Assistance': { frequency: 'annual', monthsInCycle: 12, dueMonth: 5 },  // May 26
+    'Jewelers Insurance': { frequency: 'annual', monthsInCycle: 12 },
+    'Earthbound Garbage': { frequency: 'quarterly', monthsInCycle: 3, dueMonth: 1 },  // Jan 26
+    'Water': { frequency: 'quarterly', monthsInCycle: 3, dueMonth: 1 },  // Jan 26
+    'YMCA Membership': { frequency: 'annual', monthsInCycle: 12, dueMonth: 12 }  // Dec 26
 };
+
+// Get the actual total amount for a periodic bill from current month's budget
+function getPeriodicBillTotal(billName) {
+    const config = periodicBillsConfig[billName];
+    if (!config) return 0;
+    
+    // Get the monthly budget amount from current month
+    const monthlyAmount = monthlyBudgets[currentMonth]?.[billName] || 0;
+    
+    // If monthly amount is 0, this bill is not active
+    if (monthlyAmount === 0) return 0;
+    
+    // Calculate total based on cycle
+    return monthlyAmount * config.monthsInCycle;
+}
 
 // Bucket balances for periodic bills (accumulated savings toward next payment)
 let periodicBuckets = {};
@@ -240,11 +254,8 @@ function isPeriodicBill(billName) {
 
 // Get monthly budget amount for a periodic bill
 function getPeriodicMonthlyBudget(billName) {
-    const config = periodicBillsConfig[billName];
-    if (config) {
-        return config.totalAmount / config.monthsInCycle;
-    }
-    return 0;
+    // Get from current month's budget
+    return monthlyBudgets[currentMonth]?.[billName] || 0;
 }
 
 // Calculate periodic buckets based on all transactions
@@ -265,7 +276,15 @@ function calculatePeriodicBuckets() {
     // For each periodic bill, calculate bucket balance
     for (const billName in periodicBillsConfig) {
         const config = periodicBillsConfig[billName];
-        const monthlyBudget = config.totalAmount / config.monthsInCycle;
+        
+        // Get monthly budget from current month's budget (dynamic)
+        const monthlyBudget = getPeriodicMonthlyBudget(billName);
+        
+        // Skip bills with $0 budget (inactive)
+        if (monthlyBudget === 0) {
+            console.log(`Skipping ${billName} - monthly budget is $0 (inactive)`);
+            continue;
+        }
         
         let bucketBalance = 0;
         
@@ -1575,11 +1594,21 @@ function updatePeriodicBillsBreakdown() {
         7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'
     };
     
-    // Show all periodic bills, even if bucket is 0 (to show progress)
+    // Filter out bills with $0 monthly budget (inactive)
+    let activeBills = 0;
     for (const billName in periodicBillsConfig) {
         const config = periodicBillsConfig[billName];
+        const monthlyBudget = getPeriodicMonthlyBudget(billName);
+        
+        // Skip bills with $0 budget
+        if (monthlyBudget === 0) {
+            console.log(`Hiding ${billName} from periodic bills breakdown - budget is $0`);
+            continue;
+        }
+        
+        activeBills++;
         const savedAmount = periodicBuckets[billName] || 0;
-        const totalNeeded = config.totalAmount;
+        const totalNeeded = monthlyBudget * config.monthsInCycle;
         const progressPercent = (savedAmount / totalNeeded) * 100;
         
         let dueText = '';
@@ -1614,14 +1643,14 @@ function updatePeriodicBillsBreakdown() {
                     <div style="background: ${statusColor}; height: 100%; width: ${Math.min(progressPercent, 100)}%; transition: width 0.3s ease;"></div>
                 </div>
                 <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">
-                    ${progressPercent.toFixed(1)}% saved • $${(config.totalAmount / config.monthsInCycle).toFixed(2)}/month
+                    ${progressPercent.toFixed(1)}% saved • $${monthlyBudget.toFixed(2)}/month
                 </div>
             </div>
         `;
     }
     
-    if (Object.keys(periodicBillsConfig).length === 0) {
-        html = '<div style="color: var(--text-secondary); font-style: italic;">No periodic bills configured</div>';
+    if (activeBills === 0) {
+        html = '<div style="color: var(--text-secondary); font-style: italic;">No active periodic bills</div>';
     }
     
     breakdownDiv.innerHTML = html;
