@@ -458,6 +458,17 @@ function updateBudgetFromTransactions() {
     document.getElementById('totalActual').textContent = `$${totalActual.toFixed(2)}`;
     document.getElementById('totalOverUnder').textContent = `$${totalOverUnder.toFixed(2)}`;
     document.getElementById('totalOverUnder').style.color = totalOverUnder >= 0 ? 'var(--success)' : 'var(--danger)';
+    
+    // Calculate responsibility subtotals
+    const erikTotal = totalBudget * 0.58;
+    const saraTotal = totalBudget * 0.42;
+    const erikBiweekly = erikTotal / 26;
+    const saraBiweekly = saraTotal / 26;
+    
+    document.getElementById('erikTotal').textContent = `${erikTotal.toFixed(2)}`;
+    document.getElementById('erikBiweekly').textContent = `${erikBiweekly.toFixed(2)}`;
+    document.getElementById('saraTotal').textContent = `${saraTotal.toFixed(2)}`;
+    document.getElementById('saraBiweekly').textContent = `${saraBiweekly.toFixed(2)}`;
 }
 
 // CSV Import functionality
@@ -2157,6 +2168,17 @@ function updateBudgetTotals() {
     document.getElementById('totalActual').textContent = `$${totalActual.toFixed(2)}`;
     document.getElementById('totalOverUnder').textContent = `$${totalOverUnder.toFixed(2)}`;
     document.getElementById('totalOverUnder').style.color = totalOverUnder >= 0 ? 'var(--success)' : 'var(--danger)';
+    
+    // Calculate responsibility subtotals
+    const erikTotal = totalBudget * 0.58;
+    const saraTotal = totalBudget * 0.42;
+    const erikBiweekly = erikTotal / 26;
+    const saraBiweekly = saraTotal / 26;
+    
+    document.getElementById('erikTotal').textContent = `${erikTotal.toFixed(2)}`;
+    document.getElementById('erikBiweekly').textContent = `${erikBiweekly.toFixed(2)}`;
+    document.getElementById('saraTotal').textContent = `${saraTotal.toFixed(2)}`;
+    document.getElementById('saraBiweekly').textContent = `${saraBiweekly.toFixed(2)}`;
 }
 
 function showAddBill() {
