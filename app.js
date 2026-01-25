@@ -2236,6 +2236,7 @@ function closeAddBill() {
 
 function deleteBill() {
     const billName = document.getElementById('addBillForm').dataset.editBill;
+    console.log('Deleting bill:', billName);
     if (billName && confirm(`Delete ${billName} from all months?`)) {
         // Delete from all months
         const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
@@ -2247,11 +2248,16 @@ function deleteBill() {
         
         // Remove the row from the table
         const rows = document.querySelectorAll('.budget-table tbody tr');
+        console.log('Found rows:', rows.length);
+        let rowsRemoved = 0;
         rows.forEach(row => {
             if (row.cells[0] && row.cells[0].textContent.trim() === billName) {
+                console.log('Removing row for:', billName);
                 row.remove();
+                rowsRemoved++;
             }
         });
+        console.log('Rows removed:', rowsRemoved);
         
         // Save changes
         saveMonthlyBudgets();
