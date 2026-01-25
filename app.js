@@ -1281,6 +1281,14 @@ function loadMonthBudget(month) {
         // Skip separator rows
         if (row.classList.contains('separator')) return;
         
+        // Check if bill is marked as deleted (null value in any month)
+        const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+        const isDeleted = months.some(m => monthlyBudgets[m] && monthlyBudgets[m][billName] === null);
+        if (isDeleted) {
+            row.style.display = 'none';
+            return;
+        }
+        
         // Get saved value or default
         const savedValue = monthlyBudgets[month] && monthlyBudgets[month][billName];
         const displayValue = savedValue !== undefined ? savedValue : defaultBudgets[billName];
@@ -2238,26 +2246,27 @@ function deleteBill() {
     const billName = document.getElementById('addBillForm').dataset.editBill;
     console.log('Deleting bill:', billName);
     if (billName && confirm(`Delete ${billName} from all months?`)) {
-        // Delete from all months
+        // Mark as deleted in all months (set to null instead of deleting the key)
         const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
         months.forEach(month => {
-            if (monthlyBudgets[month] && monthlyBudgets[month][billName] !== undefined) {
-                delete monthlyBudgets[month][billName];
+            if (!monthlyBudgets[month]) {
+                monthlyBudgets[month] = {};
             }
+            monthlyBudgets[month][billName] = null; // Mark as deleted
         });
         
-        // Remove the row from the table
+        // Hide the row from the table
         const rows = document.querySelectorAll('.budget-table tbody tr');
         console.log('Found rows:', rows.length);
-        let rowsRemoved = 0;
+        let rowsHidden = 0;
         rows.forEach(row => {
             if (row.cells[0] && row.cells[0].textContent.trim() === billName) {
-                console.log('Removing row for:', billName);
-                row.remove();
-                rowsRemoved++;
+                console.log('Hiding row for:', billName);
+                row.style.display = 'none';
+                rowsHidden++;
             }
         });
-        console.log('Rows removed:', rowsRemoved);
+        console.log('Rows hidden:', rowsHidden);
         
         // Save changes
         saveMonthlyBudgets();
