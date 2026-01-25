@@ -462,8 +462,8 @@ function updateBudgetFromTransactions() {
     // Calculate responsibility subtotals
     const erikTotal = totalBudget * 0.58;
     const saraTotal = totalBudget * 0.42;
-    const erikBiweekly = erikTotal / 26;
-    const saraBiweekly = saraTotal / 26;
+    const erikBiweekly = erikTotal / 2;
+    const saraBiweekly = saraTotal / 2;
     
     document.getElementById('erikTotal').textContent = `${erikTotal.toFixed(2)}`;
     document.getElementById('erikBiweekly').textContent = `${erikBiweekly.toFixed(2)}`;
@@ -2181,8 +2181,8 @@ function updateBudgetTotals() {
     // Calculate responsibility subtotals
     const erikTotal = totalBudget * 0.58;
     const saraTotal = totalBudget * 0.42;
-    const erikBiweekly = erikTotal / 26;
-    const saraBiweekly = saraTotal / 26;
+    const erikBiweekly = erikTotal / 2;
+    const saraBiweekly = saraTotal / 2;
     
     document.getElementById('erikTotal').textContent = `${erikTotal.toFixed(2)}`;
     document.getElementById('erikBiweekly').textContent = `${erikBiweekly.toFixed(2)}`;
