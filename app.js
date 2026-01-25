@@ -2243,6 +2243,7 @@ function closeAddBill() {
 }
 
 function deleteBill() {
+    alert('deleteBill function called!');
     const billName = document.getElementById('addBillForm').dataset.editBill;
     console.log('Deleting bill:', billName);
     if (billName && confirm(`Delete ${billName} from all months?`)) {
