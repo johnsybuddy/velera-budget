@@ -692,6 +692,23 @@ body {
     border-bottom: 2px solid var(--border-light);
 }
 
+.subtotal-row {
+    background: var(--primary-bg) !important;
+}
+
+.subtotal-row td {
+    color: var(--text-primary);
+    font-size: 0.875rem;
+}
+
+.subtotal-row:hover {
+    background: var(--primary-bg) !important;
+}
+
+.subtotal-row strong {
+    color: var(--primary-dark);
+}
+
 
 /* Transactions Table */
 .add-transaction {
