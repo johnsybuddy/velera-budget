@@ -1729,6 +1729,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     loadMonthBudget(monthToShow);
     updateBudgetFromTransactions();
+    updateBudgetTotals();
     updateTransactionTable();
     updateDashboard();
     
