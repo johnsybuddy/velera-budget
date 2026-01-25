@@ -2214,8 +2214,23 @@ function closeAddBill() {
 
 function deleteBill() {
     const billName = document.getElementById('addBillForm').dataset.editBill;
-    if (billName && confirm(`Delete ${billName}?`)) {
-        showNotification(`${billName} deleted!`);
+    if (billName && confirm(`Delete ${billName} from all months?`)) {
+        // Delete from all months
+        const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+        months.forEach(month => {
+            if (monthlyBudgets[month] && monthlyBudgets[month][billName] !== undefined) {
+                delete monthlyBudgets[month][billName];
+            }
+        });
+        
+        // Save changes
+        saveMonthlyBudgets();
+        
+        // Update displays
+        displayMonthlyBudget();
+        updateDashboard();
+        
+        showNotification(`${billName} deleted from all months!`);
         closeAddBill();
     }
 }
