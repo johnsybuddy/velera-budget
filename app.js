@@ -1607,6 +1607,11 @@ function updatePeriodicBillsBreakdown() {
     const breakdownDiv = document.getElementById('periodicBillsBreakdown');
     if (!breakdownDiv) return;
     
+    console.log('=== updatePeriodicBillsBreakdown called ===');
+    console.log('Current month:', currentMonth);
+    console.log('Periodic buckets:', periodicBuckets);
+    console.log('Monthly budgets:', monthlyBudgets);
+    
     let html = '';
     const monthNames = {
         1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun',
@@ -1618,6 +1623,8 @@ function updatePeriodicBillsBreakdown() {
     for (const billName in periodicBillsConfig) {
         const config = periodicBillsConfig[billName];
         const monthlyBudget = getPeriodicMonthlyBudget(billName);
+        
+        console.log(`${billName}: monthlyBudget = ${monthlyBudget}`);
         
         // Skip bills with $0 budget
         if (monthlyBudget === 0) {
