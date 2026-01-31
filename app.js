@@ -424,6 +424,30 @@ function updateBudgetFromTransactions() {
                 // Extra Paid categories are always positive
                 overUnderCell.textContent = `$${actual.toFixed(2)}`;
                 overUnderCell.style.color = 'var(--success)';
+            } else if (isPeriodicBill(billName)) {
+                // Periodic bill logic: check bucket balance
+                const bucketBalance = periodicBuckets[billName] || 0;
+                
+                if (actual > 0) {
+                    // Payment was made this month - check if bucket covers it
+                    if (bucketBalance >= actual) {
+                        // Bucket covers the payment - show as $0.00 (green)
+                        overUnderCell.textContent = '$0.00';
+                        overUnderCell.style.color = 'var(--success)';
+                        overUnderCell.title = 'Bucket balance: $' + bucketBalance.toFixed(2) + ' covers payment of $' + actual.toFixed(2);
+                    } else {
+                        // Bucket doesn't cover - show shortfall as negative (red)
+                        const shortfall = actual - bucketBalance;
+                        overUnderCell.textContent = '-$' + shortfall.toFixed(2);
+                        overUnderCell.style.color = 'var(--danger)';
+                        overUnderCell.title = 'Bucket balance: $' + bucketBalance.toFixed(2) + ' - Payment: $' + actual.toFixed(2) + ' = Shortfall: $' + shortfall.toFixed(2);
+                    }
+                } else {
+                    // No payment this month - just saving, show $0.00 (neutral)
+                    overUnderCell.textContent = '$0.00';
+                    overUnderCell.style.color = '#666';
+                    overUnderCell.title = 'Saving for future payment. Bucket balance: $' + bucketBalance.toFixed(2);
+                }
             } else {
                 let difference = actual - budget;
                 
@@ -1231,6 +1255,7 @@ function showMonth(month) {
     
     // Load month's budget data
     loadMonthBudget(month);
+    calculatePeriodicBuckets(); // Recalculate buckets when switching months
     updateBudgetFromTransactions();
 }
 
@@ -1733,6 +1758,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     document.getElementById('currentMonthTitle').textContent = `${monthNames[monthToShow]} ${currentDate.getFullYear()} Budget`;
     
     loadMonthBudget(monthToShow);
+    calculatePeriodicBuckets(); // Calculate buckets before updating budget
     updateBudgetFromTransactions();
     updateBudgetTotals();
     updateTransactionTable();
