@@ -432,11 +432,6 @@ function updateBudgetFromTransactions() {
                     difference = budget - actual; // Flip the calculation
                 }
                 
-                // Apply extra paid adjustment
-                if (extraPaidAmount > 0) {
-                    difference += extraPaidAmount;
-                }
-                
                 overUnderCell.textContent = `$${difference.toFixed(2)}`;
                 overUnderCell.style.color = difference >= 0 ? 'var(--success)' : 'var(--danger)';
             }
