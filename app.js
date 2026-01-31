@@ -1796,13 +1796,19 @@ function updateTransactionTable() {
     const tbody = document.getElementById('transactionsBody');
     tbody.innerHTML = '';
     
+    // Helper function to parse date as local time (not UTC)
+    function parseLocalDate(dateString) {
+        const [year, month, day] = dateString.split('-').map(Number);
+        return new Date(year, month - 1, day);
+    }
+    
     // Sort transactions by date (most recent first)
-    const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+    const sortedTransactions = [...transactions].sort((a, b) => parseLocalDate(b.date) - parseLocalDate(a.date));
     
     // Group by month
     const groupedByMonth = {};
     sortedTransactions.forEach((transaction, originalIndex) => {
-        const date = new Date(transaction.date);
+        const date = parseLocalDate(transaction.date);
         const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
         const monthName = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
         
@@ -1853,7 +1859,8 @@ function updateTransactionTable() {
         // Add transactions for this month
         monthData.transactions.forEach(transaction => {
             const row = document.createElement('tr');
-            const formattedDate = new Date(transaction.date).toLocaleDateString('en-US', {
+            const date = parseLocalDate(transaction.date);
+            const formattedDate = date.toLocaleDateString('en-US', {
                 month: 'numeric',
                 day: 'numeric',
                 year: 'numeric'
