@@ -1618,7 +1618,7 @@ function updatePeriodicBillsBreakdown() {
         7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'
     };
     
-    // Filter out bills with $0 monthly budget (inactive)
+    // Show all periodic bills, even if budget is $0
     let activeBills = 0;
     for (const billName in periodicBillsConfig) {
         const config = periodicBillsConfig[billName];
@@ -1626,16 +1626,10 @@ function updatePeriodicBillsBreakdown() {
         
         console.log(`${billName}: monthlyBudget = ${monthlyBudget}`);
         
-        // Skip bills with $0 budget
-        if (monthlyBudget === 0) {
-            console.log(`Hiding ${billName} from periodic bills breakdown - budget is $0`);
-            continue;
-        }
-        
         activeBills++;
         const savedAmount = periodicBuckets[billName] || 0;
-        const totalNeeded = monthlyBudget * config.monthsInCycle;
-        const progressPercent = (savedAmount / totalNeeded) * 100;
+        const totalNeeded = monthlyBudget > 0 ? monthlyBudget * config.monthsInCycle : 0;
+        const progressPercent = totalNeeded > 0 ? (savedAmount / totalNeeded) * 100 : 0;
         
         let dueText = '';
         if (config.dueMonth) {
