@@ -1618,10 +1618,19 @@ function updatePeriodicBillsBreakdown() {
         7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'
     };
     
-    // Show all periodic bills, even if budget is $0
+    // Show all periodic bills, even if budget is $0, but skip deleted bills
     let activeBills = 0;
     for (const billName in periodicBillsConfig) {
         const config = periodicBillsConfig[billName];
+        
+        // Check if bill is deleted (marked as null in any month)
+        const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+        const isDeleted = months.some(m => monthlyBudgets[m] && monthlyBudgets[m][billName] === null);
+        if (isDeleted) {
+            console.log(`Skipping ${billName} - marked as deleted`);
+            continue;
+        }
+        
         const monthlyBudget = getPeriodicMonthlyBudget(billName);
         
         console.log(`${billName}: monthlyBudget = ${monthlyBudget}`);
