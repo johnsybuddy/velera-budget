@@ -1,4 +1,4 @@
-console.log('=== APP.JS LOADED - VERSION 20250125 ===');
+console.log('=== APP.JS LOADED - VERSION 20250131 ===');
 
 // Tab functionality
 function showTab(tabName) {
