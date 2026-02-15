@@ -1,4 +1,4 @@
-console.log('=== APP.JS LOADED - VERSION 20250131d ===');
+console.log('=== APP.JS LOADED - VERSION 20250131e ===');
 
 // Tab functionality
 function showTab(tabName) {
@@ -1430,9 +1430,79 @@ function promptMarkPaid(billName) {
 }
 
 // Dashboard functionality
+function updateBudgetCategories() {
+    // Get current calendar month for dashboard display
+    const currentDate = new Date();
+    const currentMonthIndex = currentDate.getMonth(); // 0-11
+    const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    const actualCurrentMonth = months[currentMonthIndex];
+    
+    // Get budgets from actual current month
+    const budgets = monthlyBudgets[actualCurrentMonth] || {};
+    
+    // Calculate category totals
+    const housingInsurance = (budgets['Mortgage + Escrow (Ins-Taxes)'] || 0) + 
+                             (budgets['Car Payment'] || 0) + 
+                             (budgets['Auto Insurance'] || 0) + 
+                             (budgets['AAA Roadside Assistance'] || 0) + 
+                             (budgets['Jewelers Insurance'] || 0);
+    
+    const billsUtilities = (budgets['Earthbound Garbage'] || 0) + 
+                          (budgets['Water'] || 0) + 
+                          (budgets['Xcel Energy'] || 0) + 
+                          (budgets['Spectrum Phone'] || 0) + 
+                          (budgets['Charity'] || 0) + 
+                          (budgets['Daycare'] || 0) + 
+                          (budgets['Gas'] || 0);
+    
+    const familyExpenses = (budgets['Groceries'] || 0) + 
+                          (budgets['Restaurants/Entertainment'] || 0) + 
+                          (budgets['Cat Food'] || 0) + 
+                          (budgets["Dylan's Medication"] || 0) + 
+                          (budgets["Dylan's School Lunches"] || 0) + 
+                          (budgets['Roku / Disney Subscriptions'] || 0) + 
+                          (budgets['Miscellaneous'] || 0) + 
+                          (budgets['Miscellaneous Erik'] || 0) + 
+                          (budgets['Miscellaneous Sara'] || 0);
+    
+    const savingsInvestment = (budgets['Emergency Fund'] || 0) + 
+                             (budgets['Travel Spending'] || 0) + 
+                             (budgets['Dylan Investment'] || 0) + 
+                             (budgets['Brooks Investment'] || 0);
+    
+    const totalBudget = housingInsurance + billsUtilities + familyExpenses + savingsInvestment;
+    
+    // Update the HTML
+    const categoryItems = document.querySelectorAll('.category-item');
+    if (categoryItems.length >= 4) {
+        // Housing & Insurance
+        categoryItems[0].querySelector('.category-amount').textContent = '$' + housingInsurance.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
+        const housingPercent = totalBudget > 0 ? (housingInsurance / totalBudget * 100) : 0;
+        categoryItems[0].querySelector('.category-fill').style.width = housingPercent + '%';
+        
+        // Bills & Utilities
+        categoryItems[1].querySelector('.category-amount').textContent = '$' + billsUtilities.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
+        const billsPercent = totalBudget > 0 ? (billsUtilities / totalBudget * 100) : 0;
+        categoryItems[1].querySelector('.category-fill').style.width = billsPercent + '%';
+        
+        // Family Expenses
+        categoryItems[2].querySelector('.category-amount').textContent = '$' + familyExpenses.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
+        const familyPercent = totalBudget > 0 ? (familyExpenses / totalBudget * 100) : 0;
+        categoryItems[2].querySelector('.category-fill').style.width = familyPercent + '%';
+        
+        // Savings & Investment
+        categoryItems[3].querySelector('.category-amount').textContent = '$' + savingsInvestment.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
+        const savingsPercent = totalBudget > 0 ? (savingsInvestment / totalBudget * 100) : 0;
+        categoryItems[3].querySelector('.category-fill').style.width = savingsPercent + '%';
+    }
+}
+
 function updateDashboard() {
     // Calculate periodic buckets first
     calculatePeriodicBuckets();
+    
+    // Update budget categories with current month's actual budgets
+    updateBudgetCategories();
     
     const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
     const monthNames = {
