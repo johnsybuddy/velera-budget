@@ -530,6 +530,96 @@ function updateBudgetFromTransactions() {
     const erikBiweekly = erikTotal / 2;
     const saraBiweekly = saraTotal / 2;
     
+    document.getElementById('erikTotal').textContent = `$${erikTotal.toFixed(2)}`;
+    document.getElementById('erikBiweekly').textContent = `$${erikBiweekly.toFixed(2)}`;
+    document.getElementById('saraTotal').textContent = `$${saraTotal.toFixed(2)}`;
+    document.getElementById('saraBiweekly').textContent = `$${saraBiweekly.toFixed(2)}`;
+}
+
+// Helper function to calculate over/under for any specific month
+function calculateMonthOverUnder(monthName) {
+    const monthNumbers = {
+        jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06',
+        jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12'
+    };
+    
+    const currentYear = new Date().getFullYear();
+    const monthNumber = monthNumbers[monthName];
+    
+    // Get transactions for this specific month
+    const monthTransactions = transactions.filter(transaction => {
+        const transactionDate = new Date(transaction.date);
+        const transactionMonth = String(transactionDate.getMonth() + 1).padStart(2, '0');
+        const transactionYear = transactionDate.getFullYear();
+        return transactionMonth === monthNumber && transactionYear === currentYear && transaction.bill !== 'Ignore/Internal Transfer';
+    });
+    
+    // Calculate bill totals
+    const billTotals = {};
+    monthTransactions.forEach(transaction => {
+        if (!billTotals[transaction.bill]) {
+            billTotals[transaction.bill] = 0;
+        }
+        billTotals[transaction.bill] += transaction.amount;
+    });
+    
+    // Get budgets for this month
+    const budgets = monthlyBudgets[monthName] || {};
+    
+    const positiveCreditBills = [
+        'Gas', 'Groceries', 'Restaurants/Entertainment', 'Cat Food', "Dylan's Medication",
+        "Dylan's School Lunches", 'Roku / Disney Subscriptions', 'Miscellaneous',
+        'Emergency Fund', 'Travel Spending', 'Dylan Investment', 'Brooks Investment',
+        'Miscellaneous Erik', 'Miscellaneous Sara', 'Daycare'
+    ];
+    
+    let totalOverUnder = 0;
+    
+    // Calculate over/under for each bill
+    for (const billName in budgets) {
+        const budget = budgets[billName];
+        if (budget === null || budget === undefined) continue; // Skip deleted bills
+        
+        const actual = billTotals[billName] || 0;
+        let overUnder = 0;
+        
+        if (billName === 'Extra Paid Erik' || billName === 'Erik Paid Sara') {
+            overUnder = actual;
+        } else if (isPeriodicBill(billName)) {
+            const config = periodicBillsConfig[billName];
+            const expectedFullPayment = budget * config.monthsInCycle;
+            
+            if (actual > 0) {
+                const isFullPayment = Math.abs(actual - expectedFullPayment) < (budget * 0.5);
+                
+                if (isFullPayment) {
+                    const difference = actual - expectedFullPayment;
+                    if (Math.abs(difference) < 0.01) {
+                        overUnder = 0;
+                    } else if (difference > 0) {
+                        overUnder = -Math.abs(difference);
+                    } else {
+                        overUnder = -Math.abs(difference);
+                    }
+                } else {
+                    overUnder = 0;
+                }
+            } else {
+                overUnder = 0;
+            }
+        } else if (positiveCreditBills.includes(billName)) {
+            overUnder = budget - actual;
+        } else {
+            overUnder = actual - budget;
+        }
+        
+        totalOverUnder += overUnder;
+    }
+    
+    return totalOverUnder;
+}
+    const saraBiweekly = saraTotal / 2;
+    
     document.getElementById('erikTotal').textContent = `${erikTotal.toFixed(2)}`;
     document.getElementById('erikBiweekly').textContent = `${erikBiweekly.toFixed(2)}`;
     document.getElementById('saraTotal').textContent = `${saraTotal.toFixed(2)}`;
@@ -1615,108 +1705,25 @@ function updateDashboard() {
                 amountClass = 'neutral';
                 cardClass = 'month-card';
             } else {
-                // Has transactions - calculate the difference
-                // Calculate bill totals for this month (excluding ignored transactions)
-                const billTotals = {};
+                // Has transactions - use helper function to get exact over/under from Expenses page logic
+                monthDifference = calculateMonthOverUnder(month);
+                
+                // Count total spent for this month
                 monthTransactions.forEach(transaction => {
                     if (transaction.bill !== 'Ignore/Internal Transfer') {
-                        if (!billTotals[transaction.bill]) {
-                            billTotals[transaction.bill] = 0;
-                        }
-                        billTotals[transaction.bill] += transaction.amount;
                         totalSpent += transaction.amount;
                     }
                 });
-            
-            // Default bill budgets (used if no custom value saved)
-            const defaultBillBudgets = {
-                'Mortgage + Escrow (Ins-Taxes)': 2272.00, 'Car Payment': 453.00, 'Auto Insurance': 125.00,
-                'AAA Roadside Assistance': 15.00, 'Gas': 150.00, 'Jewelers Insurance': 7.00,
-                'Earthbound Garbage': 98.00, 'Water': 70.00, 'Xcel Energy': 285.00, 'Spectrum Phone': 116.00,
-                'YMCA Membership': 35.00, 'Charity': 50.00, 'Daycare': 1100.00, 'Groceries': 850.00,
-                'Restaurants/Entertainment': 300.00, 'Cat Food': 20.00, "Dylan's Medication": 90.00,
-                "Dylan's School Lunches": 50.00, 'Roku / Disney Subscriptions': 25.00, 'Miscellaneous': 50.00,
-                'Emergency Fund': 225.00, 'Travel Spending': 100.00, 'Dylan Investment': 35.00,
-                'Brooks Investment': 25.00, 'Extra Paid Erik': 0.00, 'Erik Paid Sara': 0.00,
-                'Miscellaneous Erik': 50.00, 'Miscellaneous Sara': 50.00
-            };
-            
-            // Get actual budgets - use saved monthlyBudgets values if available, otherwise defaults
-            const billBudgets = {};
-            Object.keys(defaultBillBudgets).forEach(billName => {
-                const savedValue = monthlyBudgets[month] && monthlyBudgets[month][billName];
-                billBudgets[billName] = savedValue !== undefined ? savedValue : defaultBillBudgets[billName];
-            });
-            
-            const positiveCreditBills = [
-                'Gas', 'Groceries', 'Restaurants/Entertainment', 'Cat Food', "Dylan's Medication",
-                "Dylan's School Lunches", 'Roku / Disney Subscriptions', 'Miscellaneous',
-                'Emergency Fund', 'Travel Spending', 'Dylan Investment', 'Brooks Investment',
-                'Miscellaneous Erik', 'Miscellaneous Sara', 'Daycare'
-            ];
-            
-            monthDifference = 0;
-            
-            // Apply logic for each bill - EXACTLY match Expenses page calculation
-            console.log(`Calculating ${month} performance...`);
-            Object.keys(billBudgets).forEach(billName => {
-                const budget = billBudgets[billName];
-                const actual = billTotals[billName] || 0;
-                let overUnder = 0; // This is what would show in the Over/Under column on Expenses page
                 
-                if (billName === 'Extra Paid Erik' || billName === 'Erik Paid Sara') {
-                    overUnder = actual; // Extra Paid categories are always positive
-                } else if (isPeriodicBill(billName)) {
-                    // Periodic bill logic - EXACTLY match Expenses page
-                    const config = periodicBillsConfig[billName];
-                    const expectedFullPayment = budget * config.monthsInCycle;
-                    
-                    if (actual > 0) {
-                        // Check if this is a full payment
-                        const isFullPayment = Math.abs(actual - expectedFullPayment) < (budget * 0.5);
-                        
-                        if (isFullPayment) {
-                            // Payment month
-                            const difference = actual - expectedFullPayment;
-                            
-                            if (Math.abs(difference) < 0.01) {
-                                // Paid exactly - $0.00
-                                overUnder = 0;
-                            } else if (difference > 0) {
-                                // Overpaid - negative (red on Expenses page)
-                                overUnder = -Math.abs(difference);
-                            } else {
-                                // Underpaid - negative (red on Expenses page)
-                                overUnder = -Math.abs(difference);
-                            }
-                        } else {
-                            // Reserve contribution month - $0.00
-                            overUnder = 0;
-                        }
-                    } else {
-                        // No payment - $0.00
-                        overUnder = 0;
-                    }
-                } else if (positiveCreditBills.includes(billName)) {
-                    // Variable expenses: budget - actual (positive if under budget)
-                    overUnder = budget - actual;
-                } else {
-                    // Fixed expenses: actual - budget (negative if overpaid)
-                    overUnder = actual - budget;
+                // Only add to overall total if this is the CURRENT month
+                if (month === currentMonthName) {
+                    overallTotal += monthDifference;
                 }
                 
-                monthDifference += overUnder;
-            });
-            
-            // Only add to overall total if this is the CURRENT month
-            if (month === currentMonthName) {
-                overallTotal += monthDifference;
+                amountClass = monthDifference > 0 ? 'positive' : monthDifference < 0 ? 'negative' : 'neutral';
+                cardClass = `month-card ${monthDifference >= 0 ? 'surplus' : 'deficit'}`;
+                displayAmount = monthDifference === 0 ? '$0.00' : `${monthDifference >= 0 ? '+' : ''}$${Math.abs(monthDifference).toFixed(2)}`;
             }
-            
-            amountClass = monthDifference > 0 ? 'positive' : monthDifference < 0 ? 'negative' : 'neutral';
-            cardClass = `month-card ${monthDifference >= 0 ? 'surplus' : 'deficit'}`;
-            displayAmount = monthDifference === 0 ? '$0.00' : `${monthDifference >= 0 ? '+' : ''}$${Math.abs(monthDifference).toFixed(2)}`;
-            } // End of else block (has transactions)
         }
         
         const monthCard = document.createElement('div');
