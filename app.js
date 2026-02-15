@@ -1,4 +1,4 @@
-console.log('=== APP.JS LOADED - VERSION 20250131i ===');
+console.log('=== APP.JS LOADED - VERSION 20250131j ===');
 
 // Tab functionality
 function showTab(tabName) {
@@ -441,35 +441,45 @@ function updateBudgetFromTransactions() {
                 overUnderCell.textContent = `$${actual.toFixed(2)}`;
                 overUnderCell.style.color = 'var(--success)';
             } else if (isPeriodicBill(billName)) {
-                // Periodic bill logic: check if payment matches expected amount
+                // Periodic bill logic
                 const config = periodicBillsConfig[billName];
-                const expectedPayment = budget * config.monthsInCycle; // Total amount due
+                const expectedFullPayment = budget * config.monthsInCycle; // Total amount due for the cycle
                 
                 if (actual > 0) {
-                    // Payment was made this month
-                    const difference = actual - expectedPayment;
+                    // Check if this is a full payment (actual is close to the full cycle amount)
+                    const isFullPayment = Math.abs(actual - expectedFullPayment) < (budget * 0.5); // Within half a month's budget
                     
-                    if (Math.abs(difference) < 0.01) {
-                        // Paid exactly what was due (within 1 cent) - show $0.00 (green)
-                        overUnderCell.textContent = '$0.00';
-                        overUnderCell.style.color = 'var(--success)';
-                        overUnderCell.title = 'Paid exactly $' + actual.toFixed(2) + ' as expected';
-                    } else if (difference > 0) {
-                        // Overpaid - show as negative (red)
-                        overUnderCell.textContent = '-$' + Math.abs(difference).toFixed(2);
-                        overUnderCell.style.color = 'var(--danger)';
-                        overUnderCell.title = 'Overpaid by $' + Math.abs(difference).toFixed(2) + ' (expected $' + expectedPayment.toFixed(2) + ')';
+                    if (isFullPayment) {
+                        // This is a payment month - compare actual vs expected full payment
+                        const difference = actual - expectedFullPayment;
+                        
+                        if (Math.abs(difference) < 0.01) {
+                            // Paid exactly what was due - show $0.00 (green)
+                            overUnderCell.textContent = '$0.00';
+                            overUnderCell.style.color = 'var(--success)';
+                            overUnderCell.title = 'Paid exactly $' + actual.toFixed(2) + ' as expected for ' + config.monthsInCycle + '-month cycle';
+                        } else if (difference > 0) {
+                            // Overpaid - show as negative (red)
+                            overUnderCell.textContent = '-$' + Math.abs(difference).toFixed(2);
+                            overUnderCell.style.color = 'var(--danger)';
+                            overUnderCell.title = 'Overpaid by $' + Math.abs(difference).toFixed(2) + ' (expected $' + expectedFullPayment.toFixed(2) + ')';
+                        } else {
+                            // Underpaid - show as negative (red)
+                            overUnderCell.textContent = '-$' + Math.abs(difference).toFixed(2);
+                            overUnderCell.style.color = 'var(--danger)';
+                            overUnderCell.title = 'Underpaid by $' + Math.abs(difference).toFixed(2) + ' (expected $' + expectedFullPayment.toFixed(2) + ')';
+                        }
                     } else {
-                        // Underpaid - show as negative (red)
-                        overUnderCell.textContent = '-$' + Math.abs(difference).toFixed(2);
-                        overUnderCell.style.color = 'var(--danger)';
-                        overUnderCell.title = 'Underpaid by $' + Math.abs(difference).toFixed(2) + ' (expected $' + expectedPayment.toFixed(2) + ')';
+                        // This is a reserve contribution month - show $0.00 (neutral)
+                        overUnderCell.textContent = '$0.00';
+                        overUnderCell.style.color = '#666';
+                        overUnderCell.title = 'Contributing $' + actual.toFixed(2) + ' to reserve (expected $' + budget.toFixed(2) + ')';
                     }
                 } else {
-                    // No payment this month - just saving, show $0.00 (neutral)
+                    // No payment this month - show $0.00 (neutral)
                     overUnderCell.textContent = '$0.00';
                     overUnderCell.style.color = '#666';
-                    overUnderCell.title = 'Saving $' + budget.toFixed(2) + ' for future payment';
+                    overUnderCell.title = 'No contribution this month (budget: $' + budget.toFixed(2) + ')';
                 }
             } else {
                 let difference = actual - budget;
