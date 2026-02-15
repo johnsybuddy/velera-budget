@@ -1,4 +1,4 @@
-console.log('=== APP.JS LOADED - VERSION 20250131j ===');
+console.log('=== APP.JS LOADED - VERSION 20250131k ===');
 
 // Tab functionality
 function showTab(tabName) {
@@ -1552,11 +1552,26 @@ function updateDashboard() {
     
     let overallTotal = 0; // Current month's total only
     let totalSpent = 0;
-    const totalBudget = 6546.00;
+    
+    // Calculate total budget dynamically from current month's budgets
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
     const currentMonth = currentDate.getMonth() + 1; // 1-12
     const currentMonthName = months[currentDate.getMonth()]; // e.g., 'feb'
+    
+    // Get current month's budgets
+    const currentMonthBudgets = monthlyBudgets[currentMonthName] || {};
+    let totalBudget = 0;
+    
+    // Sum all budget values for current month (excluding null/deleted bills)
+    for (const billName in currentMonthBudgets) {
+        const budgetValue = currentMonthBudgets[billName];
+        if (budgetValue !== null && budgetValue !== undefined) {
+            totalBudget += budgetValue;
+        }
+    }
+    
+    console.log(`Dashboard - Current month: ${currentMonthName}, Total budget: $${totalBudget.toFixed(2)}`);
     
     months.forEach((month, index) => {
         const monthNumber = monthNumbers[month];
