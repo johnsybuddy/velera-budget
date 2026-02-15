@@ -618,13 +618,6 @@ function calculateMonthOverUnder(monthName) {
     
     return totalOverUnder;
 }
-    const saraBiweekly = saraTotal / 2;
-    
-    document.getElementById('erikTotal').textContent = `${erikTotal.toFixed(2)}`;
-    document.getElementById('erikBiweekly').textContent = `${erikBiweekly.toFixed(2)}`;
-    document.getElementById('saraTotal').textContent = `${saraTotal.toFixed(2)}`;
-    document.getElementById('saraBiweekly').textContent = `${saraBiweekly.toFixed(2)}`;
-}
 
 // CSV Import functionality
 let csvData = [];
