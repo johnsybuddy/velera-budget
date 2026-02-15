@@ -1,4 +1,4 @@
-console.log('=== APP.JS LOADED - VERSION 20250131 ===');
+console.log('=== APP.JS LOADED - VERSION 20250131b ===');
 
 // Tab functionality
 function showTab(tabName) {
@@ -1524,21 +1524,31 @@ function updateDashboard() {
                 
                 if (billName === 'Extra Paid Erik' || billName === 'Erik Paid Sara') {
                     billContribution = actual; // Extra Paid categories are always positive
-                } else if (actual > 0) {
-                    // Only count actual spending impact - no theoretical savings
-                    if (positiveCreditBills.includes(billName)) {
-                        // For variable expenses, only count actual savings when under budget
-                        if (actual < budget) {
-                            billContribution = budget - actual; // Real savings
+                } else if (isPeriodicBill(billName)) {
+                    // Periodic bills: use bucket logic
+                    const bucketBalance = periodicBuckets[billName] || 0;
+                    if (actual > 0) {
+                        // Payment was made - check if bucket covers it
+                        if (bucketBalance >= actual) {
+                            billContribution = 0; // Bucket covers it, no impact
                         } else {
-                            billContribution = budget - actual; // Overspending (negative)
+                            billContribution = bucketBalance - actual; // Shortfall (negative)
                         }
-                    } else {
-                        // For fixed expenses, any spending is just spending (no surplus credit)
-                        billContribution = 0;
                     }
+                    // If actual === 0, no payment made, contribute nothing (saving in bucket)
+                } else if (positiveCreditBills.includes(billName)) {
+                    // Variable expenses: count savings when under budget
+                    if (actual > 0) {
+                        billContribution = budget - actual; // Positive if under, negative if over
+                    }
+                    // If actual === 0, no spending, no credit (we don't reward not spending)
+                } else {
+                    // Fixed expenses: only count if overpaid
+                    if (actual > budget) {
+                        billContribution = budget - actual; // Negative (overspent)
+                    }
+                    // If paid exactly or less, contribute $0 (no credit for not paying bills)
                 }
-                // If actual === 0, contribute nothing (no theoretical credit)
                 
                 monthDifference += billContribution;
             });
