@@ -1718,15 +1718,8 @@ function updateDashboard() {
                 amountClass = 'neutral';
                 cardClass = 'month-card';
             } else {
-                // Has transactions - get the stored over/under value
-                // First, temporarily switch to this month to calculate it
-                const savedCurrentMonth = currentMonth;
-                currentMonth = month;
-                updateBudgetFromTransactions();
-                currentMonth = savedCurrentMonth;
-                
-                // Now read the stored value
-                monthDifference = monthlyOverUnder[month] || 0;
+                // Has transactions - use helper function
+                monthDifference = calculateMonthOverUnder(month);
                 
                 // Count total spent for this month
                 monthTransactions.forEach(transaction => {
