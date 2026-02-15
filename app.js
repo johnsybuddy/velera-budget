@@ -1,4 +1,4 @@
-console.log('=== APP.JS LOADED - VERSION 20250131f ===');
+console.log('=== APP.JS LOADED - VERSION 20250131g ===');
 
 // Tab functionality
 function showTab(tabName) {
@@ -429,28 +429,35 @@ function updateBudgetFromTransactions() {
                 overUnderCell.textContent = `$${actual.toFixed(2)}`;
                 overUnderCell.style.color = 'var(--success)';
             } else if (isPeriodicBill(billName)) {
-                // Periodic bill logic: check bucket balance
-                const bucketBalance = periodicBuckets[billName] || 0;
+                // Periodic bill logic: check if payment matches expected amount
+                const config = periodicBillsConfig[billName];
+                const expectedPayment = budget * config.monthsInCycle; // Total amount due
                 
                 if (actual > 0) {
-                    // Payment was made this month - check if bucket covers it
-                    if (bucketBalance >= actual) {
-                        // Bucket covers the payment - show as $0.00 (green)
+                    // Payment was made this month
+                    const difference = actual - expectedPayment;
+                    
+                    if (Math.abs(difference) < 0.01) {
+                        // Paid exactly what was due (within 1 cent) - show $0.00 (green)
                         overUnderCell.textContent = '$0.00';
                         overUnderCell.style.color = 'var(--success)';
-                        overUnderCell.title = 'Bucket balance: $' + bucketBalance.toFixed(2) + ' covers payment of $' + actual.toFixed(2);
-                    } else {
-                        // Bucket doesn't cover - show shortfall as negative (red)
-                        const shortfall = actual - bucketBalance;
-                        overUnderCell.textContent = '-$' + shortfall.toFixed(2);
+                        overUnderCell.title = 'Paid exactly $' + actual.toFixed(2) + ' as expected';
+                    } else if (difference > 0) {
+                        // Overpaid - show as negative (red)
+                        overUnderCell.textContent = '-$' + Math.abs(difference).toFixed(2);
                         overUnderCell.style.color = 'var(--danger)';
-                        overUnderCell.title = 'Bucket balance: $' + bucketBalance.toFixed(2) + ' - Payment: $' + actual.toFixed(2) + ' = Shortfall: $' + shortfall.toFixed(2);
+                        overUnderCell.title = 'Overpaid by $' + Math.abs(difference).toFixed(2) + ' (expected $' + expectedPayment.toFixed(2) + ')';
+                    } else {
+                        // Underpaid - show as negative (red)
+                        overUnderCell.textContent = '-$' + Math.abs(difference).toFixed(2);
+                        overUnderCell.style.color = 'var(--danger)';
+                        overUnderCell.title = 'Underpaid by $' + Math.abs(difference).toFixed(2) + ' (expected $' + expectedPayment.toFixed(2) + ')';
                     }
                 } else {
                     // No payment this month - just saving, show $0.00 (neutral)
                     overUnderCell.textContent = '$0.00';
                     overUnderCell.style.color = '#666';
-                    overUnderCell.title = 'Saving for future payment. Bucket balance: $' + bucketBalance.toFixed(2);
+                    overUnderCell.title = 'Saving $' + budget.toFixed(2) + ' for future payment';
                 }
             } else {
                 let difference = actual - budget;
