@@ -527,9 +527,8 @@ function updateBudgetFromTransactions() {
     document.getElementById('totalOverUnder').textContent = `$${totalOverUnder.toFixed(2)}`;
     document.getElementById('totalOverUnder').style.color = totalOverUnder >= 0 ? 'var(--success)' : 'var(--danger)';
     
-    // Store this month's over/under for dashboard to use
+    // Store this month's over/under for dashboard
     monthlyOverUnder[currentMonth] = totalOverUnder;
-    console.log(`Stored ${currentMonth} over/under: $${totalOverUnder.toFixed(2)}`);
     
     // Calculate responsibility subtotals
     const erikTotal = totalBudget * 0.58;
@@ -636,7 +635,18 @@ function calculateMonthOverUnder(monthName) {
     
     console.log(`Total over/under for ${monthName}: $${totalOverUnder.toFixed(2)}`);
     
+    // Store it
+    monthlyOverUnder[monthName] = totalOverUnder;
+    
     return totalOverUnder;
+}
+
+// Calculate all months' over/under values
+function calculateAllMonthsOverUnder() {
+    const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    months.forEach(month => {
+        calculateMonthOverUnder(month);
+    });
 }
 
 // CSV Import functionality
@@ -1650,6 +1660,9 @@ function updateDashboard() {
     // Calculate periodic buckets first
     calculatePeriodicBuckets();
     
+    // Calculate all months' over/under values
+    calculateAllMonthsOverUnder();
+    
     // Update budget categories with current month's actual budgets
     updateBudgetCategories();
     
@@ -1718,8 +1731,8 @@ function updateDashboard() {
                 amountClass = 'neutral';
                 cardClass = 'month-card';
             } else {
-                // Has transactions - use helper function
-                monthDifference = calculateMonthOverUnder(month);
+                // Read the stored over/under value from monthlyOverUnder
+                monthDifference = monthlyOverUnder[month] || 0;
                 
                 // Count total spent for this month
                 monthTransactions.forEach(transaction => {
