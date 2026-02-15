@@ -1,4 +1,4 @@
-console.log('=== APP.JS LOADED - VERSION 20250131o ===');
+console.log('=== APP.JS LOADED - VERSION 20250131p ===');
 
 // Tab functionality
 function showTab(tabName) {
@@ -30,12 +30,12 @@ function showTab(tabName) {
 // This defines which bills are periodic (not monthly) and their payment schedule
 // The totalAmount will be calculated from the actual monthly budget
 const periodicBillsConfig = {
-    'Auto Insurance': { frequency: 'semi-annual', monthsInCycle: 6, dueMonth: 8 },  // Aug 26
-    'AAA Roadside Assistance': { frequency: 'annual', monthsInCycle: 12, dueMonth: 5 },  // May 26
-    'Jewelers Insurance': { frequency: 'annual', monthsInCycle: 12, dueMonth: 6 },  // Jun 15
-    'Earthbound Garbage': { frequency: 'quarterly', monthsInCycle: 3, dueMonth: 1 },  // Jan 26
-    'Water': { frequency: 'quarterly', monthsInCycle: 3, dueMonth: 1 },  // Jan 26
-    'YMCA Membership': { frequency: 'annual', monthsInCycle: 12, dueMonth: 12 }  // Dec 26
+    'Auto Insurance': { frequency: 'semi-annual', monthsInCycle: 6, dueMonth: 8, defaultMonthly: 136 },  // Aug 26
+    'AAA Roadside Assistance': { frequency: 'annual', monthsInCycle: 12, dueMonth: 5, defaultMonthly: 15 },  // May 26
+    'Jewelers Insurance': { frequency: 'annual', monthsInCycle: 12, dueMonth: 6, defaultMonthly: 7 },  // Jun 15
+    'Earthbound Garbage': { frequency: 'quarterly', monthsInCycle: 3, dueMonth: 1, defaultMonthly: 98 },  // Jan 26
+    'Water': { frequency: 'quarterly', monthsInCycle: 3, dueMonth: 1, defaultMonthly: 70 },  // Jan 26
+    'YMCA Membership': { frequency: 'annual', monthsInCycle: 12, dueMonth: 12, defaultMonthly: 0 }  // Dec 26 (deleted)
 };
 
 // Get the actual total amount for a periodic bill from current month's budget
@@ -278,7 +278,7 @@ function calculatePeriodicBuckets() {
     for (const billName in periodicBillsConfig) {
         const config = periodicBillsConfig[billName];
         
-        // Get monthly budget - try current month first, then fall back to any month that has it
+        // Get monthly budget - try current month first, then fall back to any month, then use default
         let monthlyBudget = monthlyBudgets[actualCurrentMonth]?.[billName];
         
         // If current month doesn't have this bill, try to find it in any month
@@ -286,10 +286,16 @@ function calculatePeriodicBuckets() {
             for (const m of months) {
                 if (monthlyBudgets[m]?.[billName] && monthlyBudgets[m][billName] > 0) {
                     monthlyBudget = monthlyBudgets[m][billName];
-                    console.log(`${billName}: Using budget from ${m} ($${monthlyBudget}) since ${actualCurrentMonth} has $0`);
+                    console.log(`${billName}: Using budget from ${m}: $${monthlyBudget}`);
                     break;
                 }
             }
+        }
+        
+        // If still not found, use default from config
+        if ((!monthlyBudget || monthlyBudget === 0) && config.defaultMonthly) {
+            monthlyBudget = config.defaultMonthly;
+            console.log(`${billName}: Using default monthly budget: $${monthlyBudget}`);
         }
         
         // Skip bills with $0 budget (inactive)
