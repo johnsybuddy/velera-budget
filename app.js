@@ -575,7 +575,9 @@ function calculateMonthOverUnder(monthName) {
     
     let totalOverUnder = 0;
     
-    // Calculate over/under for each bill
+    console.log(`=== Calculating ${monthName} over/under ===`);
+    
+    // Calculate over/under for each bill - EXACTLY match Expenses page
     for (const billName in budgets) {
         const budget = budgets[billName];
         if (budget === null || budget === undefined) continue; // Skip deleted bills
@@ -607,14 +609,25 @@ function calculateMonthOverUnder(monthName) {
             } else {
                 overUnder = 0;
             }
-        } else if (positiveCreditBills.includes(billName)) {
-            overUnder = budget - actual;
         } else {
-            overUnder = actual - budget;
+            // Match Expenses page: calculate difference, then flip for positive credit bills
+            let difference = actual - budget;
+            
+            if (positiveCreditBills.includes(billName)) {
+                difference = budget - actual; // Flip for positive credit bills
+            }
+            
+            overUnder = difference;
+        }
+        
+        if (overUnder !== 0) {
+            console.log(`${billName}: budget=$${budget}, actual=$${actual}, overUnder=$${overUnder.toFixed(2)}`);
         }
         
         totalOverUnder += overUnder;
     }
+    
+    console.log(`Total over/under for ${monthName}: $${totalOverUnder.toFixed(2)}`);
     
     return totalOverUnder;
 }
