@@ -641,12 +641,21 @@ function calculateMonthOverUnder(monthName) {
     return totalOverUnder;
 }
 
-// Calculate all months' over/under values
+// Calculate all months' over/under values by running the Expenses page calculation
 function calculateAllMonthsOverUnder() {
     const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    const savedCurrentMonth = currentMonth;
+    
     months.forEach(month => {
-        calculateMonthOverUnder(month);
+        // Temporarily switch to this month
+        currentMonth = month;
+        // Run the Expenses page calculation which stores the value
+        updateBudgetFromTransactions();
     });
+    
+    // Restore original month
+    currentMonth = savedCurrentMonth;
+    updateBudgetFromTransactions();
 }
 
 // CSV Import functionality
