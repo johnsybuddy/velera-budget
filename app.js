@@ -1,4 +1,4 @@
-console.log('=== APP.JS LOADED - VERSION 20250131L ===');
+console.log('=== APP.JS LOADED - VERSION 20250131m ===');
 
 // Tab functionality
 function showTab(tabName) {
@@ -32,7 +32,7 @@ function showTab(tabName) {
 const periodicBillsConfig = {
     'Auto Insurance': { frequency: 'semi-annual', monthsInCycle: 6, dueMonth: 8 },  // Aug 26
     'AAA Roadside Assistance': { frequency: 'annual', monthsInCycle: 12, dueMonth: 5 },  // May 26
-    'Jewelers Insurance': { frequency: 'annual', monthsInCycle: 12 },
+    'Jewelers Insurance': { frequency: 'annual', monthsInCycle: 12, dueMonth: 6 },  // Jun 15
     'Earthbound Garbage': { frequency: 'quarterly', monthsInCycle: 3, dueMonth: 1 },  // Jan 26
     'Water': { frequency: 'quarterly', monthsInCycle: 3, dueMonth: 1 },  // Jan 26
     'YMCA Membership': { frequency: 'annual', monthsInCycle: 12, dueMonth: 12 }  // Dec 26
@@ -308,9 +308,9 @@ function calculatePeriodicBuckets() {
             // Example: Due in May (month 5), current is Feb (month 2)
             // Last payment was May 2025, started saving June 2025
             // Months saved: June-Dec 2025 = 7 months
-            const monthsSinceLastPayment = (12 - config.dueMonth) + (currentMonthIndex + 1);
-            bucketBalance = monthlyBudget * monthsSinceLastPayment;
-            console.log(`${billName}: Due month ${config.dueMonth} is later than current month ${currentMonthIndex + 1}. Adding ${monthsSinceLastPayment} months from previous year = $${bucketBalance.toFixed(2)}`);
+            const previousYearMonths = 12 - config.dueMonth; // Months from previous year only
+            bucketBalance = monthlyBudget * previousYearMonths; // Start with previous year
+            console.log(`${billName}: Due month ${config.dueMonth} is later than current month ${currentMonthIndex + 1}. Adding ${previousYearMonths} months from previous year = $${bucketBalance.toFixed(2)}`);
         }
         
         // Go through each month up to current month in current year
@@ -329,13 +329,8 @@ function calculatePeriodicBuckets() {
                 return tMonth === monthNum && tYear === currentYear && t.bill !== 'Ignore/Internal Transfer';
             });
             
-            // Only add to bucket if this month has transactions logged
-            // BUT: if we already added previous year savings, don't double-count
-            if (monthHasTransactions && janPayments.length === 0) {
-                // No January payment, so this is accumulating toward future payment
-                bucketBalance += thisMonthBudget;
-            } else if (monthHasTransactions && janPayments.length > 0) {
-                // January payment was made, so current year contributions are for NEXT cycle
+            // Add current year months if transactions logged
+            if (monthHasTransactions) {
                 bucketBalance += thisMonthBudget;
             }
         }
