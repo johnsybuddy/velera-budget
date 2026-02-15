@@ -307,27 +307,17 @@ function calculatePeriodicBuckets() {
         let bucketBalance = 0;
         
         // Check if there's an initial balance (for bills that started before app tracking)
+        // initialBalance represents the amount saved AS OF January 2026
         if (config.initialBalance) {
             bucketBalance = config.initialBalance;
-            console.log(`${billName}: Starting with initial balance: $${bucketBalance}`);
-        }
-        
-        // Check if there was a payment in January (first month of year)
-        const janPayments = transactions.filter(t => {
-            const tDate = new Date(t.date);
-            const tMonth = String(tDate.getMonth() + 1).padStart(2, '0');
-            const tYear = tDate.getFullYear();
-            return t.bill === billName && tMonth === '01' && tYear === currentYear;
-        });
-        
-        if (janPayments.length > 0 && !config.initialBalance) {
-            // Payment made in January and no initial balance set
-            // This means January was the payment month, start fresh
-            bucketBalance = 0;
+            console.log(`${billName}: Starting with initial balance (as of Jan 2026): $${bucketBalance}`);
         }
         
         // Go through each month up to current month in current year
-        for (let i = 0; i <= currentMonthIndex; i++) {
+        // Start from February (index 1) if we have an initialBalance, otherwise start from January (index 0)
+        const startMonth = config.initialBalance > 0 ? 1 : 0;
+        
+        for (let i = startMonth; i <= currentMonthIndex; i++) {
             const month = months[i];
             const monthNum = monthNumbers[month];
             
@@ -345,6 +335,7 @@ function calculatePeriodicBuckets() {
             // Add current year months if transactions logged
             if (monthHasTransactions) {
                 bucketBalance += thisMonthBudget;
+                console.log(`${billName}: Added $${thisMonthBudget} for ${month} (has transactions)`);
             }
         }
         
@@ -1819,9 +1810,14 @@ function updatePeriodicBillsBreakdown() {
         }
         
         // Get monthly budget from actual current month (for dashboard display)
-        const monthlyBudget = monthlyBudgets[actualCurrentMonth]?.[billName] || 0;
+        let monthlyBudget = monthlyBudgets[actualCurrentMonth]?.[billName];
         
-        console.log(`${billName}: monthlyBudget = ${monthlyBudget} (from ${actualCurrentMonth})`);
+        // If not found or $0, use default from config
+        if (!monthlyBudget || monthlyBudget === 0) {
+            monthlyBudget = config.defaultMonthly || 0;
+        }
+        
+        console.log(`${billName}: monthlyBudget = $${monthlyBudget} (from ${actualCurrentMonth} or default)`);
         
         activeBills++;
         const savedAmount = periodicBuckets[billName] || 0;
