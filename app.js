@@ -1,4 +1,4 @@
-console.log('=== APP.JS LOADED - VERSION 20250131b ===');
+console.log('=== APP.JS LOADED - VERSION 20250131c ===');
 
 // Tab functionality
 function showTab(tabName) {
@@ -1642,6 +1642,12 @@ function updatePeriodicBillsBreakdown() {
     console.log('Periodic buckets:', periodicBuckets);
     console.log('Monthly budgets:', monthlyBudgets);
     
+    // Use actual current calendar month for dashboard, not the selected month in budget tab
+    const currentDate = new Date();
+    const currentMonthIndex = currentDate.getMonth(); // 0-11
+    const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    const actualCurrentMonth = months[currentMonthIndex];
+    
     let html = '';
     const monthNames = {
         1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun',
@@ -1654,16 +1660,16 @@ function updatePeriodicBillsBreakdown() {
         const config = periodicBillsConfig[billName];
         
         // Check if bill is deleted (marked as null in any month)
-        const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
         const isDeleted = months.some(m => monthlyBudgets[m] && monthlyBudgets[m][billName] === null);
         if (isDeleted) {
             console.log(`Skipping ${billName} - marked as deleted`);
             continue;
         }
         
-        const monthlyBudget = getPeriodicMonthlyBudget(billName);
+        // Get monthly budget from actual current month (for dashboard display)
+        const monthlyBudget = monthlyBudgets[actualCurrentMonth]?.[billName] || 0;
         
-        console.log(`${billName}: monthlyBudget = ${monthlyBudget}`);
+        console.log(`${billName}: monthlyBudget = ${monthlyBudget} (from ${actualCurrentMonth})`);
         
         activeBills++;
         const savedAmount = periodicBuckets[billName] || 0;
@@ -1672,7 +1678,7 @@ function updatePeriodicBillsBreakdown() {
         
         let dueText = '';
         if (config.dueMonth) {
-            dueText = `Due: ${monthNames[config.dueMonth]}`;
+            dueText = `Due: ${monthNames[config.dueMonth]} 26`;
         } else {
             dueText = `${config.frequency}`;
         }
@@ -1681,10 +1687,10 @@ function updatePeriodicBillsBreakdown() {
         let statusColor = 'var(--text-secondary)';
         let statusText = '';
         
-        if (savedAmount >= totalNeeded) {
+        if (totalNeeded > 0 && savedAmount >= totalNeeded) {
             statusColor = 'var(--success)';
             statusText = ' ✓ Ready';
-        } else if (progressPercent >= 75) {
+        } else if (totalNeeded > 0 && progressPercent >= 75) {
             statusColor = 'var(--warning)';
             statusText = ' ⚠ Almost Ready';
         }
