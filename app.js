@@ -1,4 +1,4 @@
-console.log('=== APP.JS LOADED - VERSION 20250131g ===');
+console.log('=== APP.JS LOADED - VERSION 20250131h ===');
 
 // Tab functionality
 function showTab(tabName) {
@@ -289,6 +289,21 @@ function calculatePeriodicBuckets() {
         
         let bucketBalance = 0;
         
+        // Check if there was a payment in January (first month of year)
+        // If so, assume it was covered by previous year's savings
+        const janPayments = transactions.filter(t => {
+            const tDate = new Date(t.date);
+            const tMonth = String(tDate.getMonth() + 1).padStart(2, '0');
+            const tYear = tDate.getFullYear();
+            return t.bill === billName && tMonth === '01' && tYear === currentYear;
+        });
+        
+        if (janPayments.length > 0) {
+            // Payment made in January - assume it was covered by previous year's savings
+            // Start bucket at $0 (payment was covered), then add January's contribution
+            bucketBalance = 0;
+        }
+        
         // Go through each month up to current month
         for (let i = 0; i <= currentMonthIndex; i++) {
             const month = months[i];
@@ -296,9 +311,6 @@ function calculatePeriodicBuckets() {
             
             // Get the monthly budget for THIS specific month (in case it changed)
             const thisMonthBudget = monthlyBudgets[month]?.[billName] || monthlyBudget;
-            
-            // Add monthly budget to bucket
-            bucketBalance += thisMonthBudget;
             
             // Check if there was a payment this month
             const monthPayments = transactions.filter(t => {
@@ -308,10 +320,13 @@ function calculatePeriodicBuckets() {
                 return t.bill === billName && tMonth === monthNum && tYear === currentYear;
             });
             
-            // Subtract payments from bucket
-            monthPayments.forEach(payment => {
-                bucketBalance -= payment.amount;
-            });
+            if (monthPayments.length > 0) {
+                // Payment made this month - this month's budget goes toward NEXT payment
+                bucketBalance += thisMonthBudget;
+            } else {
+                // No payment - add to bucket for future payment
+                bucketBalance += thisMonthBudget;
+            }
         }
         
         // Store bucket balance (only if positive - negative means overpaid which is real surplus)
