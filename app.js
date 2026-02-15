@@ -1652,13 +1652,13 @@ function updateDashboard() {
                 'Gas', 'Groceries', 'Restaurants/Entertainment', 'Cat Food', "Dylan's Medication",
                 "Dylan's School Lunches", 'Roku / Disney Subscriptions', 'Miscellaneous',
                 'Emergency Fund', 'Travel Spending', 'Dylan Investment', 'Brooks Investment',
-                'Miscellaneous Erik', 'Miscellaneous Sara'
+                'Miscellaneous Erik', 'Miscellaneous Sara', 'Daycare'
             ];
             
             monthDifference = 0;
             
-            // Apply logic for each bill - ONLY count actual net impact
-            console.log('Using NEW dashboard calculation logic - should start at $0');
+            // Apply logic for each bill - match Expenses page calculation
+            console.log(`Calculating ${month} performance...`);
             Object.keys(billBudgets).forEach(billName => {
                 const budget = billBudgets[billName];
                 const actual = billTotals[billName] || 0;
@@ -1667,29 +1667,38 @@ function updateDashboard() {
                 if (billName === 'Extra Paid Erik' || billName === 'Erik Paid Sara') {
                     billContribution = actual; // Extra Paid categories are always positive
                 } else if (isPeriodicBill(billName)) {
-                    // Periodic bills: use bucket logic
-                    const bucketBalance = periodicBuckets[billName] || 0;
+                    // Periodic bill logic - match Expenses page
+                    const config = periodicBillsConfig[billName];
+                    const expectedFullPayment = budget * config.monthsInCycle;
+                    
                     if (actual > 0) {
-                        // Payment was made - check if bucket covers it
-                        if (bucketBalance >= actual) {
-                            billContribution = 0; // Bucket covers it, no impact
+                        // Check if this is a full payment
+                        const isFullPayment = Math.abs(actual - expectedFullPayment) < (budget * 0.5);
+                        
+                        if (isFullPayment) {
+                            // Payment month - compare actual vs expected
+                            const difference = actual - expectedFullPayment;
+                            billContribution = -difference; // Negative if overpaid, positive if underpaid (inverted for dashboard)
                         } else {
-                            billContribution = bucketBalance - actual; // Shortfall (negative)
+                            // Reserve contribution month - neutral
+                            billContribution = 0;
                         }
+                    } else {
+                        // No payment - neutral
+                        billContribution = 0;
                     }
-                    // If actual === 0, no payment made, contribute nothing (saving in bucket)
                 } else if (positiveCreditBills.includes(billName)) {
                     // Variable expenses: count savings when under budget
                     if (actual > 0) {
                         billContribution = budget - actual; // Positive if under, negative if over
                     }
-                    // If actual === 0, no spending, no credit (we don't reward not spending)
+                    // If actual === 0, no spending, no credit
                 } else {
                     // Fixed expenses: only count if overpaid
                     if (actual > budget) {
                         billContribution = budget - actual; // Negative (overspent)
                     }
-                    // If paid exactly or less, contribute $0 (no credit for not paying bills)
+                    // If paid exactly or less, contribute $0
                 }
                 
                 monthDifference += billContribution;
