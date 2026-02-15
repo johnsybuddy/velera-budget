@@ -1,4 +1,4 @@
-console.log('=== APP.JS LOADED - VERSION 20250131k ===');
+console.log('=== APP.JS LOADED - VERSION 20250131L ===');
 
 // Tab functionality
 function showTab(tabName) {
@@ -300,11 +300,20 @@ function calculatePeriodicBuckets() {
         
         if (janPayments.length > 0) {
             // Payment made in January - assume it was covered by previous year's savings
-            // Start bucket at $0 (payment was covered), then add January's contribution
+            // Start bucket at $0 (payment was covered), then add this year's contributions
             bucketBalance = 0;
+        } else if (config.dueMonth && config.dueMonth > (currentMonthIndex + 1)) {
+            // Due month is later this year, so we must have been saving from previous year
+            // Calculate months saved from previous year
+            // Example: Due in May (month 5), current is Feb (month 2)
+            // Last payment was May 2025, started saving June 2025
+            // Months saved: June-Dec 2025 = 7 months
+            const monthsSinceLastPayment = (12 - config.dueMonth) + (currentMonthIndex + 1);
+            bucketBalance = monthlyBudget * monthsSinceLastPayment;
+            console.log(`${billName}: Due month ${config.dueMonth} is later than current month ${currentMonthIndex + 1}. Adding ${monthsSinceLastPayment} months from previous year = $${bucketBalance.toFixed(2)}`);
         }
         
-        // Go through each month up to current month
+        // Go through each month up to current month in current year
         for (let i = 0; i <= currentMonthIndex; i++) {
             const month = months[i];
             const monthNum = monthNumbers[month];
@@ -321,7 +330,12 @@ function calculatePeriodicBuckets() {
             });
             
             // Only add to bucket if this month has transactions logged
-            if (monthHasTransactions) {
+            // BUT: if we already added previous year savings, don't double-count
+            if (monthHasTransactions && janPayments.length === 0) {
+                // No January payment, so this is accumulating toward future payment
+                bucketBalance += thisMonthBudget;
+            } else if (monthHasTransactions && janPayments.length > 0) {
+                // January payment was made, so current year contributions are for NEXT cycle
                 bucketBalance += thisMonthBudget;
             }
         }
