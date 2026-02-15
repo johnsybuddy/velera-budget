@@ -1,4 +1,4 @@
-console.log('=== APP.JS LOADED - VERSION 20250131m ===');
+console.log('=== APP.JS LOADED - VERSION 20250131n ===');
 
 // Tab functionality
 function showTab(tabName) {
@@ -304,13 +304,11 @@ function calculatePeriodicBuckets() {
             bucketBalance = 0;
         } else if (config.dueMonth && config.dueMonth > (currentMonthIndex + 1)) {
             // Due month is later this year, so we must have been saving from previous year
-            // Calculate months saved from previous year
-            // Example: Due in May (month 5), current is Feb (month 2)
-            // Last payment was May 2025, started saving June 2025
-            // Months saved: June-Dec 2025 = 7 months
             const previousYearMonths = 12 - config.dueMonth; // Months from previous year only
             bucketBalance = monthlyBudget * previousYearMonths; // Start with previous year
-            console.log(`${billName}: Due month ${config.dueMonth} is later than current month ${currentMonthIndex + 1}. Adding ${previousYearMonths} months from previous year = $${bucketBalance.toFixed(2)}`);
+            console.log(`${billName}: Due month ${config.dueMonth} > current ${currentMonthIndex + 1}. Monthly: $${monthlyBudget}, PrevYrMonths: ${previousYearMonths}, Bucket: $${bucketBalance.toFixed(2)}`);
+        } else {
+            console.log(`${billName}: No prev year savings. Due: ${config.dueMonth}, Current: ${currentMonthIndex + 1}, JanPay: ${janPayments.length}`);
         }
         
         // Go through each month up to current month in current year
@@ -413,7 +411,7 @@ function updateBudgetFromTransactions() {
         'Gas', 'Groceries', 'Restaurants/Entertainment', 'Cat Food',
         "Dylan's Medication", "Dylan's School Lunches", 'Roku / Disney Subscriptions',
         'Miscellaneous', 'Emergency Fund', 'Travel Spending', 'Dylan Investment', 'Brooks Investment',
-        'Miscellaneous Erik', 'Miscellaneous Sara'
+        'Miscellaneous Erik', 'Miscellaneous Sara', 'Daycare'
     ];
     
     // Update actual amounts and over/under
