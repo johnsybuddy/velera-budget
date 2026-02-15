@@ -1,4 +1,4 @@
-console.log('=== APP.JS LOADED - VERSION 20250131h ===');
+console.log('=== APP.JS LOADED - VERSION 20250131i ===');
 
 // Tab functionality
 function showTab(tabName) {
@@ -312,19 +312,16 @@ function calculatePeriodicBuckets() {
             // Get the monthly budget for THIS specific month (in case it changed)
             const thisMonthBudget = monthlyBudgets[month]?.[billName] || monthlyBudget;
             
-            // Check if there was a payment this month
-            const monthPayments = transactions.filter(t => {
+            // Check if there are ANY transactions for this month (not just this bill)
+            const monthHasTransactions = transactions.some(t => {
                 const tDate = new Date(t.date);
                 const tMonth = String(tDate.getMonth() + 1).padStart(2, '0');
                 const tYear = tDate.getFullYear();
-                return t.bill === billName && tMonth === monthNum && tYear === currentYear;
+                return tMonth === monthNum && tYear === currentYear && t.bill !== 'Ignore/Internal Transfer';
             });
             
-            if (monthPayments.length > 0) {
-                // Payment made this month - this month's budget goes toward NEXT payment
-                bucketBalance += thisMonthBudget;
-            } else {
-                // No payment - add to bucket for future payment
+            // Only add to bucket if this month has transactions logged
+            if (monthHasTransactions) {
                 bucketBalance += thisMonthBudget;
             }
         }
@@ -1841,7 +1838,9 @@ function updateDashboardMonth() {
     
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
-    const monthName = monthNames[currentMonth] || 'January';
+    const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    const actualCurrentMonth = months[currentDate.getMonth()]; // Use actual calendar month
+    const monthName = monthNames[actualCurrentMonth] || 'January';
     
     dashboardMonth.textContent = `${monthName} ${currentYear}`;
 }
