@@ -1,4 +1,4 @@
-console.log('=== APP.JS LOADED - VERSION 20250131n ===');
+console.log('=== APP.JS LOADED - VERSION 20250131o ===');
 
 // Tab functionality
 function showTab(tabName) {
@@ -278,11 +278,22 @@ function calculatePeriodicBuckets() {
     for (const billName in periodicBillsConfig) {
         const config = periodicBillsConfig[billName];
         
-        // Get monthly budget from ACTUAL current calendar month (not selected tab month)
-        const monthlyBudget = monthlyBudgets[actualCurrentMonth]?.[billName] || 0;
+        // Get monthly budget - try current month first, then fall back to any month that has it
+        let monthlyBudget = monthlyBudgets[actualCurrentMonth]?.[billName];
+        
+        // If current month doesn't have this bill, try to find it in any month
+        if (!monthlyBudget || monthlyBudget === 0) {
+            for (const m of months) {
+                if (monthlyBudgets[m]?.[billName] && monthlyBudgets[m][billName] > 0) {
+                    monthlyBudget = monthlyBudgets[m][billName];
+                    console.log(`${billName}: Using budget from ${m} ($${monthlyBudget}) since ${actualCurrentMonth} has $0`);
+                    break;
+                }
+            }
+        }
         
         // Skip bills with $0 budget (inactive)
-        if (monthlyBudget === 0) {
+        if (!monthlyBudget || monthlyBudget === 0) {
             console.log(`Skipping ${billName} - monthly budget is $0 (inactive)`);
             continue;
         }
