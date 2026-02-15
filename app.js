@@ -1,4 +1,4 @@
-console.log('=== APP.JS LOADED - VERSION 20250131e ===');
+console.log('=== APP.JS LOADED - VERSION 20250131f ===');
 
 // Tab functionality
 function showTab(tabName) {
@@ -269,6 +269,7 @@ function calculatePeriodicBuckets() {
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
     const currentMonthIndex = currentDate.getMonth(); // 0-11
+    const actualCurrentMonth = months[currentMonthIndex]; // Use actual calendar month
     
     // Reset buckets
     periodicBuckets = {};
@@ -277,8 +278,8 @@ function calculatePeriodicBuckets() {
     for (const billName in periodicBillsConfig) {
         const config = periodicBillsConfig[billName];
         
-        // Get monthly budget from current month's budget (dynamic)
-        const monthlyBudget = getPeriodicMonthlyBudget(billName);
+        // Get monthly budget from ACTUAL current calendar month (not selected tab month)
+        const monthlyBudget = monthlyBudgets[actualCurrentMonth]?.[billName] || 0;
         
         // Skip bills with $0 budget (inactive)
         if (monthlyBudget === 0) {
@@ -293,8 +294,11 @@ function calculatePeriodicBuckets() {
             const month = months[i];
             const monthNum = monthNumbers[month];
             
+            // Get the monthly budget for THIS specific month (in case it changed)
+            const thisMonthBudget = monthlyBudgets[month]?.[billName] || monthlyBudget;
+            
             // Add monthly budget to bucket
-            bucketBalance += monthlyBudget;
+            bucketBalance += thisMonthBudget;
             
             // Check if there was a payment this month
             const monthPayments = transactions.filter(t => {
@@ -1517,12 +1521,13 @@ function updateDashboard() {
     const monthlyGrid = document.getElementById('monthlyGrid');
     monthlyGrid.innerHTML = '';
     
-    let overallTotal = 0; // Start surplus tracking at $0 for the year
+    let overallTotal = 0; // Current month's total only
     let totalSpent = 0;
     const totalBudget = 6546.00;
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
     const currentMonth = currentDate.getMonth() + 1; // 1-12
+    const currentMonthName = months[currentDate.getMonth()]; // e.g., 'feb'
     
     months.forEach((month, index) => {
         const monthNumber = monthNumbers[month];
@@ -1631,8 +1636,10 @@ function updateDashboard() {
                 monthDifference += billContribution;
             });
             
-            // Only add to overall total for current year
-            overallTotal += monthDifference;
+            // Only add to overall total if this is the CURRENT month
+            if (month === currentMonthName) {
+                overallTotal += monthDifference;
+            }
             
             amountClass = monthDifference > 0 ? 'positive' : monthDifference < 0 ? 'negative' : 'neutral';
             cardClass = `month-card ${monthDifference >= 0 ? 'surplus' : 'deficit'}`;
