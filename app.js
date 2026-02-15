@@ -1657,17 +1657,17 @@ function updateDashboard() {
             
             monthDifference = 0;
             
-            // Apply logic for each bill - match Expenses page calculation
+            // Apply logic for each bill - EXACTLY match Expenses page calculation
             console.log(`Calculating ${month} performance...`);
             Object.keys(billBudgets).forEach(billName => {
                 const budget = billBudgets[billName];
                 const actual = billTotals[billName] || 0;
-                let billContribution = 0;
+                let overUnder = 0; // This is what would show in the Over/Under column on Expenses page
                 
                 if (billName === 'Extra Paid Erik' || billName === 'Erik Paid Sara') {
-                    billContribution = actual; // Extra Paid categories are always positive
+                    overUnder = actual; // Extra Paid categories are always positive
                 } else if (isPeriodicBill(billName)) {
-                    // Periodic bill logic - match Expenses page
+                    // Periodic bill logic - EXACTLY match Expenses page
                     const config = periodicBillsConfig[billName];
                     const expectedFullPayment = budget * config.monthsInCycle;
                     
@@ -1676,32 +1676,36 @@ function updateDashboard() {
                         const isFullPayment = Math.abs(actual - expectedFullPayment) < (budget * 0.5);
                         
                         if (isFullPayment) {
-                            // Payment month - compare actual vs expected
+                            // Payment month
                             const difference = actual - expectedFullPayment;
-                            billContribution = -difference; // Negative if overpaid, positive if underpaid (inverted for dashboard)
+                            
+                            if (Math.abs(difference) < 0.01) {
+                                // Paid exactly - $0.00
+                                overUnder = 0;
+                            } else if (difference > 0) {
+                                // Overpaid - negative (red on Expenses page)
+                                overUnder = -Math.abs(difference);
+                            } else {
+                                // Underpaid - negative (red on Expenses page)
+                                overUnder = -Math.abs(difference);
+                            }
                         } else {
-                            // Reserve contribution month - neutral
-                            billContribution = 0;
+                            // Reserve contribution month - $0.00
+                            overUnder = 0;
                         }
                     } else {
-                        // No payment - neutral
-                        billContribution = 0;
+                        // No payment - $0.00
+                        overUnder = 0;
                     }
                 } else if (positiveCreditBills.includes(billName)) {
-                    // Variable expenses: count savings when under budget
-                    if (actual > 0) {
-                        billContribution = budget - actual; // Positive if under, negative if over
-                    }
-                    // If actual === 0, no spending, no credit
+                    // Variable expenses: budget - actual (positive if under budget)
+                    overUnder = budget - actual;
                 } else {
-                    // Fixed expenses: only count if overpaid
-                    if (actual > budget) {
-                        billContribution = budget - actual; // Negative (overspent)
-                    }
-                    // If paid exactly or less, contribute $0
+                    // Fixed expenses: actual - budget (negative if overpaid)
+                    overUnder = actual - budget;
                 }
                 
-                monthDifference += billContribution;
+                monthDifference += overUnder;
             });
             
             // Only add to overall total if this is the CURRENT month
