@@ -1,4 +1,4 @@
-console.log('=== APP.JS LOADED - VERSION 20250131p ===');
+console.log('=== APP.JS LOADED - VERSION 20250131q ===');
 
 // Tab functionality
 function showTab(tabName) {
@@ -30,12 +30,12 @@ function showTab(tabName) {
 // This defines which bills are periodic (not monthly) and their payment schedule
 // The totalAmount will be calculated from the actual monthly budget
 const periodicBillsConfig = {
-    'Auto Insurance': { frequency: 'semi-annual', monthsInCycle: 6, dueMonth: 8, defaultMonthly: 136 },  // Aug 26
-    'AAA Roadside Assistance': { frequency: 'annual', monthsInCycle: 12, dueMonth: 5, defaultMonthly: 15 },  // May 26
-    'Jewelers Insurance': { frequency: 'annual', monthsInCycle: 12, dueMonth: 6, defaultMonthly: 7 },  // Jun 15
-    'Earthbound Garbage': { frequency: 'quarterly', monthsInCycle: 3, dueMonth: 1, defaultMonthly: 98 },  // Jan 26
-    'Water': { frequency: 'quarterly', monthsInCycle: 3, dueMonth: 1, defaultMonthly: 70 },  // Jan 26
-    'YMCA Membership': { frequency: 'annual', monthsInCycle: 12, dueMonth: 12, defaultMonthly: 0 }  // Dec 26 (deleted)
+    'Auto Insurance': { frequency: 'semi-annual', monthsInCycle: 6, dueMonth: 8, defaultMonthly: 136, initialBalance: 0 },  // Aug 26 - paid in Jan
+    'AAA Roadside Assistance': { frequency: 'annual', monthsInCycle: 12, dueMonth: 5, defaultMonthly: 15, initialBalance: 135 },  // May 26 - 9 months saved as of Jan
+    'Jewelers Insurance': { frequency: 'annual', monthsInCycle: 12, dueMonth: 6, defaultMonthly: 7, initialBalance: 56 },  // Jun 15 - 8 months saved as of Jan
+    'Earthbound Garbage': { frequency: 'quarterly', monthsInCycle: 3, dueMonth: 1, defaultMonthly: 98, initialBalance: 0 },  // Jan 26 - paid in Jan
+    'Water': { frequency: 'quarterly', monthsInCycle: 3, dueMonth: 1, defaultMonthly: 70, initialBalance: 0 },  // Jan 26 - paid in Jan
+    'YMCA Membership': { frequency: 'annual', monthsInCycle: 12, dueMonth: 12, defaultMonthly: 0, initialBalance: 0 }  // Dec 26 (deleted)
 };
 
 // Get the actual total amount for a periodic bill from current month's budget
@@ -306,8 +306,13 @@ function calculatePeriodicBuckets() {
         
         let bucketBalance = 0;
         
+        // Check if there's an initial balance (for bills that started before app tracking)
+        if (config.initialBalance) {
+            bucketBalance = config.initialBalance;
+            console.log(`${billName}: Starting with initial balance: $${bucketBalance}`);
+        }
+        
         // Check if there was a payment in January (first month of year)
-        // If so, assume it was covered by previous year's savings
         const janPayments = transactions.filter(t => {
             const tDate = new Date(t.date);
             const tMonth = String(tDate.getMonth() + 1).padStart(2, '0');
@@ -315,17 +320,10 @@ function calculatePeriodicBuckets() {
             return t.bill === billName && tMonth === '01' && tYear === currentYear;
         });
         
-        if (janPayments.length > 0) {
-            // Payment made in January - assume it was covered by previous year's savings
-            // Start bucket at $0 (payment was covered), then add this year's contributions
+        if (janPayments.length > 0 && !config.initialBalance) {
+            // Payment made in January and no initial balance set
+            // This means January was the payment month, start fresh
             bucketBalance = 0;
-        } else if (config.dueMonth && config.dueMonth > (currentMonthIndex + 1)) {
-            // Due month is later this year, so we must have been saving from previous year
-            const previousYearMonths = 12 - config.dueMonth; // Months from previous year only
-            bucketBalance = monthlyBudget * previousYearMonths; // Start with previous year
-            console.log(`${billName}: Due month ${config.dueMonth} > current ${currentMonthIndex + 1}. Monthly: $${monthlyBudget}, PrevYrMonths: ${previousYearMonths}, Bucket: $${bucketBalance.toFixed(2)}`);
-        } else {
-            console.log(`${billName}: No prev year savings. Due: ${config.dueMonth}, Current: ${currentMonthIndex + 1}, JanPay: ${janPayments.length}`);
         }
         
         // Go through each month up to current month in current year
