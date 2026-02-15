@@ -1732,16 +1732,6 @@ function updateDashboard() {
     
     console.log('FINAL overallTotal for dashboard:', overallTotal);
     
-    // Calculate total reserved in periodic buckets
-    const totalReserved = getTotalPeriodicBuckets();
-    console.log('Total reserved in periodic buckets:', totalReserved);
-    
-    // Update reserved amount display
-    const reservedDisplay = document.getElementById('reservedAmount');
-    if (reservedDisplay) {
-        reservedDisplay.textContent = `$${totalReserved.toFixed(2)}`;
-    }
-    
     // Update periodic bills breakdown
     updatePeriodicBillsBreakdown();
     
