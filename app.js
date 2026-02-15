@@ -1,4 +1,4 @@
-console.log('=== APP.JS LOADED - VERSION 20250131c ===');
+console.log('=== APP.JS LOADED - VERSION 20250131d ===');
 
 // Tab functionality
 function showTab(tabName) {
@@ -1474,17 +1474,25 @@ function updateDashboard() {
                 return transactionMonth === monthNumber && transactionYear === currentYear;
             });
             
-            // Calculate bill totals for this month (excluding ignored transactions)
-            const billTotals = {};
-            monthTransactions.forEach(transaction => {
-                if (transaction.bill !== 'Ignore/Internal Transfer') {
-                    if (!billTotals[transaction.bill]) {
-                        billTotals[transaction.bill] = 0;
+            // ONLY calculate if there are actual transactions for this month
+            if (monthTransactions.length === 0) {
+                // No transactions - show $0.00 neutral
+                displayAmount = '$0.00';
+                amountClass = 'neutral';
+                cardClass = 'month-card';
+            } else {
+                // Has transactions - calculate the difference
+                // Calculate bill totals for this month (excluding ignored transactions)
+                const billTotals = {};
+                monthTransactions.forEach(transaction => {
+                    if (transaction.bill !== 'Ignore/Internal Transfer') {
+                        if (!billTotals[transaction.bill]) {
+                            billTotals[transaction.bill] = 0;
+                        }
+                        billTotals[transaction.bill] += transaction.amount;
+                        totalSpent += transaction.amount;
                     }
-                    billTotals[transaction.bill] += transaction.amount;
-                    totalSpent += transaction.amount;
-                }
-            });
+                });
             
             // Default bill budgets (used if no custom value saved)
             const defaultBillBudgets = {
@@ -1559,6 +1567,7 @@ function updateDashboard() {
             amountClass = monthDifference > 0 ? 'positive' : monthDifference < 0 ? 'negative' : 'neutral';
             cardClass = `month-card ${monthDifference >= 0 ? 'surplus' : 'deficit'}`;
             displayAmount = monthDifference === 0 ? '$0.00' : `${monthDifference >= 0 ? '+' : ''}$${Math.abs(monthDifference).toFixed(2)}`;
+            } // End of else block (has transactions)
         }
         
         const monthCard = document.createElement('div');
