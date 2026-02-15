@@ -56,6 +56,9 @@ function getPeriodicBillTotal(billName) {
 // Bucket balances for periodic bills (accumulated savings toward next payment)
 let periodicBuckets = {};
 
+// Store monthly over/under values (calculated from Expenses page)
+let monthlyOverUnder = {};
+
 // Firebase Configuration
 const firebaseConfig = {
     apiKey: "AIzaSyCnpK-aY7cQdkW1MoloTHJD-GJSSswJXxE",
@@ -523,6 +526,10 @@ function updateBudgetFromTransactions() {
     document.getElementById('totalActual').textContent = `$${totalActual.toFixed(2)}`;
     document.getElementById('totalOverUnder').textContent = `$${totalOverUnder.toFixed(2)}`;
     document.getElementById('totalOverUnder').style.color = totalOverUnder >= 0 ? 'var(--success)' : 'var(--danger)';
+    
+    // Store this month's over/under for dashboard to use
+    monthlyOverUnder[currentMonth] = totalOverUnder;
+    console.log(`Stored ${currentMonth} over/under: $${totalOverUnder.toFixed(2)}`);
     
     // Calculate responsibility subtotals
     const erikTotal = totalBudget * 0.58;
@@ -1711,8 +1718,15 @@ function updateDashboard() {
                 amountClass = 'neutral';
                 cardClass = 'month-card';
             } else {
-                // Has transactions - use helper function to get exact over/under from Expenses page logic
-                monthDifference = calculateMonthOverUnder(month);
+                // Has transactions - get the stored over/under value
+                // First, temporarily switch to this month to calculate it
+                const savedCurrentMonth = currentMonth;
+                currentMonth = month;
+                updateBudgetFromTransactions();
+                currentMonth = savedCurrentMonth;
+                
+                // Now read the stored value
+                monthDifference = monthlyOverUnder[month] || 0;
                 
                 // Count total spent for this month
                 monthTransactions.forEach(transaction => {
