@@ -386,7 +386,7 @@ function updateBudgetFromTransactions() {
     const currentMonthNumber = monthNumbers[currentMonth];
     // Temporarily remove year filter to test
     const currentMonthTransactions = transactions.filter(transaction => {
-        const transactionDate = new Date(transaction.date);
+        const transactionDate = parseLocalDate(transaction.date);
         const transactionMonth = String(transactionDate.getMonth() + 1).padStart(2, '0');
         const transactionYear = transactionDate.getFullYear();
         
@@ -554,7 +554,7 @@ function calculateMonthOverUnder(monthName) {
     
     // Get transactions for this specific month
     const monthTransactions = transactions.filter(transaction => {
-        const transactionDate = new Date(transaction.date);
+        const transactionDate = parseLocalDate(transaction.date);
         const transactionMonth = String(transactionDate.getMonth() + 1).padStart(2, '0');
         const transactionYear = transactionDate.getFullYear();
         return transactionMonth === monthNumber && transactionYear === currentYear && transaction.bill !== 'Ignore/Internal Transfer';
@@ -1718,7 +1718,7 @@ function updateDashboard() {
         
         if (isCurrentOrPast) {
             const monthTransactions = transactions.filter(transaction => {
-                const transactionDate = new Date(transaction.date);
+                const transactionDate = parseLocalDate(transaction.date);
                 const transactionMonth = String(transactionDate.getMonth() + 1).padStart(2, '0');
                 const transactionYear = transactionDate.getFullYear();
                 return transactionMonth === monthNumber && transactionYear === currentYear;
