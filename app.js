@@ -393,12 +393,12 @@ function updateBudgetFromTransactions() {
         console.log(`Transaction: ${transaction.date} -> Month: ${transactionMonth}, Year: ${transactionYear}, Bill: ${transaction.bill}`);
         
         const monthMatch = transactionMonth === currentMonthNumber;
+        const yearMatch = transactionYear === 2026; // Only count 2026 transactions
         const notIgnored = transaction.bill !== 'Ignore/Internal Transfer';
         
-        console.log(`  Month match: ${monthMatch} (${transactionMonth} === ${currentMonthNumber}), Not ignored: ${notIgnored}`);
+        console.log(`  Month match: ${monthMatch} (${transactionMonth} === ${currentMonthNumber}), Year match: ${yearMatch}, Not ignored: ${notIgnored}`);
         
-        // Only filter by month for now, ignore year
-        return monthMatch && notIgnored;
+        return monthMatch && yearMatch && notIgnored;
     });
     
     console.log(`Current month: ${currentMonth} (${currentMonthNumber})`);
