@@ -702,7 +702,16 @@ function calculateMonthOverUnder(monthName) {
 // Calculate all months' over/under values
 function calculateAllMonthsOverUnder() {
     const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    const currentDate = new Date();
+    const currentMonthName = months[currentDate.getMonth()];
+    
     months.forEach(month => {
+        // Skip current month if it's already been calculated by updateBudgetFromTransactions
+        // (which is more accurate because it reads from the actual DOM)
+        if (month === currentMonthName && monthlyOverUnder[month] !== undefined) {
+            console.log(`Skipping ${month} - already calculated by updateBudgetFromTransactions: $${monthlyOverUnder[month].toFixed(2)}`);
+            return;
+        }
         calculateMonthOverUnder(month);
     });
 }
