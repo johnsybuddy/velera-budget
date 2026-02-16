@@ -3271,10 +3271,5 @@ async function cleanupNullBills() {
     alert(`Database cleanup complete! Removed ${removedCount} null bill entries.`);
 }
 
-// Run cleanup on page load (one-time cleanup)
-window.addEventListener('load', async () => {
-    // Wait for data to load first
-    setTimeout(async () => {
-        await cleanupNullBills();
-    }, 2000); // Wait 2 seconds for Firebase to load
-});
+// REMOVED AUTO-CLEANUP - Run manually if needed by calling cleanupNullBills() in console
+
