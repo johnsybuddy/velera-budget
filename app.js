@@ -703,17 +703,28 @@ function calculateMonthOverUnder(monthName) {
 function calculateAllMonthsOverUnder() {
     const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
     const currentDate = new Date();
-    const currentMonthName = months[currentDate.getMonth()];
+    const actualCurrentMonth = months[currentDate.getMonth()];
+    
+    // Save the current month selection
+    const savedCurrentMonth = currentMonth;
     
     months.forEach(month => {
-        // Skip current month if it's already been calculated by updateBudgetFromTransactions
-        // (which is more accurate because it reads from the actual DOM)
-        if (month === currentMonthName && monthlyOverUnder[month] !== undefined) {
-            console.log(`Skipping ${month} - already calculated by updateBudgetFromTransactions: $${monthlyOverUnder[month].toFixed(2)}`);
-            return;
-        }
-        calculateMonthOverUnder(month);
+        // Temporarily set currentMonth so updateBudgetFromTransactions calculates for this month
+        currentMonth = month;
+        
+        // Load the month's budget
+        loadMonthBudget(month);
+        
+        // Calculate the over/under (this will store in monthlyOverUnder[month])
+        updateBudgetFromTransactions();
+        
+        console.log(`Calculated ${month} over/under: ${monthlyOverUnder[month]}`);
     });
+    
+    // Restore the original current month
+    currentMonth = savedCurrentMonth;
+    loadMonthBudget(savedCurrentMonth);
+    updateBudgetFromTransactions();
 }
 
 // CSV Import functionality
@@ -1814,22 +1825,10 @@ function updateDashboard() {
                 amountClass = 'neutral';
                 cardClass = 'month-card';
             } else {
-                // FOR CURRENT MONTH: Read directly from Monthly Budget page DOM
-                if (month === currentMonthName) {
-                    const totalOverUnderElement = document.getElementById('totalOverUnder');
-                    if (totalOverUnderElement) {
-                        const domValue = parseFloat(totalOverUnderElement.textContent.replace(/[$,]/g, '')) || 0;
-                        monthDifference = domValue;
-                        console.log(`${month}: Reading from DOM totalOverUnder = ${domValue}`);
-                    } else {
-                        // Fallback to stored value
-                        monthDifference = monthlyOverUnder[month] || 0;
-                        console.log(`${month}: DOM element not found, using stored value = ${monthDifference}`);
-                    }
-                } else {
-                    // For other months, use stored value
-                    monthDifference = monthlyOverUnder[month] || 0;
-                }
+                // Use the stored value from monthlyOverUnder (set by updateBudgetFromTransactions)
+                monthDifference = monthlyOverUnder[month] || 0;
+                
+                console.log(`Dashboard ${month}: Using stored value = ${monthDifference}`);
                 
                 // Count total spent for this month
                 monthTransactions.forEach(transaction => {
