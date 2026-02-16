@@ -3285,3 +3285,36 @@ async function cleanupNullBills() {
 
 // REMOVED AUTO-CLEANUP - Run manually if needed by calling cleanupNullBills() in console
 
+
+
+// Function to copy January budget to all other months (one-time fix)
+async function copyJanuaryToAllMonths() {
+    const janBudget = monthlyBudgets['jan'];
+    if (!janBudget) {
+        alert('January budget not found!');
+        return;
+    }
+    
+    const months = ['feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    
+    console.log('Copying January budget to all months...');
+    console.log('January budget:', janBudget);
+    
+    months.forEach(month => {
+        // Copy all bills from January to this month
+        monthlyBudgets[month] = { ...janBudget };
+        console.log(`Copied to ${month}`);
+    });
+    
+    // Save to Firebase
+    await saveMonthlyBudgets();
+    
+    // Update displays
+    updateDashboard();
+    updateBudgetTotals();
+    
+    alert('Successfully copied January budget to all months!');
+}
+
+// Call this function once to fix your budget
+console.log('To fix your budget, open console and run: copyJanuaryToAllMonths()');
