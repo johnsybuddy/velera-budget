@@ -3238,3 +3238,43 @@ async function saveBudgetsWithStatus() {
     await saveMonthlyBudgets();
     hideSyncStatus();
 }
+
+// Cleanup function to remove all null/undefined values from monthlyBudgets
+async function cleanupNullBills() {
+    console.log('Starting cleanup of null bills...');
+    const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    let removedCount = 0;
+    
+    months.forEach(month => {
+        if (monthlyBudgets[month]) {
+            const billNames = Object.keys(monthlyBudgets[month]);
+            billNames.forEach(billName => {
+                const value = monthlyBudgets[month][billName];
+                if (value === null || value === undefined) {
+                    console.log(`Removing null bill: ${billName} from ${month}`);
+                    delete monthlyBudgets[month][billName];
+                    removedCount++;
+                }
+            });
+        }
+    });
+    
+    console.log(`Cleanup complete! Removed ${removedCount} null bill entries.`);
+    
+    // Save the cleaned data
+    await saveMonthlyBudgets();
+    
+    // Update displays
+    updateDashboard();
+    updateBudgetTotals();
+    
+    alert(`Database cleanup complete! Removed ${removedCount} null bill entries.`);
+}
+
+// Run cleanup on page load (one-time cleanup)
+window.addEventListener('load', async () => {
+    // Wait for data to load first
+    setTimeout(async () => {
+        await cleanupNullBills();
+    }, 2000); // Wait 2 seconds for Firebase to load
+});
