@@ -1814,8 +1814,22 @@ function updateDashboard() {
                 amountClass = 'neutral';
                 cardClass = 'month-card';
             } else {
-                // Read the stored over/under value from monthlyOverUnder
-                monthDifference = monthlyOverUnder[month] || 0;
+                // FOR CURRENT MONTH: Read directly from Monthly Budget page DOM
+                if (month === currentMonthName) {
+                    const totalOverUnderElement = document.getElementById('totalOverUnder');
+                    if (totalOverUnderElement) {
+                        const domValue = parseFloat(totalOverUnderElement.textContent.replace(/[$,]/g, '')) || 0;
+                        monthDifference = domValue;
+                        console.log(`${month}: Reading from DOM totalOverUnder = ${domValue}`);
+                    } else {
+                        // Fallback to stored value
+                        monthDifference = monthlyOverUnder[month] || 0;
+                        console.log(`${month}: DOM element not found, using stored value = ${monthDifference}`);
+                    }
+                } else {
+                    // For other months, use stored value
+                    monthDifference = monthlyOverUnder[month] || 0;
+                }
                 
                 // Count total spent for this month
                 monthTransactions.forEach(transaction => {
