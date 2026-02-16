@@ -1694,21 +1694,21 @@ function updateDashboard() {
     const currentMonth = currentDate.getMonth() + 1; // 1-12
     const currentMonthName = months[currentDate.getMonth()]; // e.g., 'feb'
     
-    // Calculate ANNUAL budget by summing all 12 months
-    // This accounts for budget changes throughout the year
+    // Calculate ANNUAL budget (current month's budget × 12)
     let totalBudget = 0;
     
-    months.forEach(month => {
-        const monthBudgets = monthlyBudgets[month] || {};
-        for (const billName in monthBudgets) {
-            const budgetValue = monthBudgets[billName];
-            if (budgetValue !== null && budgetValue !== undefined) {
-                totalBudget += budgetValue;
-            }
+    const currentMonthBudgets = monthlyBudgets[currentMonthName] || {};
+    for (const billName in currentMonthBudgets) {
+        const budgetValue = currentMonthBudgets[billName];
+        if (budgetValue !== null && budgetValue !== undefined) {
+            totalBudget += budgetValue;
         }
-    });
+    }
     
-    console.log(`Dashboard - Annual budget (sum of all 12 months): $${totalBudget.toFixed(2)}`);
+    // Multiply by 12 for annual budget
+    totalBudget = totalBudget * 12;
+    
+    console.log(`Dashboard - Annual budget (${currentMonthName} budget × 12): $${totalBudget.toFixed(2)}`);
     
     months.forEach((month, index) => {
         const monthNumber = monthNumbers[month];
