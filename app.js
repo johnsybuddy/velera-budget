@@ -1698,19 +1698,31 @@ function updateDashboard() {
     let totalBudget = 0;
     
     const currentMonthBudgets = monthlyBudgets[currentMonthName] || {};
+    
+    console.log('=== ANNUAL BUDGET CALCULATION DEBUG ===');
+    console.log('Current month:', currentMonthName);
+    console.log('All bills in current month:', currentMonthBudgets);
+    
     for (const billName in currentMonthBudgets) {
         const budgetValue = currentMonthBudgets[billName];
+        console.log(`Bill: ${billName}, Value: ${budgetValue}, Type: ${typeof budgetValue}`);
+        
         // Only count valid budget values (exclude Extra Paid)
         if (budgetValue > 0 && billName !== 'Extra Paid') {
             totalBudget += budgetValue;
+            console.log(`  ✓ Added ${budgetValue} to total`);
+        } else {
+            console.log(`  ✗ Skipped (value: ${budgetValue}, billName: ${billName})`);
         }
     }
+    
+    console.log('Monthly total:', totalBudget);
     
     // Multiply by 12 for annual budget
     totalBudget = totalBudget * 12;
     
-    console.log(`Dashboard - Annual budget (${currentMonthName} budget × 12): $${totalBudget.toFixed(2)}`);
-    console.log(`Current month (${currentMonthName}) budget breakdown:`, currentMonthBudgets);
+    console.log('Annual budget (monthly × 12):', totalBudget);
+    console.log('=== END DEBUG ===');
     
     console.log(`Dashboard - Annual budget (${currentMonthName} budget × 12): $${totalBudget.toFixed(2)}`);
     
