@@ -1700,8 +1700,8 @@ function updateDashboard() {
     const currentMonthBudgets = monthlyBudgets[currentMonthName] || {};
     for (const billName in currentMonthBudgets) {
         const budgetValue = currentMonthBudgets[billName];
-        // Only count valid budget values (not null, undefined, or deleted bills)
-        if (budgetValue !== null && budgetValue !== undefined && budgetValue > 0 && billName !== 'Extra Paid') {
+        // Only count valid budget values (exclude Extra Paid)
+        if (budgetValue > 0 && billName !== 'Extra Paid') {
             totalBudget += budgetValue;
         }
     }
@@ -2532,13 +2532,12 @@ function deleteBill() {
     const billName = document.getElementById('addBillForm').dataset.editBill;
     console.log('Deleting bill:', billName);
     if (billName && confirm(`Delete ${billName} from all months?`)) {
-        // Mark as deleted in all months (set to null instead of deleting the key)
+        // COMPLETELY REMOVE from all months (delete the key)
         const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
         months.forEach(month => {
-            if (!monthlyBudgets[month]) {
-                monthlyBudgets[month] = {};
+            if (monthlyBudgets[month] && monthlyBudgets[month].hasOwnProperty(billName)) {
+                delete monthlyBudgets[month][billName]; // Actually delete the key
             }
-            monthlyBudgets[month][billName] = null; // Mark as deleted
         });
         
         // Hide the row from the table
