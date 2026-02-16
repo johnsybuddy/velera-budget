@@ -2198,6 +2198,18 @@ document.getElementById('addTransactionForm').addEventListener('submit', functio
             account: account,
             bill: bill
         });
+        
+        // Auto-duplicate Miscellaneous transactions to Family Expense Tracking
+        if (bill === 'Miscellaneous') {
+            familyExpenses.push({
+                date: date,
+                description: source,
+                amount: amount,
+                paidBy: 'Joint' // Default to Joint, user can edit if needed
+            });
+            saveFamilyExpenses();
+        }
+        
         showNotification('Transaction added successfully!');
     }
     saveTransactions();
