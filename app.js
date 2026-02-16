@@ -200,12 +200,64 @@ async function saveMonthlyBudgets() {
 }
 
 async function loadMonthlyBudgets() {
+    const defaultBudgets = {
+        'Mortgage + Escrow (Ins-Taxes)': 2272.00,
+        'Car Payment': 453.00,
+        'Auto Insurance': 125.00,
+        'AAA Roadside Assistance': 15.00,
+        'Gas': 150.00,
+        'Jewelers Insurance': 7.00,
+        'Earthbound Garbage': 98.00,
+        'Water': 70.00,
+        'Xcel Energy': 285.00,
+        'Spectrum Internet + Helium Mobile': 116.00,
+        'Charity': 50.00,
+        'Daycare': 1100.00,
+        'Groceries': 850.00,
+        'Restaurants/Entertainment': 300.00,
+        'Cat Food': 20.00,
+        "Dylan's Medication": 90.00,
+        "Dylan's School Lunches": 50.00,
+        'Roku / Disney Subscriptions': 25.00,
+        'Miscellaneous': 50.00,
+        'Emergency Fund': 225.00,
+        'Travel Spending': 100.00,
+        'Dylan Investment': 35.00,
+        'Brooks Investment': 25.00,
+        'Extra Paid': 0.00
+    };
+    
     if (isFirebaseEnabled) {
         try {
             const doc = await db.collection('users').doc(userId).get();
             if (doc.exists && doc.data().monthlyBudgets) {
                 monthlyBudgets = doc.data().monthlyBudgets;
                 console.log('Monthly budgets loaded from cloud');
+                
+                // Auto-fill missing bills with defaults
+                const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+                let needsSave = false;
+                
+                months.forEach(month => {
+                    if (!monthlyBudgets[month]) {
+                        monthlyBudgets[month] = {};
+                    }
+                    
+                    // Add any missing bills from defaults
+                    for (const billName in defaultBudgets) {
+                        if (monthlyBudgets[month][billName] === undefined) {
+                            monthlyBudgets[month][billName] = defaultBudgets[billName];
+                            needsSave = true;
+                            console.log(`Added missing bill to ${month}: ${billName} = ${defaultBudgets[billName]}`);
+                        }
+                    }
+                });
+                
+                // Save if we added any missing bills
+                if (needsSave) {
+                    console.log('Saving updated budgets with missing bills filled in...');
+                    await saveMonthlyBudgets();
+                }
             }
             if (doc.exists && doc.data().periodicBuckets) {
                 periodicBuckets = doc.data().periodicBuckets;
