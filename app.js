@@ -1102,7 +1102,7 @@ function autoCategorizeBill(description) {
         desc.includes('cable') || desc.includes('phone service') || desc.includes('comcast') ||
         desc.includes('verizon') || desc.includes('at&t') || desc.includes('centurylink') ||
         desc.includes('broadband') || desc.includes('wifi')) {
-        return 'Spectrum Phone';
+        return 'Spectrum Internet + Helium Mobile';
     }
     if (desc.includes('water') || desc.includes('sewer') || desc.includes('water dept') ||
         desc.includes('water district') || desc.includes('municipal water') || desc.includes('h2o')) {
@@ -1439,7 +1439,7 @@ function loadMonthBudget(month) {
         'Earthbound Garbage': 98.00,
         'Water': 70.00,
         'Xcel Energy': 285.00,
-        'Spectrum Phone': 116.00,
+        'Spectrum Internet + Helium Mobile': 116.00,
         'YMCA Membership': 35.00,
         'Charity': 50.00,
         'Daycare': 1100.00,
@@ -1501,7 +1501,7 @@ function updateBudget() {
     const budgetInputs = document.querySelectorAll('.budget-input');
     const billNames = [
         'Mortgage + Escrow (Ins-Taxes)', 'Car Payment', 'Auto Insurance', 'AAA Roadside Assistance',
-        'Gas', 'Jewelers Insurance', 'Earthbound Garbage', 'Water', 'Xcel Energy', 'Spectrum Phone',
+        'Gas', 'Jewelers Insurance', 'Earthbound Garbage', 'Water', 'Xcel Energy', 'Spectrum Internet + Helium Mobile',
         'YMCA Membership', 'Charity', 'Daycare', 'Groceries', 'Restaurants/Entertainment', 'Cat Food',
         "Dylan's Medication", "Dylan's School Lunches", 'Roku / Disney Subscriptions', 'Miscellaneous',
         'Emergency Fund', 'Travel Spending', 'Dylan Investment', 'Brooks Investment', 
@@ -1618,7 +1618,7 @@ function updateBudgetCategories() {
     const billsUtilities = (budgets['Earthbound Garbage'] || 0) + 
                           (budgets['Water'] || 0) + 
                           (budgets['Xcel Energy'] || 0) + 
-                          (budgets['Spectrum Phone'] || 0) + 
+                          (budgets['Spectrum Internet + Helium Mobile'] || 0) + 
                           (budgets['Charity'] || 0) + 
                           (budgets['Daycare'] || 0) + 
                           (budgets['Gas'] || 0);
@@ -1998,7 +1998,33 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 // Transaction modal functions
 function showAddTransaction() {
+    populateTransactionBillDropdown();
     document.getElementById('addTransactionModal').style.display = 'block';
+}
+
+// Populate the transaction bill dropdown from current month's budget
+function populateTransactionBillDropdown() {
+    const dropdown = document.getElementById('transactionBill');
+    const currentBudgets = monthlyBudgets[currentMonth] || {};
+    
+    // Clear existing options except the first one
+    dropdown.innerHTML = '<option value="">Select Bill</option>';
+    
+    // Add options from current month's budget (excluding deleted bills)
+    for (const billName in currentBudgets) {
+        if (currentBudgets[billName] !== null && currentBudgets[billName] !== undefined) {
+            const option = document.createElement('option');
+            option.value = billName;
+            option.textContent = billName;
+            dropdown.appendChild(option);
+        }
+    }
+    
+    // Always add "Ignore/Internal Transfer" option
+    const ignoreOption = document.createElement('option');
+    ignoreOption.value = 'Ignore/Internal Transfer';
+    ignoreOption.textContent = 'Ignore/Internal Transfer';
+    dropdown.appendChild(ignoreOption);
 }
 
 function closeAddTransaction() {
@@ -2210,7 +2236,7 @@ function editField(cell) {
         input.className = 'inline-edit-select';
         const categories = [
             'Mortgage + Escrow (Ins-Taxes)', 'Car Payment', 'Auto Insurance', 'AAA Roadside Assistance',
-            'Gas', 'Jewelers Insurance', 'Earthbound Garbage', 'Water', 'Xcel Energy', 'Spectrum Phone',
+            'Gas', 'Jewelers Insurance', 'Earthbound Garbage', 'Water', 'Xcel Energy', 'Spectrum Internet + Helium Mobile',
             'YMCA Membership', 'Charity', 'Daycare', 'Groceries', 'Restaurants/Entertainment', 'Cat Food',
             "Dylan's Medication", "Dylan's School Lunches", 'Roku / Disney Subscriptions', 'Miscellaneous',
             'Emergency Fund', 'Travel Spending', 'Dylan Investment', 'Brooks Investment', 
@@ -2889,7 +2915,7 @@ function extractAmount(transcript) {
 function matchBillCategory(transcript) {
     const billCategories = [
         'Mortgage + Escrow (Ins-Taxes)', 'Car Payment', 'Auto Insurance', 'AAA Roadside Assistance',
-        'Gas', 'Jewelers Insurance', 'Earthbound Garbage', 'Water', 'Xcel Energy', 'Spectrum Phone',
+        'Gas', 'Jewelers Insurance', 'Earthbound Garbage', 'Water', 'Xcel Energy', 'Spectrum Internet + Helium Mobile',
         'YMCA Membership', 'Charity', 'Daycare', 'Groceries', 'Restaurants/Entertainment', 'Cat Food',
         "Dylan's Medication", "Dylan's School Lunches", 'Roku / Disney Subscriptions', 'Miscellaneous',
         'Emergency Fund', 'Travel Spending', 'Dylan Investment', 'Brooks Investment', 'Extra Paid'
@@ -2913,8 +2939,8 @@ function matchBillCategory(transcript) {
         'energy': 'Xcel Energy',
         'electric': 'Xcel Energy',
         'electricity': 'Xcel Energy',
-        'spectrum': 'Spectrum Phone',
-        'phone': 'Spectrum Phone',
+        'spectrum': 'Spectrum Internet + Helium Mobile',
+        'phone': 'Spectrum Internet + Helium Mobile',
         'ymca': 'YMCA Membership',
         'gym': 'YMCA Membership',
         'charity': 'Charity',
