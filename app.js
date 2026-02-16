@@ -59,6 +59,12 @@ let periodicBuckets = {};
 // Store monthly over/under values (calculated from Expenses page)
 let monthlyOverUnder = {};
 
+// Helper function to parse date as local time (not UTC)
+function parseLocalDate(dateString) {
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day);
+}
+
 // Firebase Configuration
 const firebaseConfig = {
     apiKey: "AIzaSyCnpK-aY7cQdkW1MoloTHJD-GJSSswJXxE",
@@ -2046,12 +2052,6 @@ window.onclick = function(event) {
 function updateTransactionTable() {
     const tbody = document.getElementById('transactionsBody');
     tbody.innerHTML = '';
-    
-    // Helper function to parse date as local time (not UTC)
-    function parseLocalDate(dateString) {
-        const [year, month, day] = dateString.split('-').map(Number);
-        return new Date(year, month - 1, day);
-    }
     
     // Sort transactions by date (most recent first)
     const sortedTransactions = [...transactions].sort((a, b) => parseLocalDate(b.date) - parseLocalDate(a.date));
