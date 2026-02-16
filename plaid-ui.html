@@ -1,0 +1,106 @@
+<!-- ============================================ -->
+<!-- PLAID BANK CONNECTION UI -->
+<!-- Add this HTML to your index.html before the closing </body> tag -->
+<!-- ============================================ -->
+
+<!-- Add Plaid Link Script in <head> section -->
+<script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+
+<!-- Bank Connections Modal -->
+<div id="bankConnectionsModal" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header">
+            <h2>🏦 Bank Connections</h2>
+            <span class="close" onclick="closeBankConnectionsModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                Connect your bank accounts to automatically sync transactions. Your credentials are never stored - we use Plaid's secure bank-level encryption.
+            </p>
+            
+            <div style="margin-bottom: 2rem;">
+                <button class="btn-primary" onclick="initializePlaidLink()" style="width: 100%;">
+                    <span style="margin-right: 0.5rem;">🔗</span>
+                    Connect New Bank Account
+                </button>
+            </div>
+            
+            <h3 style="margin-bottom: 1rem;">Connected Accounts</h3>
+            <div id="connectedAccountsList">
+                <p style="color: var(--text-secondary);">Loading...</p>
+            </div>
+            
+            <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border-light);">
+                <button class="btn-secondary" onclick="syncTransactions()" style="width: 100%;">
+                    <span style="margin-right: 0.5rem;">🔄</span>
+                    Sync Transactions Now
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add this button to your dashboard or expenses tab -->
+<!-- Example placement in dashboard: -->
+<style>
+.connected-account-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: var(--bg-main);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    margin-bottom: 0.75rem;
+}
+
+.account-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.bank-sync-button {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s, box-shadow 0.2s;
+    z-index: 1000;
+}
+
+.bank-sync-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.bank-sync-button:active {
+    transform: scale(0.95);
+}
+</style>
+
+<!-- Floating Bank Sync Button (optional - shows on all pages) -->
+<button class="bank-sync-button" onclick="showBankConnectionsModal()" title="Bank Connections">
+    🏦
+</button>
+
+<!-- OR add to dashboard quick actions dropdown -->
+<!-- Add this inside the quick-actions-dropdown div in index.html: -->
+<!--
+<button class="action-btn" onclick="showBankConnectionsModal(); toggleQuickActions()">
+    <span class="action-icon">🏦</span>
+    <span class="action-text">Bank Connections</span>
+</button>
+-->
+
+<!-- ============================================ -->
+<!-- END PLAID UI -->
+<!-- ============================================ -->
