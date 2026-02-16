@@ -1700,13 +1700,17 @@ function updateDashboard() {
     const currentMonthBudgets = monthlyBudgets[currentMonthName] || {};
     for (const billName in currentMonthBudgets) {
         const budgetValue = currentMonthBudgets[billName];
-        if (budgetValue !== null && budgetValue !== undefined) {
+        // Only count valid budget values (not null, undefined, or deleted bills)
+        if (budgetValue !== null && budgetValue !== undefined && budgetValue > 0 && billName !== 'Extra Paid') {
             totalBudget += budgetValue;
         }
     }
     
     // Multiply by 12 for annual budget
     totalBudget = totalBudget * 12;
+    
+    console.log(`Dashboard - Annual budget (${currentMonthName} budget × 12): $${totalBudget.toFixed(2)}`);
+    console.log(`Current month (${currentMonthName}) budget breakdown:`, currentMonthBudgets);
     
     console.log(`Dashboard - Annual budget (${currentMonthName} budget × 12): $${totalBudget.toFixed(2)}`);
     
