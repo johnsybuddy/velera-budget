@@ -3318,3 +3318,55 @@ async function copyJanuaryToAllMonths() {
 
 // Call this function once to fix your budget
 console.log('To fix your budget, open console and run: copyJanuaryToAllMonths()');
+
+
+// Function to initialize all months with complete default budgets
+async function initializeAllMonthsWithDefaults() {
+    const defaultBudgets = {
+        'Mortgage + Escrow (Ins-Taxes)': 2272.00,
+        'Car Payment': 453.00,
+        'Auto Insurance': 125.00,
+        'AAA Roadside Assistance': 15.00,
+        'Gas': 150.00,
+        'Jewelers Insurance': 7.00,
+        'Earthbound Garbage': 98.00,
+        'Water': 70.00,
+        'Xcel Energy': 285.00,
+        'Spectrum Internet + Helium Mobile': 116.00,
+        'Charity': 50.00,
+        'Daycare': 1100.00,
+        'Groceries': 850.00,
+        'Restaurants/Entertainment': 300.00,
+        'Cat Food': 20.00,
+        "Dylan's Medication": 90.00,
+        "Dylan's School Lunches": 50.00,
+        'Roku / Disney Subscriptions': 25.00,
+        'Miscellaneous': 50.00,
+        'Emergency Fund': 225.00,
+        'Travel Spending': 100.00,
+        'Dylan Investment': 35.00,
+        'Brooks Investment': 25.00,
+        'Extra Paid': 0.00
+    };
+    
+    const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    
+    console.log('Initializing all months with complete default budgets...');
+    
+    months.forEach(month => {
+        monthlyBudgets[month] = { ...defaultBudgets };
+        console.log(`Initialized ${month} with ${Object.keys(defaultBudgets).length} bills`);
+    });
+    
+    // Save to Firebase
+    await saveMonthlyBudgets();
+    
+    // Update displays
+    updateDashboard();
+    updateBudgetTotals();
+    
+    const total = Object.values(defaultBudgets).reduce((sum, val) => sum + val, 0);
+    alert(`Successfully initialized all months with complete budgets!\nMonthly total: $${total.toFixed(2)}\nAnnual total: $${(total * 12).toFixed(2)}`);
+}
+
+console.log('To initialize all months with complete budgets, run: initializeAllMonthsWithDefaults()');
