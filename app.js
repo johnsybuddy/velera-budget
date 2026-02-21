@@ -1497,34 +1497,7 @@ function showMonth(month) {
 }
 
 function loadMonthBudget(month) {
-    // Update the table cells with saved budget values
-    const defaultBudgets = {
-        'Mortgage + Escrow (Ins-Taxes)': 2272.00,
-        'Car Payment': 453.00,
-        'Auto Insurance': 125.00,
-        'AAA Roadside Assistance': 15.00,
-        'Gas': 150.00,
-        'Jewelers Insurance': 7.00,
-        'Earthbound Garbage': 98.00,
-        'Water': 70.00,
-        'Xcel Energy': 285.00,
-        'Spectrum Internet + Helium Mobile': 116.00,
-        'YMCA Membership': 35.00,
-        'Charity': 50.00,
-        'Daycare': 1100.00,
-        'Groceries': 850.00,
-        'Restaurants/Entertainment': 300.00,
-        'Cat Food': 20.00,
-        "Dylan's Medication": 90.00,
-        "Dylan's School Lunches": 50.00,
-        'Roku / Disney Subscriptions': 25.00,
-        'Miscellaneous': 50.00,
-        'Emergency Fund': 225.00,
-        'Travel Spending': 100.00,
-        'Dylan Investment': 35.00,
-        'Brooks Investment': 25.00,
-        'Extra Paid': 0.00
-    };
+    // Update the table cells with saved budget values from Firebase ONLY
     
     // Get all budget table rows
     const rows = document.querySelectorAll('.budget-table tbody tr');
@@ -1546,20 +1519,19 @@ function loadMonthBudget(month) {
             return;
         }
         
-        // Get saved value or default
+        // Get saved value from Firebase (no defaults)
         const savedValue = monthlyBudgets[month] && monthlyBudgets[month][billName];
-        const displayValue = savedValue !== undefined ? savedValue : defaultBudgets[billName];
         
-        if (displayValue !== undefined) {
+        if (savedValue !== undefined && savedValue !== null) {
             // Update the Monthly Expense cell (column 2, after Due Date column)
             if (row.cells[2]) {
-                row.cells[2].textContent = `$${displayValue.toFixed(2)}`;
+                row.cells[2].textContent = `$${savedValue.toFixed(2)}`;
             }
             
             // Update the Edit button onclick with new value
             const editBtn = row.querySelector('.btn-edit');
             if (editBtn) {
-                editBtn.setAttribute('onclick', `editBill('${billName.replace(/'/g, "\\'")}', ${displayValue})`);
+                editBtn.setAttribute('onclick', `editBill('${billName.replace(/'/g, "\\'")}', ${savedValue})`);
             }
         }
     });
