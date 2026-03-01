@@ -3431,3 +3431,31 @@ async function initializeAllMonthsWithDefaults() {
 }
 
 console.log('To initialize all months with complete budgets, run: initializeAllMonthsWithDefaults()');
+
+
+// Function to remove old "Spectrum Phone" entries and keep only "Spectrum Internet + Helium Mobile"
+async function fixSpectrumBill() {
+    const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    
+    months.forEach(month => {
+        if (monthlyBudgets[month]) {
+            // Remove old "Spectrum Phone" entry
+            if (monthlyBudgets[month]['Spectrum Phone']) {
+                console.log(`Removing "Spectrum Phone" from ${month}`);
+                delete monthlyBudgets[month]['Spectrum Phone'];
+            }
+        }
+    });
+    
+    await saveMonthlyBudgets();
+    
+    // Reload the current month
+    loadMonthBudget(currentMonth);
+    updateBudgetFromTransactions();
+    updateBudgetTotals();
+    updateDashboard();
+    
+    alert('Fixed Spectrum bill entries!');
+}
+
+console.log('To fix Spectrum bill mismatch, run: fixSpectrumBill()');
