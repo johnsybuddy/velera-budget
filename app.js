@@ -3433,17 +3433,30 @@ async function initializeAllMonthsWithDefaults() {
 console.log('To initialize all months with complete budgets, run: initializeAllMonthsWithDefaults()');
 
 
-// Function to remove old "Spectrum Phone" entries and keep only "Spectrum Internet + Helium Mobile"
+// Function to rename Spectrum entries to "Phones & Internet"
 async function fixSpectrumBill() {
     const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
     
     months.forEach(month => {
         if (monthlyBudgets[month]) {
-            // Remove old "Spectrum Phone" entry
+            let newValue = 116; // Default value
+            
+            // Check if either old name exists and get the value
             if (monthlyBudgets[month]['Spectrum Phone']) {
-                console.log(`Removing "Spectrum Phone" from ${month}`);
+                newValue = monthlyBudgets[month]['Spectrum Phone'];
                 delete monthlyBudgets[month]['Spectrum Phone'];
+                console.log(`Removed "Spectrum Phone" from ${month}`);
             }
+            
+            if (monthlyBudgets[month]['Spectrum Internet + Helium Mobile']) {
+                newValue = monthlyBudgets[month]['Spectrum Internet + Helium Mobile'];
+                delete monthlyBudgets[month]['Spectrum Internet + Helium Mobile'];
+                console.log(`Removed "Spectrum Internet + Helium Mobile" from ${month}`);
+            }
+            
+            // Add the new name
+            monthlyBudgets[month]['Phones & Internet'] = newValue;
+            console.log(`Added "Phones & Internet" to ${month} with value ${newValue}`);
         }
     });
     
@@ -3455,7 +3468,7 @@ async function fixSpectrumBill() {
     updateBudgetTotals();
     updateDashboard();
     
-    alert('Fixed Spectrum bill entries!');
+    alert('Renamed to "Phones & Internet" for all months!');
 }
 
 console.log('To fix Spectrum bill mismatch, run: fixSpectrumBill()');
