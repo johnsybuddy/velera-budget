@@ -469,7 +469,7 @@
                 <button class="btn-primary" onclick="showAddTransaction()">Add Transaction</button>
                 <button class="btn-secondary" onclick="showImportCSV()">Import CSV</button>
                 <button class="btn-secondary" onclick="showLearnedPatterns()">🧠 View Learned Patterns</button>
-                <button id="linkBankButton" class="btn-secondary">🏦 Connect Bank Account</button>
+                <button id="linkBankButton" class="btn-secondary" onclick="showBankConnectionsModal()">🏦 Connect Bank Account</button>
             </div>
             <div class="transactions-table-container">
                 <div class="bulk-actions" style="margin-bottom: 1rem; display: none;" id="bulkActions">
@@ -697,6 +697,40 @@
             <div class="form-actions" style="margin-top: 1rem;">
                 <button type="button" class="btn-danger" onclick="clearLearnedPatterns()">Clear All Patterns</button>
                 <button type="button" class="btn-secondary" onclick="closeLearnedPatterns()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bank Connections Modal -->
+    <div id="bankConnectionsModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>🏦 Bank Connections</h2>
+                <span class="close" onclick="closeBankConnectionsModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                    Connect your bank accounts to automatically sync transactions. Your credentials are never stored - we use Plaid's secure bank-level encryption.
+                </p>
+                
+                <div style="margin-bottom: 2rem;">
+                    <button class="btn-primary" onclick="initializePlaidLink()" style="width: 100%;">
+                        <span style="margin-right: 0.5rem;">🔗</span>
+                        Connect New Bank Account
+                    </button>
+                </div>
+                
+                <h3 style="margin-bottom: 1rem;">Connected Accounts</h3>
+                <div id="connectedAccountsList">
+                    <p style="color: var(--text-secondary);">Loading...</p>
+                </div>
+                
+                <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border-light);">
+                    <button class="btn-secondary" onclick="syncTransactions()" style="width: 100%;">
+                        <span style="margin-right: 0.5rem;">🔄</span>
+                        Sync Transactions Now
+                    </button>
+                </div>
             </div>
         </div>
     </div>
