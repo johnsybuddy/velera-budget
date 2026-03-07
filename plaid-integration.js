@@ -11,9 +11,24 @@ async function initializePlaidLink() {
     try {
         showNotification('Initializing bank connection...', 'info');
         
+        // Check if Firebase is initialized
+        if (!firebase || !firebase.app || !firebase.app()) {
+            throw new Error('Firebase not initialized. Please refresh the page.');
+        }
+        
+        // Check if Functions is available
+        if (!firebase.functions) {
+            throw new Error('Firebase Functions not loaded. Please check your internet connection and refresh.');
+        }
+        
+        console.log('Firebase app initialized:', firebase.app().name);
+        console.log('Calling createLinkToken function...');
+        
         // Get link token from Firebase Function
         const createLinkToken = firebase.functions().httpsCallable('createLinkToken');
         const result = await createLinkToken();
+        
+        console.log('Link token received:', result.data);
         const linkToken = result.data.link_token;
         
         // Initialize Plaid Link
@@ -50,12 +65,16 @@ async function handlePlaidSuccess(public_token, metadata) {
     try {
         showNotification('Connecting to your bank...', 'info');
         
+        console.log('Exchanging public token...', { public_token, metadata });
+        
         // Exchange public token for access token
         const exchangeToken = firebase.functions().httpsCallable('exchangePublicToken');
         const result = await exchangeToken({ 
             public_token: public_token,
             metadata: metadata 
         });
+        
+        console.log('Exchange result:', result.data);
         
         if (result.data.success) {
             showNotification(`Successfully connected ${result.data.institutionName}!`, 'success');
@@ -68,7 +87,7 @@ async function handlePlaidSuccess(public_token, metadata) {
         }
     } catch (error) {
         console.error('Error exchanging token:', error);
-        showNotification('Failed to save bank connection', 'error');
+        showNotification('Failed to save bank connection: ' + error.message, 'error');
     }
 }
 
@@ -79,11 +98,15 @@ async function syncTransactions() {
     try {
         showNotification('Syncing transactions...', 'info');
         
+        console.log('Fetching transactions...');
+        
         const fetchTransactions = firebase.functions().httpsCallable('fetchTransactions');
         const result = await fetchTransactions({
             startDate: getDateDaysAgo(90), // Last 90 days
             endDate: getTodayDateString()
         });
+        
+        console.log('Fetch result:', result.data);
         
         if (result.data.transactions) {
             // Import transactions into your existing system
@@ -97,7 +120,7 @@ async function syncTransactions() {
         }
     } catch (error) {
         console.error('Error syncing transactions:', error);
-        showNotification('Failed to sync transactions', 'error');
+        showNotification('Failed to sync transactions: ' + error.message, 'error');
     }
 }
 
