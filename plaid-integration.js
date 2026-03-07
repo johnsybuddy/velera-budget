@@ -1,42 +1,20 @@
 // ============================================
-// PLAID BANK INTEGRATION - DIRECT API CALLS
+// PLAID BANK INTEGRATION
 // ============================================
 
 let plaidLinkHandler = null;
 
 /**
- * Initialize Plaid Link - Direct API call (no Firebase Functions needed)
+ * Initialize Plaid Link
  */
 async function initializePlaidLink() {
     try {
         showNotification('Initializing bank connection...', 'info');
         
-        // Call Plaid API directly to create link token
-        const response = await fetch('https://sandbox.plaid.com/link/token/create', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                client_id: '69926fbd4c01cb002166c96c3a3371',
-                secret: '3a3371e9e327e41eed0d59a5568d8b',
-                user: {
-                    client_user_id: 'johnsybuddy',
-                },
-                client_name: 'Buddy Budget Tracker',
-                products: ['transactions'],
-                country_codes: ['US'],
-                language: 'en',
-            }),
-        });
-
-        const data = await response.json();
-        
-        if (!data.link_token) {
-            throw new Error('Failed to get link token: ' + (data.error_message || 'Unknown error'));
-        }
-
-        const linkToken = data.link_token;
+        // Get link token from Firebase Function
+        const createLinkToken = firebase.functions().httpsCallable('createLinkToken');
+        const result = await createLinkToken();
+        const linkToken = result.data.link_token;
         
         // Initialize Plaid Link
         plaidLinkHandler = Plaid.create({
