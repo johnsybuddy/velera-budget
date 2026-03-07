@@ -78,12 +78,14 @@ const firebaseConfig = {
 
 // Initialize Firebase
 let db = null;
+let functions = null;
 let isFirebaseEnabled = false;
 
 try {
     if (typeof firebase !== 'undefined') {
         firebase.initializeApp(firebaseConfig);
         db = firebase.firestore();
+        functions = firebase.functions();
         isFirebaseEnabled = true;
         console.log('Firebase initialized successfully');
         
