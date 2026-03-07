@@ -217,23 +217,28 @@ function categorizePlaidTransaction(plaidTx) {
  */
 async function loadConnectedAccounts() {
     try {
-        const getAccounts = firebase.functions().httpsCallable('getConnectedAccounts');
-        const result = await getAccounts();
+        // Load accounts directly from Firestore
+        const accountsSnapshot = await db.collection('users').doc(userId).collection('plaidAccounts').get();
         
         const accountsList = document.getElementById('connectedAccountsList');
         if (!accountsList) return;
         
-        if (result.data.accounts.length === 0) {
+        if (accountsSnapshot.empty) {
             accountsList.innerHTML = '<p style="color: var(--text-secondary);">No accounts connected</p>';
             return;
         }
         
-        accountsList.innerHTML = result.data.accounts.map(account => `
+        const accounts = accountsSnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+        
+        accountsList.innerHTML = accounts.map(account => `
             <div class="connected-account-item">
                 <div class="account-info">
                     <strong>${account.institutionName}</strong>
                     <span style="font-size: 0.875rem; color: var(--text-secondary);">
-                        ${account.accounts.length} account(s) connected
+                        ${account.accounts ? account.accounts.length : 0} account(s) connected
                     </span>
                 </div>
                 <button class="btn-danger" onclick="removeConnectedAccount('${account.id}', '${account.institutionName}')">
