@@ -122,9 +122,10 @@ async function syncTransactions() {
         console.log('Fetch result:', result.data);
         
         if (result.data.transactions) {
+            const count = result.data.count || result.data.transactions.length || 0;
             // Import transactions into your existing system
             await importPlaidTransactions(result.data.transactions);
-            showNotification(`Synced ${result.data.count} transactions!`, 'success');
+            showNotification(`Synced ${count} transactions!`, 'success');
             
             // Refresh the transaction table
             updateTransactionTable();
