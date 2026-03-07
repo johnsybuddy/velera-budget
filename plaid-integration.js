@@ -11,17 +11,30 @@ async function initializePlaidLink() {
     try {
         showNotification('Initializing bank connection...', 'info');
         
+        // Debug: Check what's available
+        console.log('Firebase object:', firebase);
+        console.log('Firebase.app:', firebase.app);
+        console.log('Firebase.functions:', firebase.functions);
+        
         // Check if Firebase is initialized
-        if (!firebase || !firebase.app || !firebase.app()) {
+        if (!firebase || !firebase.app) {
             throw new Error('Firebase not initialized. Please refresh the page.');
         }
         
-        // Check if Functions is available
-        if (!firebase.functions) {
-            throw new Error('Firebase Functions not loaded. Please check your internet connection and refresh.');
+        // Try to get the app
+        let app;
+        try {
+            app = firebase.app();
+            console.log('Firebase app initialized:', app.name);
+        } catch (e) {
+            throw new Error('Firebase app not initialized: ' + e.message);
         }
         
-        console.log('Firebase app initialized:', firebase.app().name);
+        // Check if Functions is available
+        if (typeof firebase.functions !== 'function') {
+            throw new Error('Firebase Functions SDK not loaded. Script tag may be missing or blocked.');
+        }
+        
         console.log('Calling createLinkToken function...');
         
         // Get link token from Firebase Function
