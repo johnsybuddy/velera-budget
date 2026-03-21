@@ -48,7 +48,10 @@ async function initializePlaidLink() {
         plaidLinkHandler = Plaid.create({
             token: linkToken,
             onSuccess: async (public_token, metadata) => {
-                console.log('Plaid Link success!', metadata);
+                console.log('Plaid Link success!');
+                console.log('public_token:', public_token);
+                console.log('public_token type:', typeof public_token);
+                console.log('metadata:', JSON.stringify(metadata));
                 await handlePlaidSuccess(public_token, metadata);
             },
             onExit: (err, metadata) => {
