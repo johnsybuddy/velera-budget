@@ -164,7 +164,7 @@ async function importPlaidTransactions(plaidTransactions) {
             source: plaidTx.merchant || plaidTx.name,
             amount: Math.abs(plaidTx.amount), // Plaid uses negative for debits
             bill: categorizePlaidTransaction(plaidTx), // Auto-categorize
-            account: plaidTx.institutionName.includes('Sam') ? 'Sam\'s' : 'RCU',
+            account: (plaidTx.institutionName || '').includes('Sam') ? 'Sam\'s' : 'RCU',
             plaidId: plaidTx.id, // Store Plaid ID to prevent duplicates
             pending: plaidTx.pending,
             category: plaidTx.category
