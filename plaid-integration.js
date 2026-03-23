@@ -85,10 +85,16 @@ async function handlePlaidSuccess(public_token, metadata) {
         
         // Exchange public token for access token
         const exchangeToken = firebase.functions().httpsCallable('exchangePublicToken');
-        const result = await exchangeToken({ 
+        const payload = { 
             public_token: public_token,
-            metadata: metadata 
-        });
+            metadata: {
+                institution: metadata.institution,
+                accounts: metadata.accounts
+            }
+        };
+        console.log('Sending payload keys:', Object.keys(payload));
+        console.log('public_token in payload:', payload.public_token);
+        const result = await exchangeToken(payload);
         
         console.log('Exchange result:', result.data);
         
