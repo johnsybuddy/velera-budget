@@ -1593,59 +1593,12 @@ function showMonth(month) {
 }
 
 function loadMonthBudget(month) {
-    // Update the table cells with saved budget values from Firebase ONLY
-    
     console.log(`=== loadMonthBudget(${month}) ===`);
-    console.log('monthlyBudgets for this month:', monthlyBudgets[month]);
-    
-    // Get all budget table rows
-    const rows = document.querySelectorAll('.budget-table tbody tr');
-    
-    let totalFromFirebase = 0;
-    
-    rows.forEach(row => {
-        const billNameCell = row.cells[0];
-        if (!billNameCell) return;
-        
-        const billName = billNameCell.textContent.trim();
-        
-        // Skip separator rows
-        if (row.classList.contains('separator')) return;
-        
-        // Check if bill is marked as deleted (null value in any month)
-        const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-        const isDeleted = months.some(m => monthlyBudgets[m] && monthlyBudgets[m][billName] === null);
-        if (isDeleted) {
-            row.style.display = 'none';
-            return;
-        }
-        
-        // Get saved value from Firebase (no defaults)
-        const savedValue = monthlyBudgets[month] && monthlyBudgets[month][billName];
-        
-        console.log(`Bill: ${billName}, Firebase value: ${savedValue}`);
-        
-        if (savedValue !== undefined && savedValue !== null) {
-            totalFromFirebase += savedValue;
-            
-            // Update the Monthly Expense cell (column 2, after Due Date column)
-            if (row.cells[2]) {
-                row.cells[2].textContent = `$${savedValue.toFixed(2)}`;
-                console.log(`  Updated cell to: $${savedValue.toFixed(2)}`);
-            }
-            
-            // Update the Edit button onclick with new value
-            const editBtn = row.querySelector('.btn-edit');
-            if (editBtn) {
-                editBtn.setAttribute('onclick', `editBill('${billName.replace(/'/g, "\\'")}', ${savedValue})`);
-            }
-        } else {
-            console.log(`  ⚠️ No value in Firebase for ${billName}`);
-        }
-    });
-    
-    console.log(`Total from Firebase for ${month}: $${totalFromFirebase.toFixed(2)}`);
-    console.log('=== END loadMonthBudget ===');
+    renderBudgetTable();
+    const budgets = monthlyBudgets[month] || {};
+    let total = 0;
+    for (const b in budgets) { if (budgets[b] > 0) total += budgets[b]; }
+    console.log(`Total for ${month}: $${total.toFixed(2)}`);
 }
 
 function updateBudget() {
