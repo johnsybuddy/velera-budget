@@ -1,4 +1,18 @@
 console.log('=== APP.JS LOADED - VERSION 20250131q ===');
+// Dark mode toggle
+function toggleTheme() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const newTheme = isDark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    const btn = document.querySelector('.theme-toggle');
+    if (btn) btn.textContent = newTheme === 'dark' ? '??' : '??';
+    localStorage.setItem('theme', newTheme);
+}
+(function() {
+    const saved = localStorage.getItem('theme');
+    if (saved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+})();
+
 
 // Tab functionality
 function showTab(tabName) {
@@ -1461,6 +1475,86 @@ let monthlyBudgets = {
     jul: {}, aug: {}, sep: {}, oct: {}, nov: {}, dec: {}
 };
 
+// Bill metadata: category and due date per bill
+let billMeta = {
+    'Mortgage + Escrow (Ins-Taxes)': { category: 'Mortgage-Car-Insurance', dueDate: 'Monthly' },
+    'Car Payment':                   { category: 'Mortgage-Car-Insurance', dueDate: 'Monthly' },
+    'Auto Insurance':                { category: 'Mortgage-Car-Insurance', dueDate: 'Aug 26' },
+    'AAA Roadside Assistance':       { category: 'Mortgage-Car-Insurance', dueDate: 'May 26' },
+    'Gas':                           { category: 'Mortgage-Car-Insurance', dueDate: 'Monthly' },
+    'Jewelers Insurance':            { category: 'Mortgage-Car-Insurance', dueDate: 'Jun 26' },
+    'Daycare':                       { category: 'Mortgage-Car-Insurance', dueDate: 'Monthly' },
+    'Xcel Energy':                   { category: 'Bills & Utilities', dueDate: 'Monthly' },
+    'Phones & Internet':             { category: 'Bills & Utilities', dueDate: 'Monthly' },
+    'Earthbound Garbage':            { category: 'Bills & Utilities', dueDate: 'Jan 26' },
+    'Water':                         { category: 'Bills & Utilities', dueDate: 'Jan 26' },
+    'Charity':                       { category: 'Bills & Utilities', dueDate: 'Monthly' },
+    'Groceries':                     { category: 'Family Expenses', dueDate: 'Monthly' },
+    'Restaurants/Entertainment':     { category: 'Family Expenses', dueDate: 'Monthly' },
+    "Dylan's Medication":            { category: 'Family Expenses', dueDate: 'Monthly' },
+    "Dylan's School Lunches":        { category: 'Family Expenses', dueDate: 'Monthly' },
+    'Miscellaneous':                 { category: 'Family Expenses', dueDate: 'Monthly' },
+    'Roku / Disney Subscriptions':   { category: 'Family Expenses', dueDate: 'Monthly' },
+    'Cat Food':                      { category: 'Family Expenses', dueDate: 'Monthly' },
+    'Emergency Fund':                { category: 'Savings & Investment', dueDate: 'Monthly' },
+    'Travel Spending':               { category: 'Savings & Investment', dueDate: 'Monthly' },
+    'Dylan Investment':              { category: 'Savings & Investment', dueDate: 'Monthly' },
+    'Brooks Investment':             { category: 'Savings & Investment', dueDate: 'Monthly' },
+};
+
+const BILL_CATEGORIES = ['Mortgage-Car-Insurance', 'Bills & Utilities', 'Family Expenses', 'Savings & Investment'];
+
+function renderBudgetTable() {
+    const tbody = document.querySelector('.budget-table tbody');
+    if (!tbody) return;
+    const budgets = monthlyBudgets[currentMonth] || {};
+    const grouped = {};
+    BILL_CATEGORIES.forEach(cat => grouped[cat] = []);
+    for (const billName in billMeta) {
+        const cat = billMeta[billName].category;
+        if (grouped[cat]) grouped[cat].push(billName);
+    }
+    for (const billName in budgets) {
+        if (!billMeta[billName] && budgets[billName] !== null && budgets[billName] !== undefined) {
+            grouped['Family Expenses'].push(billName);
+        }
+    }
+    let html = '';
+    BILL_CATEGORIES.forEach(cat => {
+        const bills = (grouped[cat] || []).filter(b => budgets[b] !== null && budgets[b] !== undefined);
+        if (bills.length === 0) return;
+        html += `<tr class="separator"><td><strong>${cat}</strong></td><td></td><td></td><td></td><td></td><td></td></tr>`;
+        bills.forEach(billName => {
+            const amount = budgets[billName] || 0;
+            const dueDate = billMeta[billName]?.dueDate || 'Monthly';
+            const safeName = billName.replace(/'/g, "\\'");
+            html += `<tr><td>${billName}</td><td class="due-date">${dueDate}</td><td>${parseFloat(amount).toFixed(2)}</td><td><span class="actual-amount clickable-zero" data-bill="${billName}" onclick="promptMarkPaid('${safeName}')">// Monthly budget management
+let currentMonth = 'jan';
+let monthlyBudgets = {
+    jan: {}, feb: {}, mar: {}, apr: {}, may: {}, jun: {},
+    jul: {}, aug: {}, sep: {}, oct: {}, nov: {}, dec: {}
+};.00</span></td><td class="over-under">-${parseFloat(amount).toFixed(2)}</td><td><button class="btn-edit" onclick="editBill('${safeName}', ${amount})">Edit</button></td></tr>`;
+        });
+    });
+    html += `<tr class="separator"><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>Extra Paid</td><td class="due-date">-</td><td>// Monthly budget management
+let currentMonth = 'jan';
+let monthlyBudgets = {
+    jan: {}, feb: {}, mar: {}, apr: {}, may: {}, jun: {},
+    jul: {}, aug: {}, sep: {}, oct: {}, nov: {}, dec: {}
+};.00</td><td><span class="actual-amount clickable-zero" data-bill="Extra Paid" onclick="promptMarkPaid('Extra Paid')">// Monthly budget management
+let currentMonth = 'jan';
+let monthlyBudgets = {
+    jan: {}, feb: {}, mar: {}, apr: {}, may: {}, jun: {},
+    jul: {}, aug: {}, sep: {}, oct: {}, nov: {}, dec: {}
+};.00</span></td><td class="over-under">// Monthly budget management
+let currentMonth = 'jan';
+let monthlyBudgets = {
+    jan: {}, feb: {}, mar: {}, apr: {}, may: {}, jun: {},
+    jul: {}, aug: {}, sep: {}, oct: {}, nov: {}, dec: {}
+};.00</td><td><button class="btn-edit" onclick="editBill('Extra Paid', 0)">Edit</button></td></tr>`;
+    tbody.innerHTML = html;
+}
+
 function showMonth(month) {
     currentMonth = month;
     
@@ -2013,6 +2107,11 @@ function updateDashboardMonth() {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async function() {
+    // Apply saved theme
+    const savedTheme = localStorage.getItem('theme');
+    const themeBtn = document.querySelector('.theme-toggle');
+    if (themeBtn) themeBtn.textContent = savedTheme === 'dark' ? '??' : '??';
+
     // Load saved data first
     await loadTransactions();
     loadFamilyExpenses();
