@@ -2662,43 +2662,45 @@ document.getElementById('addBillForm').addEventListener('submit', function(e) {
         
         // Update the bill amount for selected months
         selectedMonths.forEach(month => {
-            if (!monthlyBudgets[month]) {
-                monthlyBudgets[month] = {};
-            }
+            if (!monthlyBudgets[month]) monthlyBudgets[month] = {};
             monthlyBudgets[month][isEdit] = amount;
         });
-        
-        // Update the table display if current month is selected
-        if (selectedMonths.includes(currentMonth)) {
-            const rows = document.querySelectorAll('.budget-table tbody tr');
-            rows.forEach(row => {
-                if (row.cells[0] && row.cells[0].textContent.trim() === isEdit) {
-                    row.cells[2].textContent = `$${amount.toFixed(2)}`;
-                    // Update the over/under calculation
-                    const actualText = row.cells[3]?.querySelector('.actual-amount')?.textContent || '$0.00';
-                    const actual = parseFloat(actualText.replace(/[$,]/g, '')) || 0;
-                    const overUnder = actual - amount;
-                    if (row.cells[4]) {
-                        row.cells[4].textContent = `$${overUnder.toFixed(2)}`;
-                        row.cells[4].style.color = overUnder >= 0 ? 'var(--success)' : 'var(--danger)';
-                    }
-                }
-            });
-            
-            // Update totals
-            updateBudgetTotals();
+
+        // Update category in billMeta if changed
+        const newCategory = document.getElementById('billCategory').value;
+        if (newCategory && billMeta[isEdit]) {
+            billMeta[isEdit].category = newCategory;
+        } else if (newCategory && !billMeta[isEdit]) {
+            billMeta[isEdit] = { category: newCategory, dueDate: 'Monthly' };
         }
-        
-        // Save to cloud/localStorage
+
+        // Re-render table and save
+        renderBudgetTable();
         saveMonthlyBudgets();
         updateDashboard();
-        
-        const monthText = selectedMonths.length === 1 ? 
-            selectedMonths[0].toUpperCase() : 
+
+        const monthText = selectedMonths.length === 1 ?
+            selectedMonths[0].toUpperCase() :
             `${selectedMonths.length} months`;
         showNotification(`${billName} updated to $${amount.toFixed(2)} for ${monthText}!`);
     } else {
-        showNotification(`${billName} added!`);
+        // NEW BILL - save to all months and billMeta
+        const category = document.getElementById('billCategory').value;
+        if (!category) {
+            showNotification('Please select a category', 'error');
+            return;
+        }
+        billMeta[billName] = { category: category, dueDate: 'Monthly' };
+        const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+        months.forEach(month => {
+            if (!monthlyBudgets[month]) monthlyBudgets[month] = {};
+            monthlyBudgets[month][billName] = amount;
+        });
+        renderBudgetTable();
+        saveMonthlyBudgets();
+        updateDashboard();
+        populateTransactionBillDropdown();
+        showNotification(`${billName} added to all months!`, 'success');
     }
     
     closeAddBill();
