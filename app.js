@@ -1505,53 +1505,50 @@ let billMeta = {
 const BILL_CATEGORIES = ['Mortgage-Car-Insurance', 'Bills & Utilities', 'Family Expenses', 'Savings & Investment'];
 
 function renderBudgetTable() {
-    const tbody = document.querySelector('.budget-table tbody');
+    var tbody = document.querySelector('.budget-table tbody');
     if (!tbody) return;
-    const budgets = monthlyBudgets[currentMonth] || {};
-    const grouped = {};
-    BILL_CATEGORIES.forEach(cat => grouped[cat] = []);
-    for (const billName in billMeta) {
-        const cat = billMeta[billName].category;
+    var budgets = monthlyBudgets[currentMonth] || {};
+    var grouped = {};
+    BILL_CATEGORIES.forEach(function(cat) { grouped[cat] = []; });
+    for (var billName in billMeta) {
+        var cat = billMeta[billName].category;
         if (grouped[cat]) grouped[cat].push(billName);
     }
-    for (const billName in budgets) {
+    for (var billName in budgets) {
         if (!billMeta[billName] && budgets[billName] !== null && budgets[billName] !== undefined) {
             grouped['Family Expenses'].push(billName);
         }
     }
-    let html = '';
-    BILL_CATEGORIES.forEach(cat => {
-        const bills = (grouped[cat] || []).filter(b => budgets[b] !== null && budgets[b] !== undefined);
+    var html = '';
+    BILL_CATEGORIES.forEach(function(cat) {
+        var bills = (grouped[cat] || []).filter(function(b) {
+            return budgets[b] !== null && budgets[b] !== undefined;
+        });
         if (bills.length === 0) return;
-        html += `<tr class="separator"><td><strong>${cat}</strong></td><td></td><td></td><td></td><td></td><td></td></tr>`;
-        bills.forEach(billName => {
-            const amount = budgets[billName] || 0;
-            const dueDate = billMeta[billName]?.dueDate || 'Monthly';
-            const safeName = billName.replace(/'/g, "\\'");
-            html += `<tr><td>${billName}</td><td class="due-date">${dueDate}</td><td>${parseFloat(amount).toFixed(2)}</td><td><span class="actual-amount clickable-zero" data-bill="${billName}" onclick="promptMarkPaid('${safeName}')">// Monthly budget management
-let currentMonth = 'jan';
-let monthlyBudgets = {
-    jan: {}, feb: {}, mar: {}, apr: {}, may: {}, jun: {},
-    jul: {}, aug: {}, sep: {}, oct: {}, nov: {}, dec: {}
-};.00</span></td><td class="over-under">-${parseFloat(amount).toFixed(2)}</td><td><button class="btn-edit" onclick="editBill('${safeName}', ${amount})">Edit</button></td></tr>`;
+        html += '<tr class="separator"><td><strong>' + cat + '</strong></td><td></td><td></td><td></td><td></td><td></td></tr>';
+        bills.forEach(function(billName) {
+            var amount = budgets[billName] || 0;
+            var dueDate = (billMeta[billName] && billMeta[billName].dueDate) || 'Monthly';
+            var safeName = billName.replace(/'/g, "\\'");
+            html += '<tr>';
+            html += '<td>' + billName + '</td>';
+            html += '<td class="due-date">' + dueDate + '</td>';
+            html += '<td>$' + parseFloat(amount).toFixed(2) + '</td>';
+            html += '<td><span class="actual-amount clickable-zero" data-bill="' + billName + '" onclick="promptMarkPaid(\'' + safeName + '\')">$0.00</span></td>';
+            html += '<td class="over-under">-$' + parseFloat(amount).toFixed(2) + '</td>';
+            html += '<td><button class="btn-edit" onclick="editBill(\'' + safeName + '\', ' + amount + ')">Edit</button></td>';
+            html += '</tr>';
         });
     });
-    html += `<tr class="separator"><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>Extra Paid</td><td class="due-date">-</td><td>// Monthly budget management
-let currentMonth = 'jan';
-let monthlyBudgets = {
-    jan: {}, feb: {}, mar: {}, apr: {}, may: {}, jun: {},
-    jul: {}, aug: {}, sep: {}, oct: {}, nov: {}, dec: {}
-};.00</td><td><span class="actual-amount clickable-zero" data-bill="Extra Paid" onclick="promptMarkPaid('Extra Paid')">// Monthly budget management
-let currentMonth = 'jan';
-let monthlyBudgets = {
-    jan: {}, feb: {}, mar: {}, apr: {}, may: {}, jun: {},
-    jul: {}, aug: {}, sep: {}, oct: {}, nov: {}, dec: {}
-};.00</span></td><td class="over-under">// Monthly budget management
-let currentMonth = 'jan';
-let monthlyBudgets = {
-    jan: {}, feb: {}, mar: {}, apr: {}, may: {}, jun: {},
-    jul: {}, aug: {}, sep: {}, oct: {}, nov: {}, dec: {}
-};.00</td><td><button class="btn-edit" onclick="editBill('Extra Paid', 0)">Edit</button></td></tr>`;
+    html += '<tr class="separator"><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
+    html += '<tr>';
+    html += '<td>Extra Paid</td>';
+    html += '<td class="due-date">-</td>';
+    html += '<td>$0.00</td>';
+    html += '<td><span class="actual-amount clickable-zero" data-bill="Extra Paid" onclick="promptMarkPaid(\'Extra Paid\')">$0.00</span></td>';
+    html += '<td class="over-under">$0.00</td>';
+    html += '<td><button class="btn-edit" onclick="editBill(\'Extra Paid\', 0)">Edit</button></td>';
+    html += '</tr>';
     tbody.innerHTML = html;
 }
 
