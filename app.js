@@ -1,4 +1,4 @@
-console.log('=== APP.JS LOADED - VERSION 20250131q ===');
+console.log('=== APP.JS LOADED - VERSION 20260402 ===');
 // Dark mode toggle
 function toggleTheme() {
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
@@ -103,10 +103,10 @@ try {
         isFirebaseEnabled = true;
         console.log('Firebase initialized successfully');
         
-        // Set up offline persistence
-        db.enablePersistence().catch((err) => {
-            console.log('Persistence failed:', err);
-        });
+        // Persistence disabled - using online-only mode
+        // db.enablePersistence() removed due to SDK version conflicts
+
+
     }
 } catch (error) {
     console.log('Firebase not available, using localStorage:', error);
