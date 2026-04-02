@@ -635,7 +635,15 @@ body {
 .budget-table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed;
 }
+
+.budget-table th:nth-child(1), .budget-table td:nth-child(1) { width: 35%; }
+.budget-table th:nth-child(2), .budget-table td:nth-child(2) { width: 12%; }
+.budget-table th:nth-child(3), .budget-table td:nth-child(3) { width: 15%; }
+.budget-table th:nth-child(4), .budget-table td:nth-child(4) { width: 15%; }
+.budget-table th:nth-child(5), .budget-table td:nth-child(5) { width: 15%; }
+.budget-table th:nth-child(6), .budget-table td:nth-child(6) { width: 8%; }
 
 .budget-table th {
     background: var(--bg-main);
