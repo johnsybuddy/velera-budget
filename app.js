@@ -1,4 +1,4 @@
-﻿console.log('=== APP.JS LOADED - VERSION 20260405 ===');
+console.log('=== APP.JS LOADED - VERSION 20260405 ===');
 // Dark mode toggle
 function toggleTheme() {
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
@@ -825,7 +825,7 @@ function parseCSV(csv) {
     
     console.log(`Total parsed transactions: ${csvData.length} (from ${lines.length - 1} rows)`);
     if (skippedRows.length > 0) {
-        console.warn(`⚠️ Skipped ${skippedRows.length} rows:`);
+        console.warn(`?? Skipped ${skippedRows.length} rows:`);
         skippedRows.forEach(skip => {
             console.warn(`  Row ${skip.row}: ${skip.reason}`, skip.data);
         });
@@ -928,14 +928,14 @@ function parseTransaction(cols, config, rowNum) {
     // Extract date
     dateStr = cols[config.dateCol];
     if (!dateStr || dateStr.includes('#')) {
-        console.log(`❌ Row ${rowNum || '?'}: Skipping - invalid date:`, dateStr);
+        console.log(`? Row ${rowNum || '?'}: Skipping - invalid date:`, dateStr);
         return null; // Skip rows with ### (Excel overflow)
     }
     
     // Extract description
     desc = cols[config.descCol];
     if (!desc) {
-        console.log(`❌ Row ${rowNum || '?'}: Skipping - no description`);
+        console.log(`? Row ${rowNum || '?'}: Skipping - no description`);
         return null;
     }
     
@@ -951,7 +951,7 @@ function parseTransaction(cols, config, rowNum) {
         console.log(`  Amount string: "${amountStr}"`);
         
         if (!amountStr || amountStr.trim() === '' || amountStr.includes('#')) {
-            console.log(`❌ Row ${rowNum || '?'}: Skipping - invalid amount:`, amountStr, 'for', desc);
+            console.log(`? Row ${rowNum || '?'}: Skipping - invalid amount:`, amountStr, 'for', desc);
             return null; // Skip ### amounts or empty
         }
         
@@ -966,7 +966,7 @@ function parseTransaction(cols, config, rowNum) {
         console.log(`  Parsed amount: ${amount}, isNegative: ${isNegative}`);
         
         if (isNaN(amount) || amount === 0) {
-            console.log(`❌ Row ${rowNum || '?'}: Skipping - could not parse amount:`, amountStr, '(cleaned:', cleanAmount, ') for', desc);
+            console.log(`? Row ${rowNum || '?'}: Skipping - could not parse amount:`, amountStr, '(cleaned:', cleanAmount, ') for', desc);
             return null;
         }
         
@@ -977,7 +977,7 @@ function parseTransaction(cols, config, rowNum) {
     // Parse and normalize date
     const date = normalizeDate(dateStr);
     if (!date) {
-        console.log(`❌ Row ${rowNum || '?'}: Skipping - could not parse date:`, dateStr, 'for', desc);
+        console.log(`? Row ${rowNum || '?'}: Skipping - could not parse date:`, dateStr, 'for', desc);
         return null;
     }
     
@@ -1009,7 +1009,7 @@ function parseTransaction(cols, config, rowNum) {
         account: accountName
     };
     
-    console.log(`✅ Row ${rowNum || '?'}: Parsed successfully:`, transaction);
+    console.log(`? Row ${rowNum || '?'}: Parsed successfully:`, transaction);
     return transaction;
 }
 
@@ -1352,7 +1352,7 @@ function displayCSVPreview() {
     
     let html = `
         <div style="margin-bottom: 1rem; padding: 1rem; background: var(--bg-main); border-radius: var(--radius-md); border: 1px solid var(--border-light);">
-            <div style="font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">📊 Import Summary</div>
+            <div style="font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">?? Import Summary</div>
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; font-size: 0.875rem;">
                 <div style="text-align: center; padding: 0.5rem; background: var(--bg-card); border-radius: var(--radius-sm);">
                     <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">${csvData.length}</div>
@@ -1394,7 +1394,7 @@ function displayCSVPreview() {
         });
         const isDupe = isDuplicate(row);
         const rowClass = isDupe ? 'style="opacity: 0.5; background: #fef2f2;"' : '';
-        const status = isDupe ? '🔄 Duplicate' : '✅ New';
+        const status = isDupe ? '?? Duplicate' : '? New';
         
         html += `
             <tr ${rowClass}>
@@ -1453,10 +1453,10 @@ function confirmCSVImport() {
     
     // Show detailed import metrics
     const message = `
-        ✅ Import Complete!<br>
-        📊 CSV Rows: ${totalInCSV}<br>
-        ✅ Imported: ${newTransactions.length}<br>
-        ${duplicateCount > 0 ? `⚠️ Skipped (duplicates): ${duplicateCount}` : ''}
+        ? Import Complete!<br>
+        ?? CSV Rows: ${totalInCSV}<br>
+        ? Imported: ${newTransactions.length}<br>
+        ${duplicateCount > 0 ? `?? Skipped (duplicates): ${duplicateCount}` : ''}
     `;
     
     showNotification(message, 'success');
@@ -1799,7 +1799,7 @@ function updateDashboard() {
     const currentMonth = currentDate.getMonth() + 1; // 1-12
     const currentMonthName = months[currentDate.getMonth()]; // e.g., 'feb'
     
-    // Calculate ANNUAL budget (current month's budget × 12)
+    // Calculate ANNUAL budget (current month's budget � 12)
     let totalBudget = 0;
     
     const currentMonthBudgets = monthlyBudgets[currentMonthName] || {};
@@ -1815,9 +1815,9 @@ function updateDashboard() {
         // Only count valid budget values (exclude Extra Paid)
         if (budgetValue > 0 && billName !== 'Extra Paid') {
             totalBudget += budgetValue;
-            console.log(`  ✓ Added ${budgetValue} to total`);
+            console.log(`  ? Added ${budgetValue} to total`);
         } else {
-            console.log(`  ✗ Skipped (value: ${budgetValue}, billName: ${billName})`);
+            console.log(`  ? Skipped (value: ${budgetValue}, billName: ${billName})`);
         }
     }
     
@@ -1826,10 +1826,10 @@ function updateDashboard() {
     // Multiply by 12 for annual budget
     totalBudget = totalBudget * 12;
     
-    console.log('Annual budget (monthly × 12):', totalBudget);
+    console.log('Annual budget (monthly � 12):', totalBudget);
     console.log('=== END DEBUG ===');
     
-    console.log(`Dashboard - Annual budget (${currentMonthName} budget × 12): $${totalBudget.toFixed(2)}`);
+    console.log(`Dashboard - Annual budget (${currentMonthName} budget � 12): $${totalBudget.toFixed(2)}`);
     
     months.forEach((month, index) => {
         const monthNumber = monthNumbers[month];
@@ -1924,21 +1924,21 @@ function updateDashboard() {
     
     if (overallTotal > 0) {
         overallStatusCard.className = 'status-card surplus';
-        overallLabel.textContent = 'Surplus 💰';
+        overallLabel.textContent = 'Surplus ??';
         overallLabel.className = 'status-label surplus';
-        statusIndicator.textContent = '🟢';
+        statusIndicator.textContent = '??';
         overallProgress.style.background = 'var(--success)';
     } else if (overallTotal < 0) {
         overallStatusCard.className = 'status-card deficit';
-        overallLabel.textContent = 'Behind 📉';
+        overallLabel.textContent = 'Behind ??';
         overallLabel.className = 'status-label deficit';
-        statusIndicator.textContent = '🔴';
+        statusIndicator.textContent = '??';
         overallProgress.style.background = 'var(--danger)';
     } else {
         overallStatusCard.className = 'status-card';
-        overallLabel.textContent = 'On Track 🎯';
+        overallLabel.textContent = 'On Track ??';
         overallLabel.className = 'status-label';
-        statusIndicator.textContent = '🟡';
+        statusIndicator.textContent = '??';
         overallProgress.style.background = 'var(--primary)';
     }
 }
@@ -2004,10 +2004,10 @@ function updatePeriodicBillsBreakdown() {
         
         if (totalNeeded > 0 && savedAmount >= totalNeeded) {
             statusColor = 'var(--success)';
-            statusText = ' ✓ Ready';
+            statusText = ' ? Ready';
         } else if (totalNeeded > 0 && progressPercent >= 75) {
             statusColor = 'var(--warning)';
-            statusText = ' ⚠ Almost Ready';
+            statusText = ' ? Almost Ready';
         }
         
         html += `
@@ -2023,7 +2023,7 @@ function updatePeriodicBillsBreakdown() {
                     <div style="background: ${statusColor}; height: 100%; width: ${Math.min(progressPercent, 100)}%; transition: width 0.3s ease;"></div>
                 </div>
                 <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">
-                    ${progressPercent.toFixed(1)}% saved • $${monthlyBudget.toFixed(2)}/month
+                    ${progressPercent.toFixed(1)}% saved � $${monthlyBudget.toFixed(2)}/month
                 </div>
             </div>
         `;
@@ -2266,7 +2266,7 @@ function updateTransactionTable() {
                 <td class="editable-select" data-field="bill" data-index="${transaction.originalIndex}" onclick="editField(this)">${transaction.bill}</td>
                 <td>
                     <button class="btn-edit" onclick="editTransaction(${transaction.originalIndex})">Edit</button>
-                    <button class="btn-delete" onclick="deleteTransaction(${transaction.originalIndex})">×</button>
+                    <button class="btn-delete" onclick="deleteTransaction(${transaction.originalIndex})">�</button>
                 </td>
             `;
             tbody.appendChild(row);
@@ -2774,7 +2774,7 @@ function showFamilyExpenses() {
     document.querySelector('.budget-table-container').style.display = 'none';
     document.getElementById('familyExpenseContent').style.display = 'block';
     document.getElementById('currentMonthTitle').style.display = 'none';
-    document.querySelector('.add-transaction').style.display = 'none';
+    // family expenses - no need to hide expenses tab buttons
     
     // Update active tab
     document.querySelectorAll('.month-tab').forEach(tab => tab.classList.remove('active'));
@@ -2954,12 +2954,12 @@ function startVoiceInput(fieldType) {
     // Update button appearance
     const button = document.querySelector(`[onclick="startVoiceInput('${fieldType}')"]`);
     if (button) {
-        button.textContent = '🔴 Stop';
+        button.textContent = '?? Stop';
         button.style.background = '#ef4444';
     }
     
     recognition.start();
-    showNotification(`🎤 Listening for ${fieldType}...`);
+    showNotification(`?? Listening for ${fieldType}...`);
 }
 
 function stopListening() {
@@ -2970,7 +2970,7 @@ function stopListening() {
     
     // Reset all voice buttons
     document.querySelectorAll('.voice-btn').forEach(btn => {
-        btn.textContent = '🎤';
+        btn.textContent = '??';
         btn.style.background = '';
     });
 }
@@ -3196,7 +3196,7 @@ function displayLearnedPatterns() {
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                     <div style="flex: 1;">
                         <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem;">${merchant}</div>
-                        <div style="font-size: 0.8125rem; color: var(--text-secondary);">→ ${primaryCategory}</div>
+                        <div style="font-size: 0.8125rem; color: var(--text-secondary);">? ${primaryCategory}</div>
                     </div>
                     <div style="text-align: right;">
                         <div style="font-size: 0.75rem; color: ${confidenceColor}; font-weight: 600;">${confidencePercent}% confident</div>
