@@ -2096,11 +2096,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     document.getElementById('currentMonthTitle').textContent = `${monthNames[monthToShow]} ${currentDate.getFullYear()} Budget`;
     
     loadMonthBudget(monthToShow);
-    calculatePeriodicBuckets(); // Calculate buckets before updating budget
-    updateBudgetFromTransactions();
-    updateBudgetTotals();
-    updateTransactionTable();
-    updateDashboard();
+    try { calculatePeriodicBuckets(); } catch(e) { console.error("calculatePeriodicBuckets failed:", e); }
+    try { updateBudgetFromTransactions(); } catch(e) { console.error("updateBudgetFromTransactions failed:", e); }
+    try { updateBudgetTotals(); } catch(e) { console.error("updateBudgetTotals failed:", e); }
+    try { updateTransactionTable(); } catch(e) { console.error("updateTransactionTable failed:", e); }
+    try { updateDashboard(); } catch(e) { console.error("updateDashboard failed:", e); }
     
     // Restore saved tab or default to dashboard (do this last)
     const savedTab = localStorage.getItem('currentTab') || 'dashboard';
