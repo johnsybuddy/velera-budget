@@ -1,11 +1,11 @@
-console.log('=== APP.JS LOADED - VERSION 20260405 ===');
+﻿console.log('=== APP.JS LOADED - VERSION 20260405 ===');
 // Dark mode toggle
 function toggleTheme() {
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     const newTheme = isDark ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', newTheme);
     const btn = document.querySelector('.theme-toggle');
-    if (btn) btn.textContent = newTheme === 'dark' ? '??' : '??';
+    if (btn) btn.textContent = newTheme === 'dark' ? 'Light' : 'Dark';
     localStorage.setItem('theme', newTheme);
 }
 (function() {
@@ -2060,7 +2060,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Apply saved theme
     const savedTheme = localStorage.getItem('theme');
     const themeBtn = document.querySelector('.theme-toggle');
-    if (themeBtn) themeBtn.textContent = savedTheme === 'dark' ? '??' : '??';
+    if (themeBtn) themeBtn.textContent = savedTheme === 'dark' ? 'Light' : 'Dark';
 
     // Load saved data first
     await loadTransactions();
