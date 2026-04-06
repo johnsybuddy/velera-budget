@@ -1,4 +1,4 @@
-console.log('=== APP.JS LOADED - VERSION 20260402 ===');
+console.log('=== APP.JS LOADED - VERSION 20260405 ===');
 // Dark mode toggle
 function toggleTheme() {
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
