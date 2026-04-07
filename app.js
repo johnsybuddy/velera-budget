@@ -2102,22 +2102,25 @@ document.addEventListener('DOMContentLoaded', async function() {
     try { updateTransactionTable(); } catch(e) { console.error("updateTransactionTable failed:", e); }
     try { updateDashboard(); } catch(e) { console.error("updateDashboard failed:", e); }
     
-    // Restore saved tab or default to dashboard (do this last)
-    const savedTab = localStorage.getItem('currentTab') || 'dashboard';
-    
+     // Restore saved tab or default to dashboard (do this last)
+    const validTabs = ['dashboard', 'budget', 'expenses'];
+    const rawTab = localStorage.getItem('currentTab') || 'dashboard';
+    const savedTab = validTabs.includes(rawTab) ? rawTab : 'dashboard';
+
     // Hide all tab contents
     const tabContents = document.querySelectorAll('.tab-content');
     tabContents.forEach(tab => tab.classList.remove('active'));
-    
+
     // Remove active class from all tab buttons
     const tabButtons = document.querySelectorAll('.tab-btn');
     tabButtons.forEach(btn => btn.classList.remove('active'));
-    
+
     // Show selected tab
-    document.getElementById(savedTab).classList.add('active');
-    
+    const tabEl = document.getElementById(savedTab);
+    if (tabEl) tabEl.classList.add('active');
+
     // Find and activate the correct tab button
-    const tabBtn = Array.from(tabButtons).find(btn => btn.onclick.toString().includes(savedTab));
+    const tabBtn = Array.from(tabButtons).find(btn => btn.onclick && btn.onclick.toString().includes(savedTab));
     if (tabBtn) tabBtn.classList.add('active');
 });
 
