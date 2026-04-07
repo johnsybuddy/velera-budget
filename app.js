@@ -430,190 +430,93 @@ function calculatePeriodicBuckets() {
 
 // Calculate budget totals from transactions for current month
 function updateBudgetFromTransactions() {
-    console.log('=== updateBudgetFromTransactions called ===');
-    console.log('Current month:', currentMonth);
-    console.log('Total transactions:', transactions.length);
-    console.log('Transactions array:', transactions);
-    
-    // Show ALL transactions to debug
-    if (transactions.length > 0) {
-        console.log('First transaction:', transactions[0]);
-        console.log('Sample transactions:', transactions.slice(0, 5));
-    } else {
-        console.log('NO TRANSACTIONS FOUND!');
-        return; // Exit early if no transactions
-    }
-    
-    // Reset all actual amounts
-    const actualSpans = document.querySelectorAll('.actual-amount');
-    console.log('Found actual spans:', actualSpans.length);
-    actualSpans.forEach(span => {
-        span.textContent = '$0.00';
-    });
-    
-    // Get current month's transactions only (excluding ignored transactions)
     const monthNumbers = {
         jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06',
         jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12'
     };
-    
     const currentMonthNumber = monthNumbers[currentMonth];
-    // Temporarily remove year filter to test
-    const currentMonthTransactions = transactions.filter(transaction => {
-        const transactionDate = parseLocalDate(transaction.date);
-        const transactionMonth = String(transactionDate.getMonth() + 1).padStart(2, '0');
-        const transactionYear = transactionDate.getFullYear();
-        
-        console.log(`Transaction: ${transaction.date} -> Month: ${transactionMonth}, Year: ${transactionYear}, Bill: ${transaction.bill}`);
-        
-        const monthMatch = transactionMonth === currentMonthNumber;
-        const yearMatch = transactionYear === 2026; // Only count 2026 transactions
-        const notIgnored = transaction.bill !== 'Ignore/Internal Transfer';
-        
-        console.log(`  Month match: ${monthMatch} (${transactionMonth} === ${currentMonthNumber}), Year match: ${yearMatch}, Not ignored: ${notIgnored}`);
-        
-        return monthMatch && yearMatch && notIgnored;
+
+    // Get this month's transactions (2026 only, not ignored, bill must be string)
+    const currentMonthTransactions = transactions.filter(t => {
+        const d = parseLocalDate(t.date);
+        const tMonth = String(d.getMonth() + 1).padStart(2, '0');
+        const tYear = d.getFullYear();
+        const billStr = typeof t.bill === 'string' ? t.bill : '';
+        return tMonth === currentMonthNumber && tYear === 2026 && billStr !== 'Ignore/Internal Transfer';
     });
-    
-    console.log(`Current month: ${currentMonth} (${currentMonthNumber})`);
-    console.log(`Total transactions: ${transactions.length}`);
-    console.log(`Current month transactions: ${currentMonthTransactions.length}`);
-    console.log('Current month transactions:', currentMonthTransactions);
-    
-    // Calculate totals by bill for current month only
+
+    // Sum by bill name
     const billTotals = {};
-    currentMonthTransactions.forEach(transaction => {
-        if (!billTotals[transaction.bill]) {
-            billTotals[transaction.bill] = 0;
-        }
-        billTotals[transaction.bill] += transaction.amount;
+    currentMonthTransactions.forEach(t => {
+        const billName = typeof t.bill === 'string' ? t.bill : (t.bill?.name || t.bill?.category || 'Miscellaneous');
+        billTotals[billName] = (billTotals[billName] || 0) + t.amount;
     });
-    
-    // Bills that should show positive credit when under budget
+
     const positiveCreditBills = [
         'Gas', 'Groceries', 'Restaurants/Entertainment', 'Cat Food',
         "Dylan's Medication", "Dylan's School Lunches", 'Roku / Disney Subscriptions',
         'Miscellaneous', 'Emergency Fund', 'Travel Spending', 'Dylan Investment', 'Brooks Investment',
         'Miscellaneous Erik', 'Miscellaneous Sara', 'Daycare'
     ];
-    
-    // Update actual amounts and over/under
+
     let totalActual = 0;
-    let extraPaidAmount = (billTotals['Extra Paid Erik'] || 0) + (billTotals['Erik Paid Sara'] || 0);
     const rows = document.querySelectorAll('.budget-table tbody tr:not(.separator)');
-    
     rows.forEach(row => {
-        // Column indices: 0=Bill, 1=Due Date, 2=Monthly Expense, 3=Actual, 4=Over/Under
         const budgetCell = row.cells[2];
         const actualSpan = row.cells[3]?.querySelector('.actual-amount');
         const overUnderCell = row.cells[4];
-        
-        if (budgetCell && actualSpan && overUnderCell) {
-            const billName = actualSpan.getAttribute('data-bill');
-            const budget = parseFloat(budgetCell.textContent.replace(/[$,]/g, '')) || 0;
-            const actual = billTotals[billName] || 0;
-            
-            totalActual += actual;
-            actualSpan.textContent = `$${actual.toFixed(2)}`;
-            
-            // Remove clickable styling if amount is no longer $0.00
-            if (actual === 0) {
-                actualSpan.classList.add('clickable-zero');
-                actualSpan.onclick = () => promptMarkPaid(billName);
-            } else {
-                actualSpan.classList.remove('clickable-zero');
-                actualSpan.onclick = null;
-                actualSpan.style.cursor = 'default';
-            }
-            
-            if (billName === 'Extra Paid Erik' || billName === 'Erik Paid Sara') {
-                // Extra Paid categories are always positive
-                overUnderCell.textContent = `$${actual.toFixed(2)}`;
-                overUnderCell.style.color = 'var(--success)';
-            } else if (isPeriodicBill(billName)) {
-                // Periodic bill logic
-                const config = periodicBillsConfig[billName];
-                const expectedFullPayment = budget * config.monthsInCycle; // Total amount due for the cycle
-                
-                if (actual > 0) {
-                    // Check if this is a full payment (actual is close to the full cycle amount)
-                    const isFullPayment = Math.abs(actual - expectedFullPayment) < (budget * 0.5); // Within half a month's budget
-                    
-                    if (isFullPayment) {
-                        // This is a payment month - compare actual vs expected full payment
-                        const difference = actual - expectedFullPayment;
-                        
-                        if (Math.abs(difference) < 0.01) {
-                            // Paid exactly what was due - show $0.00 (green)
-                            overUnderCell.textContent = '$0.00';
-                            overUnderCell.style.color = 'var(--success)';
-                            overUnderCell.title = 'Paid exactly $' + actual.toFixed(2) + ' as expected for ' + config.monthsInCycle + '-month cycle';
-                        } else if (difference > 0) {
-                            // Overpaid - show as negative (red)
-                            overUnderCell.textContent = '-$' + Math.abs(difference).toFixed(2);
-                            overUnderCell.style.color = 'var(--danger)';
-                            overUnderCell.title = 'Overpaid by $' + Math.abs(difference).toFixed(2) + ' (expected $' + expectedFullPayment.toFixed(2) + ')';
-                        } else {
-                            // Underpaid - show as negative (red)
-                            overUnderCell.textContent = '-$' + Math.abs(difference).toFixed(2);
-                            overUnderCell.style.color = 'var(--danger)';
-                            overUnderCell.title = 'Underpaid by $' + Math.abs(difference).toFixed(2) + ' (expected $' + expectedFullPayment.toFixed(2) + ')';
-                        }
-                    } else {
-                        // This is a reserve contribution month - show $0.00 (neutral)
-                        overUnderCell.textContent = '$0.00';
-                        overUnderCell.style.color = '#666';
-                        overUnderCell.title = 'Contributing $' + actual.toFixed(2) + ' to reserve (expected $' + budget.toFixed(2) + ')';
-                    }
-                } else {
-                    // No payment this month - show $0.00 (neutral)
-                    overUnderCell.textContent = '$0.00';
-                    overUnderCell.style.color = '#666';
-                    overUnderCell.title = 'No contribution this month (budget: $' + budget.toFixed(2) + ')';
-                }
-            } else {
-                let difference = actual - budget;
-                
-                // For positive credit bills, show surplus as positive
-                if (positiveCreditBills.includes(billName)) {
-                    difference = budget - actual; // Flip the calculation
-                }
-                
-                overUnderCell.textContent = `$${difference.toFixed(2)}`;
-                overUnderCell.style.color = difference >= 0 ? 'var(--success)' : 'var(--danger)';
-            }
+        if (!budgetCell || !actualSpan || !overUnderCell) return;
+
+        const billName = actualSpan.getAttribute('data-bill');
+        const budget = parseFloat(budgetCell.textContent.replace(/[$,]/g, '')) || 0;
+        const actual = billTotals[billName] || 0;
+        totalActual += actual;
+
+        actualSpan.textContent = `$${actual.toFixed(2)}`;
+        if (actual === 0) {
+            actualSpan.classList.add('clickable-zero');
+            actualSpan.onclick = () => promptMarkPaid(billName);
+        } else {
+            actualSpan.classList.remove('clickable-zero');
+            actualSpan.onclick = null;
+            actualSpan.style.cursor = 'default';
+        }
+
+        if (billName === 'Extra Paid Erik' || billName === 'Erik Paid Sara') {
+            overUnderCell.textContent = `$${actual.toFixed(2)}`;
+            overUnderCell.style.color = 'var(--success)';
+        } else if (isPeriodicBill(billName)) {
+            overUnderCell.textContent = '$0.00';
+            overUnderCell.style.color = '#666';
+        } else {
+            let diff = positiveCreditBills.includes(billName) ? (budget - actual) : (actual - budget);
+            overUnderCell.textContent = `$${diff.toFixed(2)}`;
+            overUnderCell.style.color = diff >= 0 ? 'var(--success)' : 'var(--danger)';
         }
     });
-    
-    // Calculate total over/under by summing individual bill over/under amounts
+
     let totalOverUnder = 0;
     rows.forEach(row => {
-        // Column 4 is Over/Under (after Due Date column was added)
-        const overUnderCell = row.cells[4];
-        if (overUnderCell && overUnderCell.textContent.includes('$')) {
-            const overUnderValue = parseFloat(overUnderCell.textContent.replace(/[$,]/g, '')) || 0;
-            totalOverUnder += overUnderValue;
+        const cell = row.cells[4];
+        if (cell && cell.textContent.includes('$')) {
+            totalOverUnder += parseFloat(cell.textContent.replace(/[$,]/g, '')) || 0;
         }
     });
-    
-    // Update totals
+
+    const totalBudgetEl = document.getElementById('totalBudget');
+    const totalBudget = totalBudgetEl ? parseFloat(totalBudgetEl.textContent.replace(/[$,]/g, '')) || 0 : 0;
+
     document.getElementById('totalActual').textContent = `$${totalActual.toFixed(2)}`;
     document.getElementById('totalOverUnder').textContent = `$${totalOverUnder.toFixed(2)}`;
     document.getElementById('totalOverUnder').style.color = totalOverUnder >= 0 ? 'var(--success)' : 'var(--danger)';
-    
-    // Store this month's over/under for dashboard
     monthlyOverUnder[currentMonth] = totalOverUnder;
-    
-    // Calculate responsibility subtotals
+
     const erikTotal = totalBudget * 0.58;
     const saraTotal = totalBudget * 0.42;
-    const erikBiweekly = erikTotal / 2;
-    const saraBiweekly = saraTotal / 2;
-    
     document.getElementById('erikTotal').textContent = `$${erikTotal.toFixed(2)}`;
-    document.getElementById('erikBiweekly').textContent = `$${erikBiweekly.toFixed(2)}`;
+    document.getElementById('erikBiweekly').textContent = `$${(erikTotal / 2).toFixed(2)}`;
     document.getElementById('saraTotal').textContent = `$${saraTotal.toFixed(2)}`;
-    document.getElementById('saraBiweekly').textContent = `$${saraBiweekly.toFixed(2)}`;
+    document.getElementById('saraBiweekly').textContent = `$${(saraTotal / 2).toFixed(2)}`;
 }
 
 // Helper function to calculate over/under for any specific month
