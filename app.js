@@ -2141,13 +2141,13 @@ function updateTransactionTable() {
             });
             
             // Determine if this is a credit/deposit (negative amount or specific bill categories)
-            const isCredit = transaction.amount < 0 || 
-                           transaction.bill === 'Ignore/Internal Transfer' ||
-                           transaction.source.toLowerCase().includes('deposit') ||
-                           transaction.source.toLowerCase().includes('credit') ||
-                           transaction.source.toLowerCase().includes('refund') ||
-                           transaction.source.toLowerCase().includes('return');
-            
+            const src = (transaction.source || '').toLowerCase();
+            const isCredit = transaction.amount < 0 ||
+                           (typeof transaction.bill === 'string' && transaction.bill === 'Ignore/Internal Transfer') ||
+                           src.includes('deposit') ||
+                           src.includes('credit') ||
+                           src.includes('refund') ||
+                           src.includes('return');
             const amountClass = isCredit ? 'amount-credit' : '';
             const displayAmount = Math.abs(transaction.amount).toFixed(2);
             const amountPrefix = isCredit ? '+' : '';
@@ -2158,7 +2158,7 @@ function updateTransactionTable() {
                 <td class="editable-text" data-field="source" data-index="${transaction.originalIndex}" onclick="editField(this)">${transaction.source}</td>
                 <td class="editable-amount ${amountClass}" data-field="amount" data-index="${transaction.originalIndex}" onclick="editField(this)">${amountPrefix}$${displayAmount}</td>
                 <td class="editable-select" data-field="account" data-index="${transaction.originalIndex}" onclick="editField(this)">${transaction.account || 'RCU'}</td>
-                <td class="editable-select" data-field="bill" data-index="${transaction.originalIndex}" onclick="editField(this)">${transaction.bill}</td>
+                 <td class="editable-select" data-field="bill" data-index="${transaction.originalIndex}" onclick="editField(this)">${typeof transaction.bill === 'string' ? transaction.bill : (transaction.bill?.name || transaction.bill?.category || 'Miscellaneous')}</td>
                 <td>
                     <button class="btn-edit" onclick="editTransaction(${transaction.originalIndex})">Edit</button>
                     <button class="btn-delete" onclick="deleteTransaction(${transaction.originalIndex})">×</button>
