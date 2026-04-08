@@ -16,27 +16,22 @@ function toggleTheme() {
 
 // Tab functionality
 function showTab(tabName) {
-    // Hide all tab contents
-    const tabContents = document.querySelectorAll('.tab-content');
-    tabContents.forEach(tab => tab.classList.remove('active'));
-    
-    // Remove active class from all tab buttons
-    const tabButtons = document.querySelectorAll('.tab-btn');
-    tabButtons.forEach(btn => btn.classList.remove('active'));
-    
+    // Hide all tabs using inline style
+    ['dashboard','budget','expenses'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    });
     // Show selected tab
-    document.getElementById(tabName).classList.add('active');
-    
-    // Add active class to clicked button
+    const target = document.getElementById(tabName);
+    if (target) target.style.display = 'block';
+    // Update button states
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     if (event && event.target) {
         event.target.classList.add('active');
     } else {
-        // Find and activate the correct tab button
-        const tabBtn = Array.from(tabButtons).find(btn => btn.onclick.toString().includes(tabName));
+        const tabBtn = Array.from(document.querySelectorAll('.tab-btn')).find(btn => btn.onclick && btn.onclick.toString().includes(tabName));
         if (tabBtn) tabBtn.classList.add('active');
     }
-    
-    // Save current tab
     localStorage.setItem('currentTab', tabName);
 }
 
@@ -2102,14 +2097,15 @@ document.addEventListener('DOMContentLoaded', async function() {
     updateTransactionTable();
     updateDashboard();
     
-    // Always show dashboard on load
-    const tabContents = document.querySelectorAll('.tab-content');
-    tabContents.forEach(tab => tab.classList.remove('active'));
-    const tabButtons = document.querySelectorAll('.tab-btn');
-    tabButtons.forEach(btn => btn.classList.remove('active'));
+    // Always show dashboard on load using inline styles
+    ['dashboard','budget','expenses'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    });
     const dashEl = document.getElementById('dashboard');
-    if (dashEl) dashEl.classList.add('active');
-    const dashBtn = Array.from(tabButtons).find(btn => btn.onclick && btn.onclick.toString().includes('dashboard'));
+    if (dashEl) dashEl.style.display = 'block';
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    const dashBtn = Array.from(document.querySelectorAll('.tab-btn')).find(btn => btn.onclick && btn.onclick.toString().includes('dashboard'));
     if (dashBtn) dashBtn.classList.add('active');
 });
 
