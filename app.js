@@ -16,22 +16,15 @@ function toggleTheme() {
 
 // Tab functionality
 function showTab(tabName) {
-    // Hide all tabs using inline style
     ['dashboard','budget','expenses'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
     });
-    // Show selected tab
     const target = document.getElementById(tabName);
     if (target) target.style.display = 'block';
-    // Update button states
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    if (event && event.target) {
-        event.target.classList.add('active');
-    } else {
-        const tabBtn = Array.from(document.querySelectorAll('.tab-btn')).find(btn => btn.onclick && btn.onclick.toString().includes(tabName));
-        if (tabBtn) tabBtn.classList.add('active');
-    }
+    const tabBtn = Array.from(document.querySelectorAll('.tab-btn')).find(btn => btn.onclick && btn.onclick.toString().includes(tabName));
+    if (tabBtn) tabBtn.classList.add('active');
     localStorage.setItem('currentTab', tabName);
 }
 
