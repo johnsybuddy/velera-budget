@@ -1,30 +1,28 @@
-console.log('=== APP.JS LOADED - VERSION 20260410 ===');
-// Dark mode toggle
-function toggleTheme() {
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    const newTheme = isDark ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', newTheme);
-    const btn = document.querySelector('.theme-toggle');
-    if (btn) btn.textContent = newTheme === 'dark' ? 'Light' : 'Dark';
-    localStorage.setItem('theme', newTheme);
-}
-(function() {
-    const saved = localStorage.getItem('theme');
-    if (saved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
-})();
-
+console.log('=== APP.JS LOADED - VERSION 20260411 ===');
 
 // Tab functionality
 function showTab(tabName) {
-    ['dashboard','budget','expenses'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.display = 'none';
-    });
-    const target = document.getElementById(tabName);
-    if (target) target.style.display = 'block';
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    const tabBtn = Array.from(document.querySelectorAll('.tab-btn')).find(btn => btn.onclick && btn.onclick.toString().includes(tabName));
-    if (tabBtn) tabBtn.classList.add('active');
+    // Hide all tab contents
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(tab => tab.classList.remove('active'));
+    
+    // Remove active class from all tab buttons
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    tabButtons.forEach(btn => btn.classList.remove('active'));
+    
+    // Show selected tab
+    document.getElementById(tabName).classList.add('active');
+    
+    // Add active class to clicked button
+    if (event && event.target) {
+        event.target.classList.add('active');
+    } else {
+        // Find and activate the correct tab button
+        const tabBtn = Array.from(tabButtons).find(btn => btn.onclick.toString().includes(tabName));
+        if (tabBtn) tabBtn.classList.add('active');
+    }
+    
+    // Save current tab
     localStorage.setItem('currentTab', tabName);
 }
 
@@ -91,10 +89,10 @@ try {
         isFirebaseEnabled = true;
         console.log('Firebase initialized successfully');
         
-        // Persistence disabled - using online-only mode
-        // db.enablePersistence() removed due to SDK version conflicts
-
-
+        // Set up offline persistence
+        db.enablePersistence().catch((err) => {
+            console.log('Persistence failed:', err);
+        });
     }
 } catch (error) {
     console.log('Firebase not available, using localStorage:', error);
@@ -813,7 +811,7 @@ function parseCSV(csv) {
     
     console.log(`Total parsed transactions: ${csvData.length} (from ${lines.length - 1} rows)`);
     if (skippedRows.length > 0) {
-        console.warn(`?? Skipped ${skippedRows.length} rows:`);
+        console.warn(`⚠️ Skipped ${skippedRows.length} rows:`);
         skippedRows.forEach(skip => {
             console.warn(`  Row ${skip.row}: ${skip.reason}`, skip.data);
         });
@@ -916,14 +914,14 @@ function parseTransaction(cols, config, rowNum) {
     // Extract date
     dateStr = cols[config.dateCol];
     if (!dateStr || dateStr.includes('#')) {
-        console.log(`? Row ${rowNum || '?'}: Skipping - invalid date:`, dateStr);
+        console.log(`❌ Row ${rowNum || '?'}: Skipping - invalid date:`, dateStr);
         return null; // Skip rows with ### (Excel overflow)
     }
     
     // Extract description
     desc = cols[config.descCol];
     if (!desc) {
-        console.log(`? Row ${rowNum || '?'}: Skipping - no description`);
+        console.log(`❌ Row ${rowNum || '?'}: Skipping - no description`);
         return null;
     }
     
@@ -939,7 +937,7 @@ function parseTransaction(cols, config, rowNum) {
         console.log(`  Amount string: "${amountStr}"`);
         
         if (!amountStr || amountStr.trim() === '' || amountStr.includes('#')) {
-            console.log(`? Row ${rowNum || '?'}: Skipping - invalid amount:`, amountStr, 'for', desc);
+            console.log(`❌ Row ${rowNum || '?'}: Skipping - invalid amount:`, amountStr, 'for', desc);
             return null; // Skip ### amounts or empty
         }
         
@@ -954,7 +952,7 @@ function parseTransaction(cols, config, rowNum) {
         console.log(`  Parsed amount: ${amount}, isNegative: ${isNegative}`);
         
         if (isNaN(amount) || amount === 0) {
-            console.log(`? Row ${rowNum || '?'}: Skipping - could not parse amount:`, amountStr, '(cleaned:', cleanAmount, ') for', desc);
+            console.log(`❌ Row ${rowNum || '?'}: Skipping - could not parse amount:`, amountStr, '(cleaned:', cleanAmount, ') for', desc);
             return null;
         }
         
@@ -965,7 +963,7 @@ function parseTransaction(cols, config, rowNum) {
     // Parse and normalize date
     const date = normalizeDate(dateStr);
     if (!date) {
-        console.log(`? Row ${rowNum || '?'}: Skipping - could not parse date:`, dateStr, 'for', desc);
+        console.log(`❌ Row ${rowNum || '?'}: Skipping - could not parse date:`, dateStr, 'for', desc);
         return null;
     }
     
@@ -997,7 +995,7 @@ function parseTransaction(cols, config, rowNum) {
         account: accountName
     };
     
-    console.log(`? Row ${rowNum || '?'}: Parsed successfully:`, transaction);
+    console.log(`✅ Row ${rowNum || '?'}: Parsed successfully:`, transaction);
     return transaction;
 }
 
@@ -1340,7 +1338,7 @@ function displayCSVPreview() {
     
     let html = `
         <div style="margin-bottom: 1rem; padding: 1rem; background: var(--bg-main); border-radius: var(--radius-md); border: 1px solid var(--border-light);">
-            <div style="font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">?? Import Summary</div>
+            <div style="font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">📊 Import Summary</div>
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; font-size: 0.875rem;">
                 <div style="text-align: center; padding: 0.5rem; background: var(--bg-card); border-radius: var(--radius-sm);">
                     <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">${csvData.length}</div>
@@ -1382,7 +1380,7 @@ function displayCSVPreview() {
         });
         const isDupe = isDuplicate(row);
         const rowClass = isDupe ? 'style="opacity: 0.5; background: #fef2f2;"' : '';
-        const status = isDupe ? '?? Duplicate' : '? New';
+        const status = isDupe ? '🔄 Duplicate' : '✅ New';
         
         html += `
             <tr ${rowClass}>
@@ -1441,10 +1439,10 @@ function confirmCSVImport() {
     
     // Show detailed import metrics
     const message = `
-        ? Import Complete!<br>
-        ?? CSV Rows: ${totalInCSV}<br>
-        ? Imported: ${newTransactions.length}<br>
-        ${duplicateCount > 0 ? `?? Skipped (duplicates): ${duplicateCount}` : ''}
+        ✅ Import Complete!<br>
+        📊 CSV Rows: ${totalInCSV}<br>
+        ✅ Imported: ${newTransactions.length}<br>
+        ${duplicateCount > 0 ? `⚠️ Skipped (duplicates): ${duplicateCount}` : ''}
     `;
     
     showNotification(message, 'success');
@@ -1462,83 +1460,6 @@ let monthlyBudgets = {
     jan: {}, feb: {}, mar: {}, apr: {}, may: {}, jun: {},
     jul: {}, aug: {}, sep: {}, oct: {}, nov: {}, dec: {}
 };
-
-// Bill metadata: category and due date per bill
-let billMeta = {
-    'Mortgage + Escrow (Ins-Taxes)': { category: 'Mortgage-Car-Insurance', dueDate: 'Monthly' },
-    'Car Payment':                   { category: 'Mortgage-Car-Insurance', dueDate: 'Monthly' },
-    'Auto Insurance':                { category: 'Mortgage-Car-Insurance', dueDate: 'Aug 26' },
-    'AAA Roadside Assistance':       { category: 'Mortgage-Car-Insurance', dueDate: 'May 26' },
-    'Gas':                           { category: 'Mortgage-Car-Insurance', dueDate: 'Monthly' },
-    'Jewelers Insurance':            { category: 'Mortgage-Car-Insurance', dueDate: 'Jun 26' },
-    'Daycare':                       { category: 'Mortgage-Car-Insurance', dueDate: 'Monthly' },
-    'Xcel Energy':                   { category: 'Bills & Utilities', dueDate: 'Monthly' },
-    'Phones & Internet':             { category: 'Bills & Utilities', dueDate: 'Monthly' },
-    'Earthbound Garbage':            { category: 'Bills & Utilities', dueDate: 'Jan 26' },
-    'Water':                         { category: 'Bills & Utilities', dueDate: 'Jan 26' },
-    'Charity':                       { category: 'Bills & Utilities', dueDate: 'Monthly' },
-    'Groceries':                     { category: 'Family Expenses', dueDate: 'Monthly' },
-    'Restaurants/Entertainment':     { category: 'Family Expenses', dueDate: 'Monthly' },
-    "Dylan's Medication":            { category: 'Family Expenses', dueDate: 'Monthly' },
-    "Dylan's School Lunches":        { category: 'Family Expenses', dueDate: 'Monthly' },
-    'Miscellaneous':                 { category: 'Family Expenses', dueDate: 'Monthly' },
-    'Roku / Disney Subscriptions':   { category: 'Family Expenses', dueDate: 'Monthly' },
-    'Cat Food':                      { category: 'Family Expenses', dueDate: 'Monthly' },
-    'Emergency Fund':                { category: 'Savings & Investment', dueDate: 'Monthly' },
-    'Travel Spending':               { category: 'Savings & Investment', dueDate: 'Monthly' },
-    'Dylan Investment':              { category: 'Savings & Investment', dueDate: 'Monthly' },
-    'Brooks Investment':             { category: 'Savings & Investment', dueDate: 'Monthly' },
-};
-
-const BILL_CATEGORIES = ['Mortgage-Car-Insurance', 'Bills & Utilities', 'Family Expenses', 'Savings & Investment'];
-
-function renderBudgetTable() {
-    var tbody = document.querySelector('.budget-table tbody');
-    if (!tbody) return;
-    var budgets = monthlyBudgets[currentMonth] || {};
-    var grouped = {};
-    BILL_CATEGORIES.forEach(function(cat) { grouped[cat] = []; });
-    for (var billName in billMeta) {
-        var cat = billMeta[billName].category;
-        if (grouped[cat]) grouped[cat].push(billName);
-    }
-    for (var billName in budgets) {
-        if (!billMeta[billName] && budgets[billName] !== null && budgets[billName] !== undefined) {
-            grouped['Family Expenses'].push(billName);
-        }
-    }
-    var html = '';
-    BILL_CATEGORIES.forEach(function(cat) {
-        var bills = (grouped[cat] || []).filter(function(b) {
-            return budgets[b] !== null && budgets[b] !== undefined;
-        });
-        if (bills.length === 0) return;
-        html += '<tr class="separator"><td><strong>' + cat + '</strong></td><td></td><td></td><td></td><td></td><td></td></tr>';
-        bills.forEach(function(billName) {
-            var amount = budgets[billName] || 0;
-            var dueDate = (billMeta[billName] && billMeta[billName].dueDate) || 'Monthly';
-            var safeName = billName.replace(/'/g, "\\'");
-            html += '<tr>';
-            html += '<td>' + billName + '</td>';
-            html += '<td class="due-date">' + dueDate + '</td>';
-            html += '<td>$' + parseFloat(amount).toFixed(2) + '</td>';
-            html += '<td><span class="actual-amount clickable-zero" data-bill="' + billName + '" onclick="promptMarkPaid(\'' + safeName + '\')">$0.00</span></td>';
-            html += '<td class="over-under">-$' + parseFloat(amount).toFixed(2) + '</td>';
-            html += '<td><button class="btn-edit" onclick="editBill(\'' + safeName + '\', ' + amount + ')">Edit</button></td>';
-            html += '</tr>';
-        });
-    });
-    html += '<tr class="separator"><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
-    html += '<tr>';
-    html += '<td>Extra Paid</td>';
-    html += '<td class="due-date">-</td>';
-    html += '<td>$0.00</td>';
-    html += '<td><span class="actual-amount clickable-zero" data-bill="Extra Paid" onclick="promptMarkPaid(\'Extra Paid\')">$0.00</span></td>';
-    html += '<td class="over-under">$0.00</td>';
-    html += '<td><button class="btn-edit" onclick="editBill(\'Extra Paid\', 0)">Edit</button></td>';
-    html += '</tr>';
-    tbody.innerHTML = html;
-}
 
 function showMonth(month) {
     currentMonth = month;
@@ -1578,12 +1499,59 @@ function showMonth(month) {
 }
 
 function loadMonthBudget(month) {
+    // Update the table cells with saved budget values from Firebase ONLY
+    
     console.log(`=== loadMonthBudget(${month}) ===`);
-    renderBudgetTable();
-    const budgets = monthlyBudgets[month] || {};
-    let total = 0;
-    for (const b in budgets) { if (budgets[b] > 0) total += budgets[b]; }
-    console.log(`Total for ${month}: $${total.toFixed(2)}`);
+    console.log('monthlyBudgets for this month:', monthlyBudgets[month]);
+    
+    // Get all budget table rows
+    const rows = document.querySelectorAll('.budget-table tbody tr');
+    
+    let totalFromFirebase = 0;
+    
+    rows.forEach(row => {
+        const billNameCell = row.cells[0];
+        if (!billNameCell) return;
+        
+        const billName = billNameCell.textContent.trim();
+        
+        // Skip separator rows
+        if (row.classList.contains('separator')) return;
+        
+        // Check if bill is marked as deleted (null value in any month)
+        const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+        const isDeleted = months.some(m => monthlyBudgets[m] && monthlyBudgets[m][billName] === null);
+        if (isDeleted) {
+            row.style.display = 'none';
+            return;
+        }
+        
+        // Get saved value from Firebase (no defaults)
+        const savedValue = monthlyBudgets[month] && monthlyBudgets[month][billName];
+        
+        console.log(`Bill: ${billName}, Firebase value: ${savedValue}`);
+        
+        if (savedValue !== undefined && savedValue !== null) {
+            totalFromFirebase += savedValue;
+            
+            // Update the Monthly Expense cell (column 2, after Due Date column)
+            if (row.cells[2]) {
+                row.cells[2].textContent = `$${savedValue.toFixed(2)}`;
+                console.log(`  Updated cell to: $${savedValue.toFixed(2)}`);
+            }
+            
+            // Update the Edit button onclick with new value
+            const editBtn = row.querySelector('.btn-edit');
+            if (editBtn) {
+                editBtn.setAttribute('onclick', `editBill('${billName.replace(/'/g, "\\'")}', ${savedValue})`);
+            }
+        } else {
+            console.log(`  ⚠️ No value in Firebase for ${billName}`);
+        }
+    });
+    
+    console.log(`Total from Firebase for ${month}: $${totalFromFirebase.toFixed(2)}`);
+    console.log('=== END loadMonthBudget ===');
 }
 
 function updateBudget() {
@@ -1787,7 +1755,7 @@ function updateDashboard() {
     const currentMonth = currentDate.getMonth() + 1; // 1-12
     const currentMonthName = months[currentDate.getMonth()]; // e.g., 'feb'
     
-    // Calculate ANNUAL budget (current month's budget � 12)
+    // Calculate ANNUAL budget (current month's budget × 12)
     let totalBudget = 0;
     
     const currentMonthBudgets = monthlyBudgets[currentMonthName] || {};
@@ -1803,9 +1771,9 @@ function updateDashboard() {
         // Only count valid budget values (exclude Extra Paid)
         if (budgetValue > 0 && billName !== 'Extra Paid') {
             totalBudget += budgetValue;
-            console.log(`  ? Added ${budgetValue} to total`);
+            console.log(`  ✓ Added ${budgetValue} to total`);
         } else {
-            console.log(`  ? Skipped (value: ${budgetValue}, billName: ${billName})`);
+            console.log(`  ✗ Skipped (value: ${budgetValue}, billName: ${billName})`);
         }
     }
     
@@ -1814,10 +1782,10 @@ function updateDashboard() {
     // Multiply by 12 for annual budget
     totalBudget = totalBudget * 12;
     
-    console.log('Annual budget (monthly � 12):', totalBudget);
+    console.log('Annual budget (monthly × 12):', totalBudget);
     console.log('=== END DEBUG ===');
     
-    console.log(`Dashboard - Annual budget (${currentMonthName} budget � 12): $${totalBudget.toFixed(2)}`);
+    console.log(`Dashboard - Annual budget (${currentMonthName} budget × 12): $${totalBudget.toFixed(2)}`);
     
     months.forEach((month, index) => {
         const monthNumber = monthNumbers[month];
@@ -1912,21 +1880,21 @@ function updateDashboard() {
     
     if (overallTotal > 0) {
         overallStatusCard.className = 'status-card surplus';
-        overallLabel.textContent = 'Surplus ??';
+        overallLabel.textContent = 'Surplus 💰';
         overallLabel.className = 'status-label surplus';
-        statusIndicator.textContent = '??';
+        statusIndicator.textContent = '🟢';
         overallProgress.style.background = 'var(--success)';
     } else if (overallTotal < 0) {
         overallStatusCard.className = 'status-card deficit';
-        overallLabel.textContent = 'Behind ??';
+        overallLabel.textContent = 'Behind 📉';
         overallLabel.className = 'status-label deficit';
-        statusIndicator.textContent = '??';
+        statusIndicator.textContent = '🔴';
         overallProgress.style.background = 'var(--danger)';
     } else {
         overallStatusCard.className = 'status-card';
-        overallLabel.textContent = 'On Track ??';
+        overallLabel.textContent = 'On Track 🎯';
         overallLabel.className = 'status-label';
-        statusIndicator.textContent = '??';
+        statusIndicator.textContent = '🟡';
         overallProgress.style.background = 'var(--primary)';
     }
 }
@@ -1992,10 +1960,10 @@ function updatePeriodicBillsBreakdown() {
         
         if (totalNeeded > 0 && savedAmount >= totalNeeded) {
             statusColor = 'var(--success)';
-            statusText = ' ? Ready';
+            statusText = ' ✓ Ready';
         } else if (totalNeeded > 0 && progressPercent >= 75) {
             statusColor = 'var(--warning)';
-            statusText = ' ? Almost Ready';
+            statusText = ' ⚠ Almost Ready';
         }
         
         html += `
@@ -2011,7 +1979,7 @@ function updatePeriodicBillsBreakdown() {
                     <div style="background: ${statusColor}; height: 100%; width: ${Math.min(progressPercent, 100)}%; transition: width 0.3s ease;"></div>
                 </div>
                 <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">
-                    ${progressPercent.toFixed(1)}% saved � $${monthlyBudget.toFixed(2)}/month
+                    ${progressPercent.toFixed(1)}% saved • $${monthlyBudget.toFixed(2)}/month
                 </div>
             </div>
         `;
@@ -2045,11 +2013,6 @@ function updateDashboardMonth() {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async function() {
-    // Apply saved theme
-    const savedTheme = localStorage.getItem('theme');
-    const themeBtn = document.querySelector('.theme-toggle');
-    if (themeBtn) themeBtn.textContent = savedTheme === 'dark' ? 'Light' : 'Dark';
-
     // Load saved data first
     await loadTransactions();
     loadFamilyExpenses();
@@ -2090,16 +2053,23 @@ document.addEventListener('DOMContentLoaded', async function() {
     updateTransactionTable();
     updateDashboard();
     
-    // Always show dashboard on load using inline styles
-    ['dashboard','budget','expenses'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.display = 'none';
-    });
-    const dashEl = document.getElementById('dashboard');
-    if (dashEl) dashEl.style.display = 'block';
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    const dashBtn = Array.from(document.querySelectorAll('.tab-btn')).find(btn => btn.onclick && btn.onclick.toString().includes('dashboard'));
-    if (dashBtn) dashBtn.classList.add('active');
+    // Restore saved tab or default to dashboard (do this last)
+    const savedTab = localStorage.getItem('currentTab') || 'dashboard';
+    
+    // Hide all tab contents
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(tab => tab.classList.remove('active'));
+    
+    // Remove active class from all tab buttons
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    tabButtons.forEach(btn => btn.classList.remove('active'));
+    
+    // Show selected tab
+    document.getElementById(savedTab).classList.add('active');
+    
+    // Find and activate the correct tab button
+    const tabBtn = Array.from(tabButtons).find(btn => btn.onclick.toString().includes(savedTab));
+    if (tabBtn) tabBtn.classList.add('active');
 });
 
 // Transaction modal functions
@@ -2229,10 +2199,10 @@ function updateTransactionTable() {
             // Determine if this is a credit/deposit (negative amount or specific bill categories)
             const isCredit = transaction.amount < 0 || 
                            transaction.bill === 'Ignore/Internal Transfer' ||
-                           (transaction.source || '').toLowerCase().includes('deposit') ||
-                           (transaction.source || '').toLowerCase().includes('credit') ||
-                           (transaction.source || '').toLowerCase().includes('refund') ||
-                           (transaction.source || '').toLowerCase().includes('return');
+                           transaction.source.toLowerCase().includes('deposit') ||
+                           transaction.source.toLowerCase().includes('credit') ||
+                           transaction.source.toLowerCase().includes('refund') ||
+                           transaction.source.toLowerCase().includes('return');
             
             const amountClass = isCredit ? 'amount-credit' : '';
             const displayAmount = Math.abs(transaction.amount).toFixed(2);
@@ -2247,7 +2217,7 @@ function updateTransactionTable() {
                 <td class="editable-select" data-field="bill" data-index="${transaction.originalIndex}" onclick="editField(this)">${transaction.bill}</td>
                 <td>
                     <button class="btn-edit" onclick="editTransaction(${transaction.originalIndex})">Edit</button>
-                    <button class="btn-delete" onclick="deleteTransaction(${transaction.originalIndex})">�</button>
+                    <button class="btn-delete" onclick="deleteTransaction(${transaction.originalIndex})">×</button>
                 </td>
             `;
             tbody.appendChild(row);
@@ -2692,45 +2662,43 @@ document.getElementById('addBillForm').addEventListener('submit', function(e) {
         
         // Update the bill amount for selected months
         selectedMonths.forEach(month => {
-            if (!monthlyBudgets[month]) monthlyBudgets[month] = {};
+            if (!monthlyBudgets[month]) {
+                monthlyBudgets[month] = {};
+            }
             monthlyBudgets[month][isEdit] = amount;
         });
-
-        // Update category in billMeta if changed
-        const newCategory = document.getElementById('billCategory').value;
-        if (newCategory && billMeta[isEdit]) {
-            billMeta[isEdit].category = newCategory;
-        } else if (newCategory && !billMeta[isEdit]) {
-            billMeta[isEdit] = { category: newCategory, dueDate: 'Monthly' };
+        
+        // Update the table display if current month is selected
+        if (selectedMonths.includes(currentMonth)) {
+            const rows = document.querySelectorAll('.budget-table tbody tr');
+            rows.forEach(row => {
+                if (row.cells[0] && row.cells[0].textContent.trim() === isEdit) {
+                    row.cells[2].textContent = `$${amount.toFixed(2)}`;
+                    // Update the over/under calculation
+                    const actualText = row.cells[3]?.querySelector('.actual-amount')?.textContent || '$0.00';
+                    const actual = parseFloat(actualText.replace(/[$,]/g, '')) || 0;
+                    const overUnder = actual - amount;
+                    if (row.cells[4]) {
+                        row.cells[4].textContent = `$${overUnder.toFixed(2)}`;
+                        row.cells[4].style.color = overUnder >= 0 ? 'var(--success)' : 'var(--danger)';
+                    }
+                }
+            });
+            
+            // Update totals
+            updateBudgetTotals();
         }
-
-        // Re-render table and save
-        renderBudgetTable();
+        
+        // Save to cloud/localStorage
         saveMonthlyBudgets();
         updateDashboard();
-
-        const monthText = selectedMonths.length === 1 ?
-            selectedMonths[0].toUpperCase() :
+        
+        const monthText = selectedMonths.length === 1 ? 
+            selectedMonths[0].toUpperCase() : 
             `${selectedMonths.length} months`;
         showNotification(`${billName} updated to $${amount.toFixed(2)} for ${monthText}!`);
     } else {
-        // NEW BILL - save to all months and billMeta
-        const category = document.getElementById('billCategory').value;
-        if (!category) {
-            showNotification('Please select a category', 'error');
-            return;
-        }
-        billMeta[billName] = { category: category, dueDate: 'Monthly' };
-        const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-        months.forEach(month => {
-            if (!monthlyBudgets[month]) monthlyBudgets[month] = {};
-            monthlyBudgets[month][billName] = amount;
-        });
-        renderBudgetTable();
-        saveMonthlyBudgets();
-        updateDashboard();
-        populateTransactionBillDropdown();
-        showNotification(`${billName} added to all months!`, 'success');
+        showNotification(`${billName} added!`);
     }
     
     closeAddBill();
@@ -2755,7 +2723,7 @@ function showFamilyExpenses() {
     document.querySelector('.budget-table-container').style.display = 'none';
     document.getElementById('familyExpenseContent').style.display = 'block';
     document.getElementById('currentMonthTitle').style.display = 'none';
-    // family expenses - no need to hide expenses tab buttons
+    document.querySelector('.add-transaction').style.display = 'none';
     
     // Update active tab
     document.querySelectorAll('.month-tab').forEach(tab => tab.classList.remove('active'));
@@ -2935,12 +2903,12 @@ function startVoiceInput(fieldType) {
     // Update button appearance
     const button = document.querySelector(`[onclick="startVoiceInput('${fieldType}')"]`);
     if (button) {
-        button.textContent = '?? Stop';
+        button.textContent = '🔴 Stop';
         button.style.background = '#ef4444';
     }
     
     recognition.start();
-    showNotification(`?? Listening for ${fieldType}...`);
+    showNotification(`🎤 Listening for ${fieldType}...`);
 }
 
 function stopListening() {
@@ -2951,7 +2919,7 @@ function stopListening() {
     
     // Reset all voice buttons
     document.querySelectorAll('.voice-btn').forEach(btn => {
-        btn.textContent = '??';
+        btn.textContent = '🎤';
         btn.style.background = '';
     });
 }
@@ -3177,7 +3145,7 @@ function displayLearnedPatterns() {
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                     <div style="flex: 1;">
                         <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem;">${merchant}</div>
-                        <div style="font-size: 0.8125rem; color: var(--text-secondary);">? ${primaryCategory}</div>
+                        <div style="font-size: 0.8125rem; color: var(--text-secondary);">→ ${primaryCategory}</div>
                     </div>
                     <div style="text-align: right;">
                         <div style="font-size: 0.75rem; color: ${confidenceColor}; font-weight: 600;">${confidencePercent}% confident</div>
