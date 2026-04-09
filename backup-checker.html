@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Backup Checker</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <h1>Backup Checker</h1>
+    <button onclick="checkLocalStorage()">Check LocalStorage Backup</button>
+    <button onclick="exportFirebase()">Export Current Firebase Data</button>
+    <pre id="output"></pre>
+
+    <script>
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBLde_TaT5vGLde8wKEOVYqJYx-5H9xVzI",
+            authDomain: "johnson-fam-bills.firebaseapp.com",
+            projectId: "johnson-fam-bills",
+            storageBucket: "johnson-fam-bills.firebasestorage.app",
+            messagingSenderId: "1059024941430",
+            appId: "1:1059024941430:web:c0e8e0e0e0e0e0e0e0e0e0"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        function checkLocalStorage() {
+            const output = document.getElementById('output');
+            const transactions = localStorage.getItem('transactions');
+            const monthlyBudgets = localStorage.getItem('monthlyBudgets');
+            
+            if (transactions) {
+                const parsed = JSON.parse(transactions);
+                output.textContent = `LocalStorage has ${parsed.length} transactions\n\n`;
+                output.textContent += `February transactions: ${parsed.filter(t => t.date.startsWith('2.') || t.date.startsWith('2026-02')).length}\n\n`;
+                output.textContent += JSON.stringify(parsed, null, 2);
+                
+                // Download as file
+                const blob = new Blob([JSON.stringify({transactions: parsed, monthlyBudgets: JSON.parse(monthlyBudgets || '{}')}, null, 2)], {type: 'application/json'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'localStorage-backup.json';
+                a.click();
+            } else {
+                output.textContent = 'No localStorage backup found';
+            }
+        }
+
+        async function exportFirebase() {
+            const output = document.getElementById('output');
+            output.textContent = 'Exporting from Firebase...';
+            
+            try {
+                const doc = await db.collection('users').doc('johnsybuddy').get();
+                const data = doc.data();
+                
+                output.textContent = `Firebase has ${data.transactions?.length || 0} transactions\n\n`;
+                output.textContent += JSON.stringify(data, null, 2);
+                
+                // Download as file
+                const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'firebase-current.json';
+                a.click();
+            } catch (error) {
+                output.textContent = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

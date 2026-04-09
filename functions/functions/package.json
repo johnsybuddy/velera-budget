@@ -1,6 +1,11 @@
 {
-  "name": "functions",
-  "description": "Cloud Functions for Firebase",
+  "name": "bills-website-functions",
+  "version": "1.0.0",
+  "description": "Firebase Cloud Functions for Plaid integration",
+  "main": "index.js",
+  "engines": {
+    "node": "20"
+  },
   "scripts": {
     "serve": "firebase emulators:start --only functions",
     "shell": "firebase functions:shell",
@@ -8,16 +13,11 @@
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log"
   },
-  "engines": {
-    "node": "24"
-  },
-  "main": "index.js",
   "dependencies": {
-    "firebase-admin": "^13.6.0",
-    "firebase-functions": "^7.0.0"
-  },
-  "devDependencies": {
-    "firebase-functions-test": "^3.4.1"
-  },
-  "private": true
+    "cors": "^2.8.5",
+    "dotenv": "^17.3.1",
+    "firebase-admin": "^13.7.0",
+    "firebase-functions": "^7.0.6",
+    "plaid": "^18.0.0"
+  }
 }

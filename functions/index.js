@@ -5,13 +5,16 @@ const cors = require('cors')({ origin: true });
 
 admin.initializeApp();
 
-// Plaid configuration
+// Load environment variables
+require('dotenv').config();
+
+// Plaid configuration using environment variables
 const plaidConfig = new Configuration({
   basePath: PlaidEnvironments.sandbox, // Change to 'development' or 'production' later
   baseOptions: {
     headers: {
-      'PLAID-CLIENT-ID': functions.config().plaid.client_id,
-      'PLAID-SECRET': functions.config().plaid.secret,
+      'PLAID-CLIENT-ID': process.env.PLAID_CLIENT_ID,
+      'PLAID-SECRET': process.env.PLAID_SECRET,
     },
   },
 });
@@ -23,12 +26,8 @@ const plaidClient = new PlaidApi(plaidConfig);
  * This is called when user wants to connect their bank account
  */
 exports.createLinkToken = functions.https.onCall(async (data, context) => {
-  // Verify user is authenticated
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
-  }
-
-  const userId = context.auth.uid;
+  // Use hardcoded userId for personal use (not recommended for production)
+  const userId = 'johnsybuddy';
 
   try {
     const response = await plaidClient.linkTokenCreate({
@@ -54,12 +53,8 @@ exports.createLinkToken = functions.https.onCall(async (data, context) => {
  * Called after user successfully connects their bank
  */
 exports.exchangePublicToken = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
-  }
-
   const { public_token, metadata } = data;
-  const userId = context.auth.uid;
+  const userId = 'johnsybuddy';
 
   try {
     // Exchange public token for access token
@@ -92,11 +87,7 @@ exports.exchangePublicToken = functions.https.onCall(async (data, context) => {
  * Manually triggered or scheduled to sync transactions
  */
 exports.fetchTransactions = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
-  }
-
-  const userId = context.auth.uid;
+  const userId = 'johnsybuddy';
   const { startDate, endDate } = data;
 
   try {

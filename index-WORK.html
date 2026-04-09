@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Budget Tracker</title>
+    <link rel="stylesheet" href="styles.css?v=20250216">
+    
+    <!-- Firebase CDN (compat version for your existing code) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <!-- Your existing HTML content goes here - copy from index.html -->
+    
+    <script>
+        // WORK Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyD4V3DKjbRv5DgjRpZ6BzxPH8SJjJ2Nm-I",
+            authDomain: "work-budget-tracker.firebaseapp.com",
+            projectId: "work-budget-tracker",
+            storageBucket: "work-budget-tracker.firebasestorage.app",
+            messagingSenderId: "704722132019",
+            appId: "1:704722132019:web:7178ac03b6e94832d85746"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const isFirebaseEnabled = true;
+        const userId = 'work-user'; // Different user ID for work
+
+        // Enable offline persistence
+        db.enablePersistence()
+            .then(() => console.log('Firebase persistence enabled'))
+            .catch((err) => {
+                if (err.code === 'failed-precondition') {
+                    console.log('Multiple tabs open, persistence can only be enabled in one tab at a time.');
+                } else if (err.code === 'unimplemented') {
+                    console.log('The current browser does not support persistence.');
+                }
+            });
+
+        console.log('Firebase initialized for WORK instance');
+    </script>
+    
+    <script src="app.js?v=20250216"></script>
+</body>
+</html>

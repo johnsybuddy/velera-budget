@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Due Date column added - v20250113 -->
+    <title>Buddy Budget Tracker</title>
+    <link rel="stylesheet" href="styles.css?v=20250113">
+    
+    <!-- Firebase CDN -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">Buddy Budget</div>
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="showTab('dashboard')">Dashboard</button>
+            <button class="tab-btn" onclick="showTab('budget')">Monthly Budget</button>
+            <button class="tab-btn" onclick="showTab('expenses')">Expenses</button>
+        </div>
+        <div class="sync-status" id="syncStatus" style="display: none;">
+            <span class="sync-icon">☁️</span>
+            <span class="sync-text">Syncing...</span>
+        </div>
+    </nav>
+
+    <main class="container">
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <div class="dashboard-header">
+                <h2>💰 Johnson Family 2026 Budget</h2>
+                
+                <div class="dashboard-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="totalBudgetStat">$6,546</span>
+                            <span class="stat-label">Annual Budget</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💳</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="totalSpentStat">$0</span>
+                            <span class="stat-label">Total Spent</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="remainingStat">$6,546</span>
+                            <span class="stat-label">Remaining</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="dashboard-main">
+                <div class="dashboard-left">
+                    <div class="overall-status">
+                        <div class="status-card mini" id="overallStatus">
+                            <div class="status-header">
+                                <h3>💼 Financial Health</h3>
+                                <div class="status-indicator" id="statusIndicator">🟢</div>
+                            </div>
+                            <div class="status-content">
+                                <p class="status-amount" id="overallAmount">$0.00</p>
+                                <span class="status-label" id="overallLabel">On Track</span>
+                                <div class="status-progress">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" id="overallProgress"></div>
+                                    </div>
+                                    <span class="progress-text" id="progressText">0% of budget used</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="status-card mini" id="reservedStatus" style="margin-top: 1rem;">
+                            <div class="status-header">
+                                <h3>🪣 Reserved for Periodic Bills</h3>
+                            </div>
+                            <div class="status-content">
+                                <div id="periodicBillsBreakdown" style="margin-top: 1rem; font-size: 0.875rem;">
+                                    <!-- Periodic bills breakdown will be populated by JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="dashboard-right">
+                    <div class="monthly-summary">
+                        <h3>📅 Monthly Performance</h3>
+                        <div class="monthly-grid" id="monthlyGrid">
+                            <!-- Monthly cards will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Budget Tab -->
+        <div id="budget" class="tab-content">
+            <div class="budget-layout">
+                <div class="month-tabs">
+                    <button class="month-tab active" onclick="showMonth('jan')">Jan</button>
+                    <button class="month-tab" onclick="showMonth('feb')">Feb</button>
+                    <button class="month-tab" onclick="showMonth('mar')">Mar</button>
+                    <button class="month-tab" onclick="showMonth('apr')">Apr</button>
+                    <button class="month-tab" onclick="showMonth('may')">May</button>
+                    <button class="month-tab" onclick="showMonth('jun')">Jun</button>
+                    <button class="month-tab" onclick="showMonth('jul')">Jul</button>
+                    <button class="month-tab" onclick="showMonth('aug')">Aug</button>
+                    <button class="month-tab" onclick="showMonth('sep')">Sep</button>
+                    <button class="month-tab" onclick="showMonth('oct')">Oct</button>
+                    <button class="month-tab" onclick="showMonth('nov')">Nov</button>
+                    <button class="month-tab" onclick="showMonth('dec')">Dec</button>
+                    <button class="month-tab family-tab" onclick="showFamilyExpenses()">Family Expense Tracking</button>
+                </div>
+                <div class="budget-content">
+                    <h2 id="currentMonthTitle">January 2025 Budget</h2>
+                    <div class="add-transaction">
+                        <button class="btn-primary" onclick="showAddBill()">Add Bill</button>
+                    </div>
+                    <div id="familyExpenseContent" class="family-expense-content" style="display: none;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h2>👨‍👩‍👧‍👦 Family Expense Tracking</h2>
+                            <button class="btn-secondary" onclick="showMonthlyBudget()">← Back to Monthly Budget</button>
+                        </div>
+                        <div class="add-transaction">
+                            <button class="btn-primary" onclick="showAddFamilyExpense()">Add Family Expense</button>
+                        </div>
+                        <div class="family-expense-table-container">
+                            <table class="family-expense-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Category</th>
+                                        <th>Amount</th>
+                                        <th>Location</th>
+                                        <th>Who Paid</th>
+                                        <th>Amount Paid to Payer</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="familyExpenseBody">
+                                    <!-- Family expenses will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="budget-table-container">
+                <table class="budget-table">
+                    <thead>
+                        <tr>
+                            <th>Bill</th>
+                            <th>Due Date</th>
+                            <th>Monthly Expense</th>
+                            <th>Actual</th>
+                            <th>Over/Under</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Mortgage + Escrow (Ins-Taxes)</td>
+                            <td class="due-date">Monthly</td>
+                            <td>$2,272.00</td>
+                            <td><span class="actual-amount clickable-zero" data-bill="Mortgage + Escrow (Ins-Taxes)" onclick="promptMarkPaid('Mortgage + Escrow (Ins-Taxes)')">$0.00</span></td>
+                            <td class="over-under">-$2,272.00</td>
+                            <td><button class="btn-edit" onclick="editBill('Mortgage + Escrow (Ins-Taxes)', 2272.00)">Edit</button></td>
+                        </tr>
+                        <tr>
+                            <td>Car Payment</td>
+                            <td class="due-date">Monthly</td>
+                            <td>$453.00</td>
+                            <td><span class="actual-amount clickable-zero" data-bill="Car Payment" onclick="promptMarkPaid('Car Payment')">$0.00</span></td>
+                            <td class="over-under">-$453.00</td>
+                            <td><button class="btn-edit" onclick="editBill('Car Payment', 453.00)">Edit</button></td>
+                        </tr>
+                        <tr>
+                            <td>Gas</td>
+                            <td class="due-date">Monthly</td>
+                            <td>$150.00</td>
+                            <td><span class="actual-amount clickable-zero" data-bill="Gas" onclick="promptMarkPaid('Gas')">$0.00</span></td>
+                            <td class="over-under">-$150.00</td>
+                            <td><button class="btn-edit" onclick="editBill('Gas', 150.00)">Edit</button></td>
+                        </tr>
+                        <tr>
+                            <td>Auto Insurance</td>
+                            <td class="due-date">Aug 26</td>
+                            <td>$125.00</td>
+                            <td><span class="actual-amount clickable-zero" data-bill="Auto Insurance" onclick="promptMarkPaid('Auto Insurance')">$0.00</span></td>
+                            <td class="over-under">-$125.00</td>
+                            <td><button class="btn-edit" onclick="editBill('Auto Insurance', 125.00)">Edit</button></td>
+                        </tr>
+                        <tr>
+                            <td>AAA Roadside Assistance</td>
+                            <td class="due-date">May 26</td>
+                            <td>$15.00</td>
+                            <td><span class="actual-amount clickable-zero" data-bill="AAA Roadside Assistance" onclick="promptMarkPaid('AAA Roadside Assistance')">$0.00</span></td>
+                            <td class="over-under">-$15.00</td>
+                            <td><button class="btn-edit" onclick="editBill('AAA Roadside Assistance', 15.00)">Edit</button></td>
+                        </tr>
+                        <tr>
+                            <td>Jewelers Insurance</td>
+                            <td class="due-date">Annual</td>
+                            <td>$7.00</td>
+                            <td><span class="actual-amount clickable-zero" data-bill="Jewelers Insurance" onclick="promptMarkPaid('Jewelers Insurance')">$0.00</span></td>
+                            <td class="over-under">-$7.00</td>
+                            <td><button class="btn-edit" onclick="editBill('Jewelers Insurance', 7.00)">Edit</button></td>
+                        </tr>
+                        <tr class="separator health-insurance">
+                            <td><em>Health Insurance</em></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr class="separator">
+                            <td><strong>Mortgage-Car-Insurance</strong></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>Daycare</td>
+                            <td class="due-date">Monthly</td>
+                            <td>$1,100.00</td>
+                            <td><span class="actual-amount clickable-zero" data-bill="Daycare" onclick="promptMarkPaid('Daycare')">$0.00</span></td>
+                            <td class="over-under">-$1,100.00</td>
+                            <td><button class="btn-edit" onclick="editBill('Daycare', 1100.00)">Edit</button></td>
+                        </tr>
+                        <tr>
+                            <td>Xcel Energy</td>
+                            <td class="due-date">Monthly</td>
+                            <td>$285.00</td>
+                            <td><span class="actual-amount clickable-zero" data-bill="Xcel Energy" onclick="promptMarkPaid('Xcel Energy')">$0.00</span></td>
+                            <td class="over-under">-$285.00</td>
+                            <td><button class="btn-edit" onclick="editBill('Xcel Energy', 285.00)">Edit</button></td>
+                        </tr>
+                        <tr>
+                            <td>Phones & Internet</td>
+                            <td class="due-date">Monthly</td>
+                            <td>$116.00</td>
+                            <td><span class="actual-amount clickable-zero" data-bill="Phones & Internet" onclick="promptMarkPaid('Phones & Internet')">$0.00</span></td>
+                            <td class="over-under">-$116.00</td>
+                            <td><button class="btn-edit" onclick="editBill('Phones & Internet', 116.00)">Edit</button></td>
+                        </tr>
+                        <tr>
+                            <td>Earthbound Garbage</td>
+                            <td class="due-date">Jan 26</td>
+                            <td>$98.00</td>
+                            <td><span class="actual-amount clickable-zero" data-bill="Earthbound Garbage" onclick="promptMarkPaid('Earthbound Garbage')">$0.00</span></td>
+                            <td class="over-under">-$98.00</td>
+                            <td><button class="btn-edit" onclick="editBill('Earthbound Garbage', 98.00)">Edit</button></td>
+                        </tr>
+                        <tr>
+                            <td>Water</td>
+                            <td class="due-date">Jan 26</td>
+                            <td>$70.00</td>
+                            <td><span class="actual-amount clickable-zero" data-bill="Water" onclick="promptMarkPaid('Water')">$0.00</span></td>
+                            <td class="over-under">-$70.00</td>
+                            <td><button class="btn-edit" onclick="editBill('Water', 70.00)">Edit</button></td>
+                        </tr>
+                        <tr>
+                            <td>Charity</td>
+                            <td class="due-date">Monthly</td>
+                            <td>$50.00</td>
+                            <td><span class="actual-amount clickable-zero" data-bill="Charity" onclick="promptMarkPaid('Charity')">$0.00</span></td>
+                            <td class="over-under">-$50.00</td>
+                            <td><button class="btn-edit" onclick="editBill('Charity', 50.00)">Edit</button></td>
+                        </tr>
+                        <tr>
+                            <td>YMCA Membership</td>
+                            <td class="due-date">Dec 26</td>
+                            <td>$35.00</td>
+                            <td><span class="actual-amount clickable-zero" data-bill="YMCA Membership" onclick="promptMarkPaid('YMCA Membership')">$0.00</span></td>
+                            <td class="over-under">-$35.00</td>
+                            <td><button class="btn-edit" onclick="editBill('YMCA Membership', 35.00)">Edit</button></td>
+                        </tr>
+                        <tr class="separator">
+                            <td><strong>Bills & Utilities</strong></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>Groceries</td>
+                            <td class="due-date">Monthly</td>
+                            <td>$850.00</td>
+                            <td><span class="actual-amount clickable-zero" data-bill="Groceries" onclick="promptMarkPaid('Groceries')">$0.00</span></td>
+                            <td class="over-under">-$850.00</td>
+                            <td><button class="btn-edit" onclick="editBill('Groceries', 850.00)">Edit</button></td>
+                        </tr>
+                        <tr>
+                            <td>Restaurants/Entertainment</td>
+                            <td class="due-date">Monthly</td>
+                            <td>$300.00</td>
+                            <td><span class="actual-amount clickable-zero" data-bill="Restaurants/Entertainment" onclick="promptMarkPaid('Restaurants/Entertainment')">$0.00</span></td>
+                            <td class="over-under">-$300.00</td>
+                            <td><button class="btn-edit" onclick="editBill('Restaurants/Entertainment', 300.00)">Edit</button></td>
+                        </tr>
+                        <tr>
+                            <td>Dylan's Medication</td>
+                            <td class="due-date">Monthly</td>
+                            <td>$90.00</td>
+                            <td><span class="actual-amount clickable-zero" data-bill="Dylan's Medication" onclick="promptMarkPaid('Dylan\'s Medication')">$0.00</span></td>
+                            <td class="over-under">-$90.00</td>
+                            <td><button class="btn-edit" onclick="editBill('Dylan\'s Medication', 90.00)">Edit</button></td>
+                        </tr>
+                        <tr>
+                            <td>Dylan's School Lunches</td>
+                            <td class="due-date">Monthly</td>
+                            <td>$50.00</td>
+                            <td><span class="actual-amount clickable-zero" data-bill="Dylan's School Lunches" onclick="promptMarkPaid('Dylan\'s School Lunches')">$0.00</span></td>
+                            <td class="over-under">-$50.00</td>
+                            <td><button class="btn-edit" onclick="editBill('Dylan\'s School Lunches', 50.00)">Edit</button></td>
+                        </tr>
+                        <tr>
+                            <td>Miscellaneous</td>
+                            <td class="due-date">Monthly</td>
+                            <td>$50.00</td>
+                            <td><span class="actual-amount clickable-zero" data-bill="Miscellaneous" onclick="promptMarkPaid('Miscellaneous')">$0.00</span></td>
+                            <td class="over-under">-$50.00</td>
+                            <td><button class="btn-edit" onclick="editBill('Miscellaneous', 50.00)">Edit</button></td>
+                        </tr>
+                        <tr>
+                            <td>Roku / Disney Subscriptions</td>
+                            <td class="due-date">Monthly</td>
+                            <td>$25.00</td>
+                            <td><span class="actual-amount clickable-zero" data-bill="Roku / Disney Subscriptions" onclick="promptMarkPaid('Roku / Disney Subscriptions')">$0.00</span></td>
+                            <td class="over-under">-$25.00</td>
+                            <td><button class="btn-edit" onclick="editBill('Roku / Disney Subscriptions', 25.00)">Edit</button></td>
+                        </tr>
+                        <tr>
+                            <td>Cat Food</td>
+                            <td class="due-date">Monthly</td>
+                            <td>$20.00</td>
+                            <td><span class="actual-amount clickable-zero" data-bill="Cat Food" onclick="promptMarkPaid('Cat Food')">$0.00</span></td>
+                            <td class="over-under">-$20.00</td>
+                            <td><button class="btn-edit" onclick="editBill('Cat Food', 20.00)">Edit</button></td>
+                        </tr>
+                        <tr class="separator">
+                            <td><strong>Family Expenses</strong></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>Emergency Fund</td>
+                            <td class="due-date">Monthly</td>
+                            <td>$225.00</td>
+                            <td><span class="actual-amount clickable-zero" data-bill="Emergency Fund" onclick="promptMarkPaid('Emergency Fund')">$0.00</span></td>
+                            <td class="over-under">-$225.00</td>
+                            <td><button class="btn-edit" onclick="editBill('Emergency Fund', 225.00)">Edit</button></td>
+                        </tr>
+                        <tr>
+                            <td>Travel Spending</td>
+                            <td class="due-date">Monthly</td>
+                            <td>$100.00</td>
+                            <td><span class="actual-amount clickable-zero" data-bill="Travel Spending" onclick="promptMarkPaid('Travel Spending')">$0.00</span></td>
+                            <td class="over-under">-$100.00</td>
+                            <td><button class="btn-edit" onclick="editBill('Travel Spending', 100.00)">Edit</button></td>
+                        </tr>
+                        <tr>
+                            <td>Dylan Investment</td>
+                            <td class="due-date">Monthly</td>
+                            <td>$35.00</td>
+                            <td><span class="actual-amount clickable-zero" data-bill="Dylan Investment" onclick="promptMarkPaid('Dylan Investment')">$0.00</span></td>
+                            <td class="over-under">-$35.00</td>
+                            <td><button class="btn-edit" onclick="editBill('Dylan Investment', 35.00)">Edit</button></td>
+                        </tr>
+                        <tr>
+                            <td>Brooks Investment</td>
+                            <td class="due-date">Monthly</td>
+                            <td>$25.00</td>
+                            <td><span class="actual-amount clickable-zero" data-bill="Brooks Investment" onclick="promptMarkPaid('Brooks Investment')">$0.00</span></td>
+                            <td class="over-under">-$25.00</td>
+                            <td><button class="btn-edit" onclick="editBill('Brooks Investment', 25.00)">Edit</button></td>
+                        </tr>
+                        <tr class="separator">
+                            <td><strong>Savings & Investment</strong></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr class="separator">
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>Extra Paid</td>
+                            <td class="due-date">-</td>
+                            <td>$0.00</td>
+                            <td><span class="actual-amount clickable-zero" data-bill="Extra Paid" onclick="promptMarkPaid('Extra Paid')">$0.00</span></td>
+                            <td class="over-under">$0.00</td>
+                            <td><button class="btn-edit" onclick="editBill('Extra Paid', 0.00)">Edit</button></td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr class="total-row">
+                            <td><strong>TOTALS</strong></td>
+                            <td></td>
+                            <td><strong id="totalBudget">$6,546.00</strong></td>
+                            <td><strong id="totalActual">$0.00</strong></td>
+                            <td><strong id="totalOverUnder">-$6,546.00</strong></td>
+                            <td></td>
+                        </tr>
+                        <tr class="separator">
+                            <td colspan="6" style="height: 10px;"></td>
+                        </tr>
+                        <tr class="subtotal-row">
+                            <td><strong>Erik's Responsibility (58%)</strong></td>
+                            <td></td>
+                            <td><strong id="erikTotal">$3,796.68</strong></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr class="subtotal-row">
+                            <td style="padding-left: 2rem; font-style: italic;">Biweekly</td>
+                            <td></td>
+                            <td id="erikBiweekly">$1,460.26</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr class="subtotal-row">
+                            <td><strong>Sara's Responsibility (42%)</strong></td>
+                            <td></td>
+                            <td><strong id="saraTotal">$2,749.32</strong></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr class="subtotal-row">
+                            <td style="padding-left: 2rem; font-style: italic;">Biweekly</td>
+                            <td></td>
+                            <td id="saraBiweekly">$1,057.43</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Expenses Tab -->
+        <div id="expenses" class="tab-content">
+            <h2>Transaction Log</h2>
+            <div class="add-transaction">
+                <button class="btn-primary" onclick="showAddTransaction()">Add Transaction</button>
+                <button class="btn-secondary" onclick="showImportCSV()">Import CSV</button>
+                <button class="btn-secondary" onclick="showLearnedPatterns()">🧠 View Learned Patterns</button>
+                <button id="linkBankButton" class="btn-secondary" onclick="showBankConnectionsModal()">🏦 Connect Bank Account</button>
+            </div>
+            <div class="transactions-table-container">
+                <div class="bulk-actions" style="margin-bottom: 1rem; display: none;" id="bulkActions">
+                    <button class="btn-delete" onclick="deleteSelectedTransactions()">Delete Selected</button>
+                    <button class="btn-secondary" onclick="selectAllTransactions()">Select All</button>
+                    <button class="btn-secondary" onclick="clearSelection()">Clear Selection</button>
+                    <span id="selectedCount">0 selected</span>
+                </div>
+                <table class="transactions-table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()"></th>
+                            <th>Date</th>
+                            <th>Source/Store</th>
+                            <th>Amount</th>
+                            <th>Account</th>
+                            <th>Bill Category</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionsBody">
+                        <!-- Transactions will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Import CSV Modal -->
+    <div id="importCSVModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeImportCSV()">&times;</span>
+            <h2>Import CSV Transactions</h2>
+            <div class="csv-instructions">
+                <p>Upload a CSV file with columns: Date, Description, Amount</p>
+                <p><small>Date format: YYYY-MM-DD or MM/DD/YYYY</small></p>
+            </div>
+            <input type="file" id="csvFileInput" accept=".csv" onchange="handleCSVUpload(event)">
+            <div id="csvPreview" class="csv-preview"></div>
+            <div class="form-actions">
+                <button type="button" class="btn-secondary" onclick="closeImportCSV()">Cancel</button>
+                <button type="button" class="btn-primary" id="confirmImport" onclick="confirmCSVImport()" disabled>Import Transactions</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Transaction Modal -->
+    <div id="addTransactionModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddTransaction()">&times;</span>
+            <h2>Add Transaction</h2>
+            <form id="addTransactionForm">
+                <div class="form-group">
+                    <label for="transactionDate">Date:</label>
+                    <input type="date" id="transactionDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="transactionSource">Source/Store:</label>
+                    <div class="input-with-voice">
+                        <input type="text" id="transactionSource" required>
+                        <button type="button" class="voice-btn" onclick="startVoiceInput('source')" title="Voice input for source">🎤</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="transactionAmount">Amount:</label>
+                    <div class="input-with-voice">
+                        <input type="number" id="transactionAmount" step="0.01" required>
+                        <button type="button" class="voice-btn" onclick="startVoiceInput('amount')" title="Voice input for amount">🎤</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="transactionAccount">Account:</label>
+                    <select id="transactionAccount" required>
+                        <option value="">Select Account</option>
+                        <option value="RCU">RCU</option>
+                        <option value="Sam's">Sam's</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="transactionBill">Bill Category:</label>
+                    <div class="input-with-voice">
+                        <select id="transactionBill" required>
+                        <option value="">Select Bill</option>
+                        <!-- Options populated dynamically from current month's budget -->
+                        </select>
+                        <button type="button" class="voice-btn" onclick="startVoiceInput('bill')" title="Voice input for bill category">🎤</button>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeAddTransaction()">Cancel</button>
+                    <button type="submit" class="btn-primary">Add Transaction</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Family Expense Modal -->
+    <div id="addFamilyExpenseModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddFamilyExpense()">&times;</span>
+            <h2 id="familyExpenseModalTitle">Add Family Expense</h2>
+            <form id="addFamilyExpenseForm">
+                <div class="form-group">
+                    <label for="familyExpenseDate">Date:</label>
+                    <input type="date" id="familyExpenseDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="familyExpenseCategory">Category:</label>
+                    <input type="text" id="familyExpenseCategory" placeholder="e.g., Groceries, Gas, Dining" required>
+                </div>
+                <div class="form-group">
+                    <label for="familyExpenseAmount">Amount:</label>
+                    <input type="number" id="familyExpenseAmount" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="familyExpenseLocation">Location:</label>
+                    <input type="text" id="familyExpenseLocation" placeholder="e.g., Walmart, Target" required>
+                </div>
+                <div class="form-group">
+                    <label for="familyExpenseWhoPaid">Who Paid:</label>
+                    <input type="text" id="familyExpenseWhoPaid" placeholder="e.g., John, Sarah" required>
+                </div>
+                <div class="form-group">
+                    <label for="familyExpenseAmountToPayer">Amount Paid to Payer:</label>
+                    <input type="number" id="familyExpenseAmountToPayer" step="0.01" placeholder="Amount paid to payer">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeAddFamilyExpense()">Cancel</button>
+                    <button type="submit" class="btn-primary">Add Expense</button>
+                    <button type="button" class="btn-danger" id="deleteFamilyExpenseBtn" onclick="deleteFamilyExpense()" style="display:none;">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add/Edit Bill Modal -->
+    <div id="addBillModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddBill()">&times;</span>
+            <h2 id="billModalTitle">Add Bill</h2>
+            <form id="addBillForm">
+                <div class="form-group">
+                    <label for="billName">Bill Name:</label>
+                    <input type="text" id="billName" required>
+                </div>
+                <div class="form-group">
+                    <label for="billAmount">Monthly Amount:</label>
+                    <input type="number" id="billAmount" step="0.01" required>
+                </div>
+                <div class="form-group" id="monthSelectionGroup" style="display: none;">
+                    <label>Apply to which months:</label>
+                    <div class="month-checkboxes" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-top: 0.5rem;">
+                        <label style="display: flex; align-items: center; font-size: 0.875rem;">
+                            <input type="checkbox" id="month-jan" value="jan" style="margin-right: 0.25rem;"> Jan
+                        </label>
+                        <label style="display: flex; align-items: center; font-size: 0.875rem;">
+                            <input type="checkbox" id="month-feb" value="feb" style="margin-right: 0.25rem;"> Feb
+                        </label>
+                        <label style="display: flex; align-items: center; font-size: 0.875rem;">
+                            <input type="checkbox" id="month-mar" value="mar" style="margin-right: 0.25rem;"> Mar
+                        </label>
+                        <label style="display: flex; align-items: center; font-size: 0.875rem;">
+                            <input type="checkbox" id="month-apr" value="apr" style="margin-right: 0.25rem;"> Apr
+                        </label>
+                        <label style="display: flex; align-items: center; font-size: 0.875rem;">
+                            <input type="checkbox" id="month-may" value="may" style="margin-right: 0.25rem;"> May
+                        </label>
+                        <label style="display: flex; align-items: center; font-size: 0.875rem;">
+                            <input type="checkbox" id="month-jun" value="jun" style="margin-right: 0.25rem;"> Jun
+                        </label>
+                        <label style="display: flex; align-items: center; font-size: 0.875rem;">
+                            <input type="checkbox" id="month-jul" value="jul" style="margin-right: 0.25rem;"> Jul
+                        </label>
+                        <label style="display: flex; align-items: center; font-size: 0.875rem;">
+                            <input type="checkbox" id="month-aug" value="aug" style="margin-right: 0.25rem;"> Aug
+                        </label>
+                        <label style="display: flex; align-items: center; font-size: 0.875rem;">
+                            <input type="checkbox" id="month-sep" value="sep" style="margin-right: 0.25rem;"> Sep
+                        </label>
+                        <label style="display: flex; align-items: center; font-size: 0.875rem;">
+                            <input type="checkbox" id="month-oct" value="oct" style="margin-right: 0.25rem;"> Oct
+                        </label>
+                        <label style="display: flex; align-items: center; font-size: 0.875rem;">
+                            <input type="checkbox" id="month-nov" value="nov" style="margin-right: 0.25rem;"> Nov
+                        </label>
+                        <label style="display: flex; align-items: center; font-size: 0.875rem;">
+                            <input type="checkbox" id="month-dec" value="dec" style="margin-right: 0.25rem;"> Dec
+                        </label>
+                    </div>
+                    <div style="margin-top: 0.5rem;">
+                        <button type="button" class="btn-secondary" onclick="selectAllMonths()" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">Select All</button>
+                        <button type="button" class="btn-secondary" onclick="clearAllMonths()" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; margin-left: 0.5rem;">Clear All</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="billCategory">Category:</label>
+                    <select id="billCategory" required>
+                        <option value="">Select Category</option>
+                        <option value="Mortgage-Car-Insurance">Mortgage-Car-Insurance</option>
+                        <option value="Bills & Utilities">Bills & Utilities</option>
+                        <option value="Family Expenses">Family Expenses</option>
+                        <option value="Savings & Investment">Savings & Investment</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeAddBill()">Cancel</button>
+                    <button type="submit" class="btn-primary" id="billSubmitBtn">Save Bill</button>
+                    <button type="button" class="btn-danger" id="deleteBillBtn" onclick="deleteBill()" style="display:none;">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Learned Patterns Modal -->
+    <div id="learnedPatternsModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <span class="close" onclick="closeLearnedPatterns()">&times;</span>
+            <h2>🧠 Learned Categorization Patterns</h2>
+            <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1rem;">
+                The system learns from your categorization choices. Merchants with higher confidence will be auto-categorized more accurately.
+            </p>
+            <div id="learnedPatternsContent" style="max-height: 400px; overflow-y: auto;">
+                <!-- Patterns will be populated by JavaScript -->
+            </div>
+            <div class="form-actions" style="margin-top: 1rem;">
+                <button type="button" class="btn-danger" onclick="clearLearnedPatterns()">Clear All Patterns</button>
+                <button type="button" class="btn-secondary" onclick="closeLearnedPatterns()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bank Connections Modal -->
+    <div id="bankConnectionsModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>🏦 Bank Connections</h2>
+                <span class="close" onclick="closeBankConnectionsModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                    Connect your bank accounts to automatically sync transactions. Your credentials are never stored - we use Plaid's secure bank-level encryption.
+                </p>
+                
+                <div style="margin-bottom: 2rem;">
+                    <button class="btn-primary" onclick="initializePlaidLink()" style="width: 100%;">
+                        <span style="margin-right: 0.5rem;">🔗</span>
+                        Connect New Bank Account
+                    </button>
+                </div>
+                
+                <h3 style="margin-bottom: 1rem;">Connected Accounts</h3>
+                <div id="connectedAccountsList">
+                    <p style="color: var(--text-secondary);">Loading...</p>
+                </div>
+                
+                <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border-light);">
+                    <button class="btn-secondary" onclick="syncTransactions()" style="width: 100%;">
+                        <span style="margin-right: 0.5rem;">🔄</span>
+                        Sync Transactions Now
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js?v=20250216a"></script>
+    
+    <!-- Plaid Link SDK -->
+    <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+    
+    <!-- Plaid Integration -->
+    <script src="plaid-integration.js"></script>
+</body>
+</html>

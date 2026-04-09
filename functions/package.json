@@ -14,9 +14,10 @@
     "logs": "firebase functions:log"
   },
   "dependencies": {
-    "firebase-admin": "^11.11.0",
-    "firebase-functions": "^4.5.0",
-    "plaid": "^18.0.0",
-    "cors": "^2.8.5"
+    "cors": "^2.8.5",
+    "dotenv": "^17.3.1",
+    "firebase-admin": "^13.7.0",
+    "firebase-functions": "^7.0.6",
+    "plaid": "^18.0.0"
   }
 }
