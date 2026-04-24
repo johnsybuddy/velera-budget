@@ -1,4 +1,4 @@
-console.log('=== APP.JS LOADED - VERSION 20260411 ===');
+console.log('=== APP.JS LOADED - VERSION 20260413 ===');
 
 // Tab functionality
 function showTab(tabName) {
@@ -2196,13 +2196,13 @@ function updateTransactionTable() {
                 year: 'numeric'
             });
             
-            // Determine if this is a credit/deposit (negative amount or specific bill categories)
-            const isCredit = transaction.amount < 0 || 
-                           transaction.bill === 'Ignore/Internal Transfer' ||
-                           transaction.source.toLowerCase().includes('deposit') ||
-                           transaction.source.toLowerCase().includes('credit') ||
-                           transaction.source.toLowerCase().includes('refund') ||
-                           transaction.source.toLowerCase().includes('return');
+            // Show green + for actual credits (negative Plaid amounts = money coming in)
+            const isCredit = transaction.amount < 0;
+
+
+
+
+
             
             const amountClass = isCredit ? 'amount-credit' : '';
             const displayAmount = Math.abs(transaction.amount).toFixed(2);
