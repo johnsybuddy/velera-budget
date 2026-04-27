@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Due Date column added - v20250113 -->
     <title>Buddy Budget Tracker</title>
-    <link rel="stylesheet" href="styles.css?v=20260412">
+    <link rel="stylesheet" href="styles.css?v=20260414">
     
     <!-- Firebase v8 SDK (more stable for compat mode) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -19,6 +19,7 @@
             <button class="tab-btn active" onclick="showTab('dashboard')">Dashboard</button>
             <button class="tab-btn" onclick="showTab('budget')">Monthly Budget</button>
             <button class="tab-btn" onclick="showTab('expenses')">Expenses</button>
+            <button class="tab-btn" onclick="showTab('carryover')">💳 Carryover</button>
         </div>
         <div class="sync-status" id="syncStatus" style="display: none;">
             <span class="sync-icon">☁️</span>
@@ -499,6 +500,75 @@
         </div>
     </main>
 
+    <!-- Carryover Tab -->
+    <div id="carryover" class="tab-content" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+            <h2>💳 Carryover Tracker</h2>
+            <button class="btn-primary" onclick="showAddCarryoverPayment()">+ Add Payment</button>
+        </div>
+        <div class="carryover-table-container">
+            <table class="carryover-table">
+                <thead>
+                    <tr>
+                        <th>Month</th>
+                        <th>Budget Over/Under</th>
+                        <th>Erik's Share (58%)</th>
+                        <th>Sara's Share (42%)</th>
+                        <th>Payments</th>
+                        <th>Balance</th>
+                    </tr>
+                </thead>
+                <tbody id="carryoverBody"></tbody>
+                <tfoot>
+                    <tr class="carryover-total-row">
+                        <td><strong>YTD Total</strong></td>
+                        <td id="carryoverYTDOverUnder">$0.00</td>
+                        <td id="carryoverYTDErik">$0.00</td>
+                        <td id="carryoverYTDSara">$0.00</td>
+                        <td id="carryoverYTDPaid">$0.00</td>
+                        <td id="carryoverYTDBalance">$0.00</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+    </main>
+
+    <!-- Add Carryover Payment Modal -->
+    <div id="addCarryoverPaymentModal" class="modal">
+        <div class="modal-content" style="max-width:400px;">
+            <span class="close" onclick="closeAddCarryoverPayment()">&times;</span>
+            <h2>Add Payment</h2>
+            <form id="addCarryoverPaymentForm">
+                <div class="form-group">
+                    <label>Date:</label>
+                    <input type="date" id="carryoverPaymentDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Amount:</label>
+                    <input type="number" id="carryoverPaymentAmount" step="0.01" min="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label>Paid By:</label>
+                    <select id="carryoverPaymentPaidBy" required>
+                        <option value="">Select</option>
+                        <option value="Erik">Erik</option>
+                        <option value="Sara">Sara</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Note (optional):</label>
+                    <input type="text" id="carryoverPaymentNote" placeholder="e.g. Venmo transfer">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeAddCarryoverPayment()">Cancel</button>
+                    <button type="submit" class="btn-primary">Add Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Import CSV Modal -->
     <div id="importCSVModal" class="modal">
         <div class="modal-content">
@@ -736,7 +806,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=20260413"></script>
+    <script src="app.js?v=20260414"></script>
     
     <!-- Plaid Link SDK -->
     <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>

@@ -1,4 +1,4 @@
-console.log('=== APP.JS LOADED - VERSION 20260413 ===');
+console.log('=== APP.JS LOADED - VERSION 20260414 ===');
 
 // Tab functionality
 function showTab(tabName) {
@@ -2011,12 +2011,102 @@ function updateDashboardMonth() {
     dashboardMonth.textContent = `${monthName} ${currentYear}`;
 }
 
+
+// ============================================
+// CARRYOVER TRACKER
+// ============================================
+
+let carryoverPayments = [];
+
+async function saveCarryoverPayments() {
+    if (isFirebaseEnabled) {
+        try {
+            await db.collection('users').doc(userId).set({ carryoverPayments, lastUpdated: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+        } catch (e) { localStorage.setItem('carryoverPayments', JSON.stringify(carryoverPayments)); }
+    } else { localStorage.setItem('carryoverPayments', JSON.stringify(carryoverPayments)); }
+}
+
+async function loadCarryoverPayments() {
+    if (isFirebaseEnabled) {
+        try {
+            const doc = await db.collection('users').doc(userId).get();
+            if (doc.exists && doc.data().carryoverPayments) { carryoverPayments = doc.data().carryoverPayments; return; }
+        } catch (e) {}
+    }
+    const saved = localStorage.getItem('carryoverPayments');
+    if (saved) carryoverPayments = JSON.parse(saved);
+}
+
+function showAddCarryoverPayment() {
+    document.getElementById('addCarryoverPaymentModal').style.display = 'block';
+    document.getElementById('carryoverPaymentDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('carryoverPaymentAmount').value = '';
+    document.getElementById('carryoverPaymentPaidBy').value = '';
+    document.getElementById('carryoverPaymentNote').value = '';
+}
+
+function closeAddCarryoverPayment() {
+    document.getElementById('addCarryoverPaymentModal').style.display = 'none';
+}
+
+function updateCarryoverTable() {
+    const tbody = document.getElementById('carryoverBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    const months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+    const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const monthData = months.map((m, i) => ({ key: m, name: monthNames[i], overUnder: monthlyOverUnder[m] || 0 }));
+    const sortedPayments = [...carryoverPayments].sort((a, b) => new Date(a.date) - new Date(b.date));
+    const monthBalances = monthData.map(m => ({ ...m, erikShare: m.overUnder * 0.58, saraShare: m.overUnder * 0.42, remaining: m.overUnder, paymentsApplied: [] }));
+    for (const payment of sortedPayments) {
+        let rem = payment.amount;
+        for (const mb of monthBalances) {
+            if (rem <= 0) break;
+            if (mb.remaining >= 0) continue;
+            const applied = Math.min(rem, Math.abs(mb.remaining));
+            mb.remaining += applied;
+            mb.paymentsApplied.push({ ...payment, applied });
+            rem -= applied;
+        }
+    }
+    let ytdOU = 0, ytdE = 0, ytdS = 0, ytdP = 0, ytdB = 0;
+    for (const mb of monthBalances) {
+        if (mb.overUnder === 0 && mb.paymentsApplied.length === 0) continue;
+        ytdOU += mb.overUnder; ytdE += mb.erikShare; ytdS += mb.saraShare;
+        const totalPaid = mb.paymentsApplied.reduce((s, p) => s + p.applied, 0);
+        ytdP += totalPaid; ytdB += mb.remaining;
+        const balClass = mb.remaining > 0 ? 'carryover-balance-positive' : mb.remaining < 0 ? 'carryover-balance-negative' : 'carryover-balance-zero';
+        const paymentsHtml = mb.paymentsApplied.length === 0 ? '<span style="color:var(--text-muted)">—</span>' :
+            mb.paymentsApplied.map(p => {
+                const cls = p.paidBy === 'Erik' ? 'paid-by-erik' : p.paidBy === 'Sara' ? 'paid-by-sara' : 'paid-by-other';
+                const d = new Date(p.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' });
+                return `<div class="carryover-payment-entry"><span class="${cls}">${p.paidBy}</span> $${p.applied.toFixed(2)} <span style="color:var(--text-muted)">(${d}${p.note ? ' · ' + p.note : ''})</span></div>`;
+            }).join('');
+        const row = document.createElement('tr');
+        row.innerHTML = `<td><strong>${mb.name}</strong></td><td style="color:${mb.overUnder>=0?'var(--success)':'var(--danger)'}">${mb.overUnder>=0?'+':''}$${mb.overUnder.toFixed(2)}</td><td style="color:${mb.erikShare>=0?'var(--success)':'var(--danger)'}">${mb.erikShare>=0?'+':''}$${mb.erikShare.toFixed(2)}</td><td style="color:${mb.saraShare>=0?'var(--success)':'var(--danger)'}">${mb.saraShare>=0?'+':''}$${mb.saraShare.toFixed(2)}</td><td>${paymentsHtml}</td><td class="${balClass}">${mb.remaining>=0?'+':''}$${mb.remaining.toFixed(2)}</td>`;
+        tbody.appendChild(row);
+    }
+    const fmt = (v) => `${v>=0?'+':''}$${v.toFixed(2)}`;
+    document.getElementById('carryoverYTDOverUnder').textContent = fmt(ytdOU);
+    document.getElementById('carryoverYTDOverUnder').style.color = ytdOU>=0?'var(--success)':'var(--danger)';
+    document.getElementById('carryoverYTDErik').textContent = fmt(ytdE);
+    document.getElementById('carryoverYTDSara').textContent = fmt(ytdS);
+    document.getElementById('carryoverYTDPaid').textContent = `$${ytdP.toFixed(2)}`;
+    document.getElementById('carryoverYTDBalance').className = ytdB>=0?'carryover-balance-positive':'carryover-balance-negative';
+    document.getElementById('carryoverYTDBalance').textContent = fmt(ytdB);
+}
+
+// ============================================
+// END CARRYOVER TRACKER
+// ============================================
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async function() {
     // Load saved data first
     await loadTransactions();
     loadFamilyExpenses();
     await loadMonthlyBudgets();
+    await loadCarryoverPayments();
     
     // Determine which month to show (saved or current)
     const savedMonth = localStorage.getItem('currentMonth');
@@ -2052,6 +2142,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     updateBudgetTotals();
     updateTransactionTable();
     updateDashboard();
+    updateCarryoverTable();
     
     // Restore saved tab or default to dashboard (do this last)
     const savedTab = localStorage.getItem('currentTab') || 'dashboard';
@@ -2072,6 +2163,27 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (tabBtn) tabBtn.classList.add('active');
 });
 
+
+// Carryover payment form handler
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('addCarryoverPaymentForm');
+    if (!form) return;
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const payment = {
+            date: document.getElementById('carryoverPaymentDate').value,
+            amount: parseFloat(document.getElementById('carryoverPaymentAmount').value),
+            paidBy: document.getElementById('carryoverPaymentPaidBy').value,
+            note: document.getElementById('carryoverPaymentNote').value,
+            id: Date.now()
+        };
+        carryoverPayments.push(payment);
+        await saveCarryoverPayments();
+        closeAddCarryoverPayment();
+        updateCarryoverTable();
+        showNotification(`Payment of $${payment.amount.toFixed(2)} by ${payment.paidBy} recorded!`);
+    });
+});
 // Transaction modal functions
 function showAddTransaction() {
     populateTransactionBillDropdown();
