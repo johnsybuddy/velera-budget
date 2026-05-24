@@ -1,4 +1,4 @@
-console.log('=== APP.JS LOADED - VERSION 20260415 ===');
+console.log('=== APP.JS LOADED - VERSION 20260416 ===');
 
 // Tab functionality
 function showTab(tabName) {
@@ -11,15 +11,20 @@ function showTab(tabName) {
     tabButtons.forEach(btn => btn.classList.remove('active'));
     
     // Show selected tab
-    document.getElementById(tabName).classList.add('active');
+    const tabEl = document.getElementById(tabName);
+    if (tabEl) tabEl.classList.add('active');
     
     // Add active class to clicked button
     if (event && event.target) {
         event.target.classList.add('active');
     } else {
-        // Find and activate the correct tab button
-        const tabBtn = Array.from(tabButtons).find(btn => btn.onclick.toString().includes(tabName));
+        const tabBtn = Array.from(tabButtons).find(btn => btn.onclick && btn.onclick.toString().includes(tabName));
         if (tabBtn) tabBtn.classList.add('active');
+    }
+    
+    // Refresh carryover table when switching to it
+    if (tabName === 'carryover') {
+        updateCarryoverTable();
     }
     
     // Save current tab

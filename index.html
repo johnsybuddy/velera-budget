@@ -498,40 +498,39 @@
                 </table>
             </div>
         </div>
-    </main>
 
-    <!-- Carryover Tab -->
-    <div id="carryover" class="tab-content" style="display:none;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-            <h2>💳 Carryover Tracker</h2>
-            <button class="btn-primary" onclick="showAddCarryoverPayment()">+ Add Payment</button>
+        <!-- Carryover Tab -->
+        <div id="carryover" class="tab-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <h2>💳 Carryover Tracker</h2>
+                <button class="btn-primary" onclick="showAddCarryoverPayment()">+ Add Payment</button>
+            </div>
+            <div class="carryover-table-container">
+                <table class="carryover-table">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Budget Over/Under</th>
+                            <th>Erik's Share (58%)</th>
+                            <th>Sara's Share (42%)</th>
+                            <th>Payments</th>
+                            <th>Balance</th>
+                        </tr>
+                    </thead>
+                    <tbody id="carryoverBody"></tbody>
+                    <tfoot>
+                        <tr class="carryover-total-row">
+                            <td><strong>YTD Total</strong></td>
+                            <td id="carryoverYTDOverUnder">$0.00</td>
+                            <td id="carryoverYTDErik">$0.00</td>
+                            <td id="carryoverYTDSara">$0.00</td>
+                            <td id="carryoverYTDPaid">$0.00</td>
+                            <td id="carryoverYTDBalance">$0.00</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
         </div>
-        <div class="carryover-table-container">
-            <table class="carryover-table">
-                <thead>
-                    <tr>
-                        <th>Month</th>
-                        <th>Budget Over/Under</th>
-                        <th>Erik's Share (58%)</th>
-                        <th>Sara's Share (42%)</th>
-                        <th>Payments</th>
-                        <th>Balance</th>
-                    </tr>
-                </thead>
-                <tbody id="carryoverBody"></tbody>
-                <tfoot>
-                    <tr class="carryover-total-row">
-                        <td><strong>YTD Total</strong></td>
-                        <td id="carryoverYTDOverUnder">$0.00</td>
-                        <td id="carryoverYTDErik">$0.00</td>
-                        <td id="carryoverYTDSara">$0.00</td>
-                        <td id="carryoverYTDPaid">$0.00</td>
-                        <td id="carryoverYTDBalance">$0.00</td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-    </div>
     </main>
 
     <!-- Add Carryover Payment Modal -->
@@ -806,7 +805,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=20260415"></script>
+    <script src="app.js?v=20260416"></script>
     
     <!-- Plaid Link SDK -->
     <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
