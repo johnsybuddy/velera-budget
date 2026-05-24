@@ -1,4 +1,4 @@
-console.log('=== APP.JS LOADED - VERSION 20260416 ===');
+console.log('=== APP.JS LOADED - VERSION 20260417 ===');
 
 // Tab functionality
 function showTab(tabName) {
@@ -2023,7 +2023,10 @@ function updateCarryoverTable() {
     tbody.innerHTML = '';
     const months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
     const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-    const monthData = months.map((m, i) => ({ key: m, name: monthNames[i], overUnder: monthlyOverUnder[m] || 0 }));
+    const currentMonthIndex = new Date().getMonth(); // 0-11, current month is NOT yet over
+    // Only include months that are fully in the past (strictly before current month)
+    const monthData = months.map((m, i) => ({ key: m, name: monthNames[i], index: i, overUnder: monthlyOverUnder[m] || 0 }))
+                            .filter(m => m.index < currentMonthIndex);
     const sortedPayments = [...carryoverPayments].sort((a, b) => new Date(a.date) - new Date(b.date));
     const monthBalances = monthData.map(m => ({ ...m, erikShare: m.overUnder * 0.58, saraShare: m.overUnder * 0.42, remaining: m.overUnder, paymentsApplied: [] }));
     for (const payment of sortedPayments) {
