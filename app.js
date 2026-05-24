@@ -1,4 +1,4 @@
-console.log('=== APP.JS LOADED - VERSION 20260414 ===');
+console.log('=== APP.JS LOADED - VERSION 20260415 ===');
 
 // Tab functionality
 function showTab(tabName) {
@@ -389,7 +389,7 @@ function calculatePeriodicBuckets() {
             
             // Check if there are ANY transactions for this month (not just this bill)
             const monthHasTransactions = transactions.some(t => {
-                const tDate = new Date(t.date);
+                const tDate = parseLocalDate(t.date);
                 const tMonth = String(tDate.getMonth() + 1).padStart(2, '0');
                 const tYear = tDate.getFullYear();
                 return tMonth === monthNum && tYear === currentYear && t.bill !== 'Ignore/Internal Transfer';
@@ -704,29 +704,10 @@ function calculateMonthOverUnder(monthName) {
 // Calculate all months' over/under values
 function calculateAllMonthsOverUnder() {
     const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-    const currentDate = new Date();
-    const actualCurrentMonth = months[currentDate.getMonth()];
-    
-    // Save the current month selection
-    const savedCurrentMonth = currentMonth;
-    
+    // Use calculateMonthOverUnder directly - no DOM touching, no currentMonth mutation
     months.forEach(month => {
-        // Temporarily set currentMonth so updateBudgetFromTransactions calculates for this month
-        currentMonth = month;
-        
-        // Load the month's budget
-        loadMonthBudget(month);
-        
-        // Calculate the over/under (this will store in monthlyOverUnder[month])
-        updateBudgetFromTransactions();
-        
-        console.log(`Calculated ${month} over/under: ${monthlyOverUnder[month]}`);
+        calculateMonthOverUnder(month);
     });
-    
-    // Restore the original current month
-    currentMonth = savedCurrentMonth;
-    loadMonthBudget(savedCurrentMonth);
-    updateBudgetFromTransactions();
 }
 
 // CSV Import functionality
@@ -1755,37 +1736,19 @@ function updateDashboard() {
     const currentMonth = currentDate.getMonth() + 1; // 1-12
     const currentMonthName = months[currentDate.getMonth()]; // e.g., 'feb'
     
-    // Calculate ANNUAL budget (current month's budget × 12)
+    // Calculate ANNUAL budget by summing all 12 months individually
     let totalBudget = 0;
-    
-    const currentMonthBudgets = monthlyBudgets[currentMonthName] || {};
-    
-    console.log('=== ANNUAL BUDGET CALCULATION DEBUG ===');
-    console.log('Current month:', currentMonthName);
-    console.log('All bills in current month:', currentMonthBudgets);
-    
-    for (const billName in currentMonthBudgets) {
-        const budgetValue = currentMonthBudgets[billName];
-        console.log(`Bill: ${billName}, Value: ${budgetValue}, Type: ${typeof budgetValue}`);
-        
-        // Only count valid budget values (exclude Extra Paid)
-        if (budgetValue > 0 && billName !== 'Extra Paid') {
-            totalBudget += budgetValue;
-            console.log(`  ✓ Added ${budgetValue} to total`);
-        } else {
-            console.log(`  ✗ Skipped (value: ${budgetValue}, billName: ${billName})`);
+    months.forEach(m => {
+        const mBudgets = monthlyBudgets[m] || {};
+        for (const billName in mBudgets) {
+            const v = mBudgets[billName];
+            if (v > 0 && billName !== 'Extra Paid') {
+                totalBudget += v;
+            }
         }
-    }
-    
-    console.log('Monthly total:', totalBudget);
-    
-    // Multiply by 12 for annual budget
-    totalBudget = totalBudget * 12;
-    
-    console.log('Annual budget (monthly × 12):', totalBudget);
-    console.log('=== END DEBUG ===');
-    
-    console.log(`Dashboard - Annual budget (${currentMonthName} budget × 12): $${totalBudget.toFixed(2)}`);
+    });
+
+    console.log(`Dashboard - Annual budget (sum of all months): $${totalBudget.toFixed(2)}`);
     
     months.forEach((month, index) => {
         const monthNumber = monthNumbers[month];
@@ -2076,11 +2039,11 @@ function updateCarryoverTable() {
         const totalPaid = mb.paymentsApplied.reduce((s, p) => s + p.applied, 0);
         ytdP += totalPaid; ytdB += mb.remaining;
         const balClass = mb.remaining > 0 ? 'carryover-balance-positive' : mb.remaining < 0 ? 'carryover-balance-negative' : 'carryover-balance-zero';
-        const paymentsHtml = mb.paymentsApplied.length === 0 ? '<span style="color:var(--text-muted)">�</span>' :
+        const paymentsHtml = mb.paymentsApplied.length === 0 ? '<span style="color:var(--text-muted)">�</span>' :
             mb.paymentsApplied.map(p => {
                 const cls = p.paidBy === 'Erik' ? 'paid-by-erik' : p.paidBy === 'Sara' ? 'paid-by-sara' : 'paid-by-other';
                 const d = new Date(p.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' });
-                return `<div class="carryover-payment-entry"><span class="${cls}">${p.paidBy}</span> $${p.applied.toFixed(2)} <span style="color:var(--text-muted)">(${d}${p.note ? ' � ' + p.note : ''})</span></div>`;
+                return `<div class="carryover-payment-entry"><span class="${cls}">${p.paidBy}</span> $${p.applied.toFixed(2)} <span style="color:var(--text-muted)">(${d}${p.note ? ' � ' + p.note : ''})</span></div>`;
             }).join('');
         const row = document.createElement('tr');
         row.innerHTML = `<td><strong>${mb.name}</strong></td><td style="color:${mb.overUnder>=0?'var(--success)':'var(--danger)'}">${mb.overUnder>=0?'+':''}$${mb.overUnder.toFixed(2)}</td><td style="color:${mb.erikShare>=0?'var(--success)':'var(--danger)'}">${mb.erikShare>=0?'+':''}$${mb.erikShare.toFixed(2)}</td><td style="color:${mb.saraShare>=0?'var(--success)':'var(--danger)'}">${mb.saraShare>=0?'+':''}$${mb.saraShare.toFixed(2)}</td><td>${paymentsHtml}</td><td class="${balClass}">${mb.remaining>=0?'+':''}$${mb.remaining.toFixed(2)}</td>`;
