@@ -787,6 +787,27 @@ body {
     padding: 0.4rem 0.75rem;
     border-bottom: 1px solid var(--border-light);
     font-size: 0.875rem;
+    height: 36px;
+    overflow: visible;
+}
+
+/* Prevent inline select from causing layout shifts */
+.editable-select {
+    position: relative;
+}
+
+.inline-edit-select {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 200px;
+    z-index: 100;
+    padding: 0.4rem 0.5rem;
+    border: 1px solid var(--primary);
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    background: var(--bg-card);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .transactions-table tr:hover {

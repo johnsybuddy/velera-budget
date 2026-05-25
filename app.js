@@ -1,4 +1,4 @@
-console.log('=== APP.JS LOADED - VERSION 20260417 ===');
+console.log('=== APP.JS LOADED - VERSION 20260418 ===');
 
 // Tab functionality
 function showTab(tabName) {
@@ -2471,7 +2471,12 @@ function editField(cell) {
     };
     
     const cancelEdit = () => {
-        cell.textContent = originalText;
+        if (input.tagName === 'SELECT') {
+            input.remove();
+            cell.style.position = '';
+        } else {
+            cell.textContent = originalText;
+        }
     };
     
     input.addEventListener('blur', saveEdit);
@@ -2485,10 +2490,18 @@ function editField(cell) {
         }
     });
     
-    cell.textContent = '';
-    cell.appendChild(input);
-    input.focus();
-    if (input.select) input.select();
+    // For selects: overlay absolutely so row height doesn't change
+    // For inputs: replace content normally
+    if (input.tagName === 'SELECT') {
+        cell.style.position = 'relative';
+        cell.appendChild(input);
+        input.focus();
+    } else {
+        cell.textContent = '';
+        cell.appendChild(input);
+        input.focus();
+        if (input.select) input.select();
+    }
 }
 
 // Quick delete transaction
