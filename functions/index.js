@@ -5,16 +5,17 @@ const cors = require('cors')({ origin: true });
 
 admin.initializeApp();
 
-// Load environment variables
-require('dotenv').config();
+// Plaid credentials (hardcoded for now - in production use Firebase Secrets)
+const PLAID_CLIENT_ID = '69926fbd4c01cb002166c96c3a3371e9e327e41eed0d59a5568d8bd';
+const PLAID_SECRET = '3a3371e9e327e41eed0d59a5568d8b';
 
-// Plaid configuration using environment variables
+// Plaid configuration
 const plaidConfig = new Configuration({
-  basePath: PlaidEnvironments.sandbox, // Change to 'development' or 'production' later
+  basePath: PlaidEnvironments.sandbox,
   baseOptions: {
     headers: {
-      'PLAID-CLIENT-ID': process.env.PLAID_CLIENT_ID,
-      'PLAID-SECRET': process.env.PLAID_SECRET,
+      'PLAID-CLIENT-ID': PLAID_CLIENT_ID,
+      'PLAID-SECRET': PLAID_SECRET,
     },
   },
 });
@@ -30,6 +31,7 @@ exports.createLinkToken = functions.https.onCall(async (data, context) => {
   const userId = 'johnsybuddy';
 
   try {
+    console.log('Creating link token with client_id:', PLAID_CLIENT_ID.substring(0, 10) + '...');
     const response = await plaidClient.linkTokenCreate({
       user: {
         client_user_id: userId,
@@ -44,7 +46,7 @@ exports.createLinkToken = functions.https.onCall(async (data, context) => {
     return { link_token: response.data.link_token };
   } catch (error) {
     console.error('Error creating link token:', error);
-    throw new functions.https.HttpsError('internal', 'Failed to create link token');
+    throw new functions.https.HttpsError('internal', 'Failed to create link token: ' + error.message);
   }
 });
 
