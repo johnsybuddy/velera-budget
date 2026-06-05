@@ -1,6 +1,23 @@
-// ============================================
-// PLAID BANK INTEGRATION
-// ============================================
+// Plaid Server URLs (use local server for development)
+// In production, update this to your deployed server URL (e.g., Render, Heroku, Railway)
+const PLAID_SERVER_BASE = 'http://localhost:3000';
+// const PLAID_SERVER_BASE = 'https://your-production-server.com'; // Use this for production
+
+// Helper to call Plaid server endpoints
+async function callPlaidServer(endpoint, data = {}) {
+    const url = `${PLAID_SERVER_BASE}${endpoint}`;
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
+    if (!response.ok) {
+        const err = await response.text();
+        throw new Error(`${endpoint} failed: ${response.status} ${err}`);
+    }
+    const json = await response.json();
+    return json;
+}
 
 let plaidLinkHandler = null;
 
@@ -11,38 +28,13 @@ async function initializePlaidLink() {
     try {
         showNotification('Initializing bank connection...', 'info');
         
-        // Debug: Check what's available
-        console.log('Firebase object:', firebase);
-        console.log('Firebase.app:', firebase.app);
-        console.log('Firebase.functions:', firebase.functions);
+        console.log('Requesting link token from Plaid server...');
         
-        // Check if Firebase is initialized
-        if (!firebase || !firebase.app) {
-            throw new Error('Firebase not initialized. Please refresh the page.');
-        }
+        // Get link token from local Plaid server
+        const result = await callPlaidServer('/api/plaid/createLinkToken');
         
-        // Try to get the app
-        let app;
-        try {
-            app = firebase.app();
-            console.log('Firebase app initialized:', app.name);
-        } catch (e) {
-            throw new Error('Firebase app not initialized: ' + e.message);
-        }
-        
-        // Check if Functions is available
-        if (typeof firebase.functions !== 'function') {
-            throw new Error('Firebase Functions SDK not loaded. Script tag may be missing or blocked.');
-        }
-        
-        console.log('Calling createLinkToken function...');
-        
-        // Get link token from Firebase Function
-        const createLinkToken = firebase.functions().httpsCallable('createLinkToken');
-        const result = await createLinkToken();
-        
-        console.log('Link token received:', result.data);
-        const linkToken = result.data.link_token;
+        console.log('Link token received:', result);
+        const linkToken = result.link_token;
         
         // Initialize Plaid Link
         plaidLinkHandler = Plaid.create({
@@ -83,8 +75,7 @@ async function handlePlaidSuccess(public_token, metadata) {
         
         console.log('Exchanging public token...', { public_token, metadata });
         
-        // Exchange public token for access token
-        const exchangeToken = firebase.functions().httpsCallable('exchangePublicToken');
+        // Exchange public token for access token via local server
         const payload = { 
             public_token: public_token,
             metadata: {
@@ -92,14 +83,12 @@ async function handlePlaidSuccess(public_token, metadata) {
                 accounts: metadata.accounts
             }
         };
-        console.log('Sending payload keys:', Object.keys(payload));
-        console.log('public_token in payload:', payload.public_token);
-        const result = await exchangeToken(payload);
+        const result = await callPlaidServer('/api/plaid/exchangeToken', payload);
         
-        console.log('Exchange result:', result.data);
+        console.log('Exchange result:', result);
         
-        if (result.data.success) {
-            showNotification(`Successfully connected ${result.data.institutionName}!`, 'success');
+        if (result.success) {
+            showNotification(`Successfully connected ${result.institutionName}!`, 'success');
             
             // Refresh connected accounts list
             await loadConnectedAccounts();
@@ -122,18 +111,17 @@ async function syncTransactions() {
         
         console.log('Fetching transactions...');
         
-        const fetchTransactions = firebase.functions().httpsCallable('fetchTransactions');
-        const result = await fetchTransactions({
+        const result = await callPlaidServer('/api/plaid/fetchTransactions', {
             startDate: getDateDaysAgo(90), // Last 90 days
             endDate: getTodayDateString()
         });
         
-        console.log('Fetch result:', result.data);
+        console.log('Fetch result:', result);
         
-        if (result.data.transactions) {
-            const count = result.data.count || result.data.transactions.length || 0;
+        if (result.transactions) {
+            const count = result.count || result.transactions.length || 0;
             // Import transactions into your existing system
-            await importPlaidTransactions(result.data.transactions);
+            await importPlaidTransactions(result.transactions);
             showNotification(`Synced ${count} transactions!`, 'success');
             
             // Refresh the transaction table
@@ -241,35 +229,19 @@ function categorizePlaidTransaction(plaidTx) {
  */
 async function loadConnectedAccounts() {
     try {
-        // Load accounts directly from Firestore
-        const accountsSnapshot = await db.collection('users').doc(userId).collection('plaidAccounts').get();
-        
         const accountsList = document.getElementById('connectedAccountsList');
         if (!accountsList) return;
         
-        if (accountsSnapshot.empty) {
-            accountsList.innerHTML = '<p style="color: var(--text-secondary);">No accounts connected</p>';
-            return;
-        }
-        
-        const accounts = accountsSnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
-        
-        accountsList.innerHTML = accounts.map(account => `
-            <div class="connected-account-item">
-                <div class="account-info">
-                    <strong>${account.institutionName}</strong>
-                    <span style="font-size: 0.875rem; color: var(--text-secondary);">
-                        ${account.accounts ? account.accounts.length : 0} account(s) connected
-                    </span>
-                </div>
-                <button class="btn-danger" onclick="removeConnectedAccount('${account.id}', '${account.institutionName}')">
-                    Disconnect
-                </button>
+        // For now, show a simple message since we're using in-memory storage
+        // In production, this would load from a database
+        accountsList.innerHTML = `
+            <div style="padding: 1rem; background: var(--surface-secondary); border-radius: 0.5rem; color: var(--text-secondary);">
+                <p>Connected accounts are stored locally on this session.</p>
+                <p style="font-size: 0.875rem; margin-top: 0.5rem;">
+                    For persistent storage, deploy the Plaid server to a production backend or use Firebase Functions.
+                </p>
             </div>
-        `).join('');
+        `;
         
     } catch (error) {
         console.error('Error loading connected accounts:', error);
