@@ -3001,7 +3001,12 @@ function initVoiceRecognition() {
         
         recognition.onresult = function(event) {
             const transcript = event.results[0][0].transcript.toLowerCase();
-            processVoiceInput(transcript);
+            
+            if (recognition.currentField === 'quickVoice') {
+                processQuickVoiceTransaction(transcript);
+            } else {
+                processVoiceInput(transcript);
+            }
         };
         
         recognition.onerror = function(event) {
@@ -3058,14 +3063,26 @@ function processVoiceInput(transcript) {
     const fieldType = recognition.currentField;
     
     switch (fieldType) {
+        case 'date':
+            const date = parseVoiceDate(transcript);
+            if (date) {
+                document.getElementById('transactionDate').value = date;
+                showNotification(`Date set to ${date}`, 'success');
+            } else {
+                showNotification('Could not understand date. Try "today", "yesterday", or "MM/DD/YYYY"', 'error');
+            }
+            break;
+            
         case 'source':
             document.getElementById('transactionSource').value = capitalizeWords(transcript);
+            showNotification(`Location: ${capitalizeWords(transcript)}`, 'success');
             break;
             
         case 'amount':
             const amount = extractAmount(transcript);
             if (amount) {
                 document.getElementById('transactionAmount').value = amount;
+                showNotification(`Amount: $${amount}`, 'success');
             } else {
                 showNotification('Could not understand amount. Please try again.', 'error');
             }
@@ -3075,13 +3092,57 @@ function processVoiceInput(transcript) {
             const billCategory = matchBillCategory(transcript);
             if (billCategory) {
                 document.getElementById('transactionBill').value = billCategory;
+                showNotification(`Category: ${billCategory}`, 'success');
             } else {
-                showNotification('Could not match bill category. Please select manually.', 'error');
+                showNotification('Could not match bill category. Please select manually or say the category name.', 'error');
             }
             break;
     }
     
     stopListening();
+}
+
+// Parse voice input for dates
+function parseVoiceDate(transcript) {
+    const today = new Date();
+    
+    // Handle relative dates
+    if (transcript.includes('today')) {
+        return formatDateForInput(today);
+    }
+    if (transcript.includes('yesterday')) {
+        today.setDate(today.getDate() - 1);
+        return formatDateForInput(today);
+    }
+    
+    // Try to parse MM/DD/YYYY or similar formats
+    const dateMatch = transcript.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})?/);
+    if (dateMatch) {
+        let month = parseInt(dateMatch[1]);
+        let day = parseInt(dateMatch[2]);
+        let year = dateMatch[3] ? parseInt(dateMatch[3]) : today.getFullYear();
+        
+        // Handle 2-digit year
+        if (year < 100) {
+            year += 2000;
+        }
+        
+        // Validate
+        if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+            const date = new Date(year, month - 1, day);
+            return formatDateForInput(date);
+        }
+    }
+    
+    return null;
+}
+
+// Format date for HTML input[type="date"]
+function formatDateForInput(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 }
 
 function extractAmount(transcript) {
@@ -3321,11 +3382,82 @@ function clearLearnedPatterns() {
     }
 }
 
-// Initialize voice recognition when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    // ... existing DOMContentLoaded code ...
-    initVoiceRecognition();
-});
+// Quick voice transaction entry
+function quickVoiceTransaction() {
+    if (!recognition) {
+        showNotification('Voice recognition not supported in this browser', 'error');
+        return;
+    }
+    
+    if (isListening) {
+        stopListening();
+        return;
+    }
+    
+    isListening = true;
+    recognition.currentField = 'quickVoice';
+    
+    const button = document.querySelector('button[onclick="quickVoiceTransaction()"]');
+    if (button) {
+        button.textContent = '🔴 Listening...';
+        button.classList.add('listening');
+    }
+    
+    showNotification('Listening... Say your transaction details', 'info');
+    recognition.start();
+}
+
+// Process quick voice transaction
+function processQuickVoiceTransaction(transcript) {
+    console.log('Quick voice input:', transcript);
+    
+    // Try to parse: "date, location, amount" format
+    // e.g., "today, walmart, 45 dollars"
+    
+    const parts = transcript.split(',').map(p => p.trim());
+    
+    if (parts.length < 2) {
+        showNotification('Please say: date, location, and amount', 'error');
+        return;
+    }
+    
+    // Parse date (first part)
+    const dateStr = parseVoiceDate(parts[0]);
+    if (!dateStr) {
+        showNotification('Could not understand the date. Try "today", "yesterday", or a date like "6 5 2026"', 'error');
+        return;
+    }
+    
+    // Parse location (second part)
+    const location = capitalizeWords(parts[1]);
+    
+    // Parse amount (third part if exists, otherwise look in the whole transcript)
+    let amount = null;
+    if (parts.length > 2) {
+        amount = extractAmount(parts[2]);
+    } else {
+        amount = extractAmount(transcript);
+    }
+    
+    if (!amount) {
+        showNotification('Could not understand the amount. Please say a number like "forty five"', 'error');
+        return;
+    }
+    
+    // Fill in the form
+    document.getElementById('transactionDate').value = dateStr;
+    document.getElementById('transactionSource').value = location;
+    document.getElementById('transactionAmount').value = amount;
+    
+    // Set default category to first available bill or "Miscellaneous"
+    const billSelect = document.getElementById('transactionBill');
+    if (billSelect.options.length > 1) {
+        billSelect.value = billSelect.options[1].value;
+    }
+    
+    showNotification(`✓ Transaction: ${location}, $${amount} on ${dateStr}`, 'success');
+    stopListening();
+}
 
 // Bulk delete functionality
 function updateBulkActions() {
