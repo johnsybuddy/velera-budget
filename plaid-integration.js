@@ -1,22 +1,19 @@
-// Plaid Server URLs (use local server for development)
-// In production, update this to your deployed server URL (e.g., Render, Heroku, Railway)
+// Plaid Server URLs (use Firebase Cloud Functions - already deployed)
 const PLAID_SERVER_BASE = 'http://localhost:3000';
-// const PLAID_SERVER_BASE = 'https://your-production-server.com'; // Use this for production
 
-// Helper to call Plaid server endpoints
-async function callPlaidServer(endpoint, data = {}) {
-    const url = `${PLAID_SERVER_BASE}${endpoint}`;
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    });
-    if (!response.ok) {
-        const err = await response.text();
-        throw new Error(`${endpoint} failed: ${response.status} ${err}`);
+// Helper to call Cloud Functions via Firebase SDK
+async function callCloudFunction(functionName, data = {}) {
+    try {
+        // Use Firebase Functions SDK if available
+        if (typeof firebase !== 'undefined' && firebase.functions) {
+            const func = firebase.functions().httpsCallable(functionName);
+            const result = await func(data);
+            return result.data;
+        }
+    } catch (e) {
+        console.error('Firebase Functions not available:', e);
     }
-    const json = await response.json();
-    return json;
+    throw new Error('Firebase not initialized');
 }
 
 let plaidLinkHandler = null;
@@ -28,10 +25,10 @@ async function initializePlaidLink() {
     try {
         showNotification('Initializing bank connection...', 'info');
         
-        console.log('Requesting link token from Plaid server...');
+        console.log('Requesting link token from Firebase...');
         
-        // Get link token from local Plaid server
-        const result = await callPlaidServer('/api/plaid/createLinkToken');
+        // Get link token from Firebase Cloud Function
+        const result = await callCloudFunction('createLinkToken', {});
         
         console.log('Link token received:', result);
         const linkToken = result.link_token;
@@ -75,7 +72,7 @@ async function handlePlaidSuccess(public_token, metadata) {
         
         console.log('Exchanging public token...', { public_token, metadata });
         
-        // Exchange public token for access token via local server
+        // Exchange public token for access token via Firebase
         const payload = { 
             public_token: public_token,
             metadata: {
@@ -83,7 +80,7 @@ async function handlePlaidSuccess(public_token, metadata) {
                 accounts: metadata.accounts
             }
         };
-        const result = await callPlaidServer('/api/plaid/exchangeToken', payload);
+        const result = await callCloudFunction('exchangePublicToken', payload);
         
         console.log('Exchange result:', result);
         
@@ -111,7 +108,7 @@ async function syncTransactions() {
         
         console.log('Fetching transactions...');
         
-        const result = await callPlaidServer('/api/plaid/fetchTransactions', {
+        const result = await callCloudFunction('fetchTransactions', {
             startDate: getDateDaysAgo(90), // Last 90 days
             endDate: getTodayDateString()
         });
