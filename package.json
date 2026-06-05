@@ -1,19 +1,13 @@
 {
   "name": "bills-website-plaid-server",
   "version": "1.0.0",
-  "description": "Local Plaid proxy server for Bills Website",
-  "main": "plaid-server.js",
+  "description": "Plaid proxy server for Bills Website",
+  "main": "plaid-server-minimal.js",
+  "engines": {
+    "node": "18.x"
+  },
   "scripts": {
-    "start": "node plaid-server.js",
-    "dev": "nodemon plaid-server.js"
-  },
-  "dependencies": {
-    "express": "^4.18.2",
-    "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
-    "plaid": "^18.0.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.2"
+    "start": "node plaid-server-minimal.js",
+    "dev": "node plaid-server-minimal.js"
   }
 }

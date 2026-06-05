@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: bills-plaid-server
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node plaid-server-minimal.js
+    envVars:
+      - key: PLAID_CLIENT_ID
+        value: 69926fbd4c01cb002166c96c3a3371e9e327e41eed0d59a5568d8bd
+      - key: PLAID_SECRET
+        value: 3a3371e9e327e41eed0d59a5568d8b
