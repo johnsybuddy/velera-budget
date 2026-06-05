@@ -14,12 +14,15 @@ const querystring = require('querystring');
 const fs = require('fs');
 const path = require('path');
 
-// Load environment variables from .env file
+// Load environment variables from .env file (for local development)
+// OR from Render/system environment variables (for production)
 const envPath = path.join(__dirname, '.env');
-let PLAID_CLIENT_ID = '';
-let PLAID_SECRET = '';
+let PLAID_CLIENT_ID = process.env.PLAID_CLIENT_ID || '';
+let PLAID_SECRET = process.env.PLAID_SECRET || '';
 
-if (fs.existsSync(envPath)) {
+// If running locally and .env exists, load from file
+if (fs.existsSync(envPath) && !process.env.PLAID_CLIENT_ID) {
+  console.log('Loading from .env file (local development)...');
   const envContent = fs.readFileSync(envPath, 'utf8');
   envContent.split('\n').forEach(line => {
     line = line.trim();
@@ -28,14 +31,20 @@ if (fs.existsSync(envPath)) {
       const value = valueParts.join('=').trim();
       if (key.trim() === 'PLAID_CLIENT_ID') {
         PLAID_CLIENT_ID = value;
-        console.log(`Loaded PLAID_CLIENT_ID: ${value.substring(0, 10)}...`);
+        console.log(`Loaded PLAID_CLIENT_ID from .env: ${value.substring(0, 10)}...`);
       }
       if (key.trim() === 'PLAID_SECRET') {
         PLAID_SECRET = value;
-        console.log(`Loaded PLAID_SECRET: ${value.substring(0, 10)}...`);
+        console.log(`Loaded PLAID_SECRET from .env: ${value.substring(0, 10)}...`);
       }
     }
   });
+} else if (process.env.PLAID_CLIENT_ID) {
+  console.log('Using environment variables (production)...');
+  PLAID_CLIENT_ID = process.env.PLAID_CLIENT_ID;
+  PLAID_SECRET = process.env.PLAID_SECRET;
+  console.log(`Loaded PLAID_CLIENT_ID from env: ${PLAID_CLIENT_ID.substring(0, 10)}...`);
+  console.log(`Loaded PLAID_SECRET from env: ${PLAID_SECRET.substring(0, 10)}...`);
 }
 
 const PORT = 3000;
