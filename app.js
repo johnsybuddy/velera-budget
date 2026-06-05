@@ -2615,12 +2615,11 @@ function updateBudgetTotals() {
     
     const rows = document.querySelectorAll('.budget-table tbody tr:not(.separator)');
     rows.forEach(row => {
-        // Column indices: 0=Bill, 1=Due Date, 2=Monthly Expense, 3=Actual, 4=Over/Under
         if (row.cells[2] && row.cells[3] && row.cells[4]) {
-            const budget = parseFloat(row.cells[2].textContent.replace(/[$,]/g, '')) || 0;
+            const budget = parseFloat(row.cells[2].textContent.replace(/[^0-9.-]/g, '')) || 0;
             const actualSpan = row.cells[3].querySelector('.actual-amount');
-            const actual = actualSpan ? parseFloat(actualSpan.textContent.replace(/[$,]/g, '')) || 0 : 0;
-            const overUnder = parseFloat(row.cells[4].textContent.replace(/[$,]/g, '')) || 0;
+            const actual = actualSpan ? parseFloat(actualSpan.textContent.replace(/[^0-9.-]/g, '')) || 0 : 0;
+            const overUnder = parseFloat(row.cells[4].textContent.replace(/[^0-9.-]/g, '')) || 0;
             
             totalBudget += budget;
             totalActual += actual;
@@ -2633,16 +2632,17 @@ function updateBudgetTotals() {
     document.getElementById('totalOverUnder').textContent = `$${totalOverUnder.toFixed(2)}`;
     document.getElementById('totalOverUnder').style.color = totalOverUnder >= 0 ? 'var(--success)' : 'var(--danger)';
     
-    // Calculate responsibility subtotals
-    const erikTotal = totalBudget * 0.58;
-    const saraTotal = totalBudget * 0.42;
+    // Calculate responsibility subtotals from the clean totalBudget value
+    const cleanBudget = parseFloat(totalBudget) || 0;
+    const erikTotal = cleanBudget * 0.58;
+    const saraTotal = cleanBudget * 0.42;
     const erikBiweekly = erikTotal / 2;
     const saraBiweekly = saraTotal / 2;
     
-    document.getElementById('erikTotal').textContent = `${erikTotal.toFixed(2)}`;
-    document.getElementById('erikBiweekly').textContent = `${erikBiweekly.toFixed(2)}`;
-    document.getElementById('saraTotal').textContent = `${saraTotal.toFixed(2)}`;
-    document.getElementById('saraBiweekly').textContent = `${saraBiweekly.toFixed(2)}`;
+    document.getElementById('erikTotal').textContent = `$${erikTotal.toFixed(2)}`;
+    document.getElementById('erikBiweekly').textContent = `$${erikBiweekly.toFixed(2)}`;
+    document.getElementById('saraTotal').textContent = `$${saraTotal.toFixed(2)}`;
+    document.getElementById('saraBiweekly').textContent = `$${saraBiweekly.toFixed(2)}`;
 }
 
 function showAddBill() {
