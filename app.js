@@ -1,4 +1,4 @@
-console.log('=== APP.JS LOADED - VERSION 20260418 ===');
+console.log('=== APP.JS LOADED - VERSION 20260419 ===');
 
 // Tab functionality
 function showTab(tabName) {
@@ -333,89 +333,92 @@ function calculatePeriodicBuckets() {
         jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06',
         jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12'
     };
-    
+
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
     const currentMonthIndex = currentDate.getMonth(); // 0-11
-    const actualCurrentMonth = months[currentMonthIndex]; // Use actual calendar month
-    
-    // Reset buckets
+
     periodicBuckets = {};
-    
-    // For each periodic bill, calculate bucket balance
+
     for (const billName in periodicBillsConfig) {
         const config = periodicBillsConfig[billName];
-        
-        // Get monthly budget - try current month first, then fall back to any month, then use default
-        let monthlyBudget = monthlyBudgets[actualCurrentMonth]?.[billName];
-        
-        // If current month doesn't have this bill, try to find it in any month
+
+        // Get monthly budget amount
+        let monthlyBudget = monthlyBudgets[months[currentMonthIndex]]?.[billName];
         if (!monthlyBudget || monthlyBudget === 0) {
             for (const m of months) {
-                if (monthlyBudgets[m]?.[billName] && monthlyBudgets[m][billName] > 0) {
+                if (monthlyBudgets[m]?.[billName] > 0) {
                     monthlyBudget = monthlyBudgets[m][billName];
-                    console.log(`${billName}: Using budget from ${m}: $${monthlyBudget}`);
                     break;
                 }
             }
         }
-        
-        // If still not found, use default from config
         if ((!monthlyBudget || monthlyBudget === 0) && config.defaultMonthly) {
             monthlyBudget = config.defaultMonthly;
-            console.log(`${billName}: Using default monthly budget: $${monthlyBudget}`);
         }
-        
-        // Skip bills with $0 budget (inactive)
-        if (!monthlyBudget || monthlyBudget === 0) {
-            console.log(`Skipping ${billName} - monthly budget is $0 (inactive)`);
-            continue;
+        if (!monthlyBudget || monthlyBudget === 0) continue;
+
+        // Figure out the most recent due date that has already passed (0-indexed month)
+        // dueMonth in config is 1-indexed
+        const dueMonthIndex = config.dueMonth - 1; // convert to 0-indexed
+
+        // Find the last due month that has passed (could be this year or previous cycle)
+        // For quarterly: due months are every 3 months starting from dueMonth
+        let lastDueMonthIndex = -1;
+
+        if (config.frequency === 'quarterly') {
+            // Due every 3 months: e.g. Jan(0), Apr(3), Jul(6), Oct(9)
+            const dueDates = [dueMonthIndex, dueMonthIndex + 3, dueMonthIndex + 6, dueMonthIndex + 9]
+                .map(m => m % 12);
+            // Find the most recent one that has passed (already paid)
+            for (let m = currentMonthIndex; m >= 0; m--) {
+                if (dueDates.includes(m)) {
+                    lastDueMonthIndex = m;
+                    break;
+                }
+            }
+        } else {
+            // Annual or semi-annual: last due month that has passed in this cycle
+            if (config.frequency === 'semi-annual') {
+                const due1 = dueMonthIndex;
+                const due2 = (dueMonthIndex + 6) % 12;
+                for (let m = currentMonthIndex; m >= 0; m--) {
+                    if (m === due1 || m === due2) { lastDueMonthIndex = m; break; }
+                }
+            } else {
+                // annual
+                if (dueMonthIndex <= currentMonthIndex) {
+                    lastDueMonthIndex = dueMonthIndex;
+                }
+            }
         }
-        
+
+        // Start accumulating from the month AFTER the last due date (or Jan if no due date passed yet)
+        const startMonthIndex = lastDueMonthIndex >= 0 ? lastDueMonthIndex + 1 : 0;
+
         let bucketBalance = 0;
-        
-        // Check if there's an initial balance (for bills that started before app tracking)
-        // initialBalance represents the amount saved AS OF January 2026
-        if (config.initialBalance) {
-            bucketBalance = config.initialBalance;
-            console.log(`${billName}: Starting with initial balance (as of Jan 2026): $${bucketBalance}`);
-        }
-        
-        // Go through each month up to current month in current year
-        // Start from February (index 1) if we have an initialBalance, otherwise start from January (index 0)
-        const startMonth = config.initialBalance > 0 ? 1 : 0;
-        
-        for (let i = startMonth; i <= currentMonthIndex; i++) {
+
+        for (let i = startMonthIndex; i <= currentMonthIndex; i++) {
             const month = months[i];
             const monthNum = monthNumbers[month];
-            
-            // Get the monthly budget for THIS specific month (in case it changed)
             const thisMonthBudget = monthlyBudgets[month]?.[billName] || monthlyBudget;
-            
-            // Check if there are ANY transactions for this month (not just this bill)
+
             const monthHasTransactions = transactions.some(t => {
                 const tDate = parseLocalDate(t.date);
                 const tMonth = String(tDate.getMonth() + 1).padStart(2, '0');
                 const tYear = tDate.getFullYear();
                 return tMonth === monthNum && tYear === currentYear && t.bill !== 'Ignore/Internal Transfer';
             });
-            
-            // Add current year months if transactions logged
+
             if (monthHasTransactions) {
                 bucketBalance += thisMonthBudget;
-                console.log(`${billName}: Added $${thisMonthBudget} for ${month} (has transactions)`);
             }
         }
-        
-        // Store bucket balance (only if positive - negative means overpaid which is real surplus)
+
         periodicBuckets[billName] = Math.max(0, bucketBalance);
-        
-        console.log(`Periodic bucket for ${billName}: $${periodicBuckets[billName].toFixed(2)} (monthly budget: $${monthlyBudget.toFixed(2)})`);
     }
-    
-    // Save buckets
+
     savePeriodicBuckets();
-    
     return periodicBuckets;
 }
 
@@ -1917,9 +1920,40 @@ function updatePeriodicBillsBreakdown() {
         
         let dueText = '';
         if (config.dueMonth) {
-            dueText = `Due: ${monthNames[config.dueMonth]} 26`;
+            // Calculate next due date dynamically
+            const now = new Date();
+            const nowMonth = now.getMonth() + 1; // 1-indexed
+            const nowYear = now.getFullYear();
+            const dueMonthNames = {
+                1:'Jan',2:'Feb',3:'Mar',4:'Apr',5:'May',6:'Jun',
+                7:'Jul',8:'Aug',9:'Sep',10:'Oct',11:'Nov',12:'Dec'
+            };
+
+            let nextDueMonth = config.dueMonth;
+            let nextDueYear = nowYear;
+
+            if (config.frequency === 'quarterly') {
+                // Find next quarterly due date
+                const dueDates = [config.dueMonth, config.dueMonth+3, config.dueMonth+6, config.dueMonth+9]
+                    .map(m => ((m - 1) % 12) + 1);
+                nextDueMonth = dueDates.find(m => m >= nowMonth) || dueDates[0];
+                if (nextDueMonth < nowMonth) nextDueYear++;
+            } else if (config.frequency === 'semi-annual') {
+                const due2 = config.dueMonth + 6 > 12 ? config.dueMonth - 6 : config.dueMonth + 6;
+                const options = [config.dueMonth, due2].sort((a, b) => a - b);
+                nextDueMonth = options.find(m => m >= nowMonth) || options[0];
+                if (nextDueMonth < nowMonth) nextDueYear++;
+            } else {
+                // annual
+                if (config.dueMonth < nowMonth) nextDueYear++;
+                nextDueMonth = config.dueMonth;
+            }
+
+            const freqLabel = config.frequency === 'quarterly' ? 'Quarterly' :
+                              config.frequency === 'semi-annual' ? 'Semi-Annual' : 'Annual';
+            dueText = `${freqLabel} · Next due: ${dueMonthNames[nextDueMonth]} ${nextDueYear}`;
         } else {
-            dueText = `${config.frequency}`;
+            dueText = config.frequency;
         }
         
         // Determine status color
