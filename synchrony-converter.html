@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synchrony CSV to Transactions Converter</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #555;
+        }
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        button {
+            background: #E85D4C;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        button:hover {
+            background: #D14D3D;
+        }
+        .info {
+            background: #f0f7ff;
+            padding: 1rem;
+            border-left: 4px solid #0066cc;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: #333;
+        }
+        .success {
+            background: #d1fae5;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+            color: #065f46;
+            display: none;
+        }
+        .copy-btn {
+            background: #10B981;
+            margin-top: 1rem;
+        }
+        .copy-btn:hover {
+            background: #059669;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 Synchrony CSV to Transactions Converter</h1>
+        
+        <div class="info">
+            <strong>Instructions:</strong>
+            <ol>
+                <li>Paste your Synchrony CSV content below (Date, Description, Amount columns)</li>
+                <li>Click "Convert to JSON"</li>
+                <li>Copy the JSON output</li>
+                <li>Go to your Bills app → Expenses → Import CSV</li>
+                <li>Paste the JSON and import</li>
+            </ol>
+        </div>
+        
+        <div class="form-group">
+            <label for="csvInput">Paste Synchrony CSV (or drag file):</label>
+            <textarea id="csvInput" rows="10" placeholder="Date,Description,Amount
+Jun 5 2026,TST*SHANGHAI BISTRO Eau Claire WI,$47.17
+..."></textarea>
+            <small style="color: #666; margin-top: 0.5rem; display: block;">
+                Include the header row (Date,Description,Amount)
+            </small>
+        </div>
+        
+        <button onclick="convertCSV()">🔄 Convert to JSON</button>
+        
+        <div class="success" id="successMsg">
+            ✓ Conversion complete! Copy the JSON below.
+        </div>
+        
+        <div class="form-group" style="margin-top: 2rem;">
+            <label for="jsonOutput">Converted JSON Output (copy this):</label>
+            <textarea id="jsonOutput" rows="10" readonly placeholder="JSON output will appear here..."></textarea>
+            <button class="copy-btn" onclick="copyToClipboard()">📋 Copy to Clipboard</button>
+        </div>
+        
+        <div style="margin-top: 2rem; padding: 1rem; background: #fff3cd; border-radius: 4px; font-size: 0.9rem;">
+            <strong>Note:</strong> All transactions will be marked as "Sam's Club" with account "Sam's". 
+            You can edit them individually in the app if needed.
+        </div>
+    </div>
+
+    <script>
+        function convertCSV() {
+            const csvText = document.getElementById('csvInput').value.trim();
+            if (!csvText) {
+                alert('Please paste CSV data first');
+                return;
+            }
+            
+            const lines = csvText.split('\n').filter(line => line.trim());
+            const headers = lines[0].split(',').map(h => h.trim());
+            
+            // Check for required columns
+            if (!headers.includes('Date') || !headers.includes('Description') || !headers.includes('Amount')) {
+                alert('CSV must have Date, Description, and Amount columns');
+                return;
+            }
+            
+            const dateIdx = headers.indexOf('Date');
+            const descIdx = headers.indexOf('Description');
+            const amountIdx = headers.indexOf('Amount');
+            
+            const transactions = [];
+            
+            // Skip header row
+            for (let i = 1; i < lines.length; i++) {
+                const parts = parseCSVLine(lines[i]);
+                if (parts.length < Math.max(dateIdx, descIdx, amountIdx) + 1) continue;
+                
+                const dateStr = parts[dateIdx].trim();
+                const description = parts[descIdx].trim();
+                let amount = parts[amountIdx].trim();
+                
+                // Parse date
+                const date = parseDate(dateStr);
+                if (!date) {
+                    console.warn('Could not parse date:', dateStr);
+                    continue;
+                }
+                
+                // Clean amount (remove $ and spaces)
+                amount = parseFloat(amount.replace(/[$,\s]/g, ''));
+                if (isNaN(amount)) {
+                    console.warn('Could not parse amount:', parts[amountIdx]);
+                    continue;
+                }
+                
+                // Extract store name (first part of description, before locations codes)
+                const storeName = cleanStoreName(description);
+                
+                transactions.push({
+                    date: date,
+                    source: storeName,
+                    amount: amount,
+                    bill: 'Sam\'s Club',
+                    account: 'Sam\'s'
+                });
+            }
+            
+            const json = JSON.stringify(transactions, null, 2);
+            document.getElementById('jsonOutput').value = json;
+            document.getElementById('successMsg').style.display = 'block';
+            
+            console.log(`Converted ${transactions.length} transactions`);
+        }
+        
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                if (line[i] === '"') {
+                    inQuotes = !inQuotes;
+                } else if (line[i] === ',' && !inQuotes) {
+                    result.push(current);
+                    current = '';
+                } else {
+                    current += line[i];
+                }
+            }
+            result.push(current);
+            return result;
+        }
+        
+        function parseDate(dateStr) {
+            // Parse "Jun 5 2026" or "June 5 2026" format
+            const months = {
+                'jan': '01', 'january': '01',
+                'feb': '02', 'february': '02',
+                'mar': '03', 'march': '03',
+                'apr': '04', 'april': '04',
+                'may': '05',
+                'jun': '06', 'june': '06',
+                'jul': '07', 'july': '07',
+                'aug': '08', 'august': '08',
+                'sep': '09', 'september': '09',
+                'oct': '10', 'october': '10',
+                'nov': '11', 'november': '11',
+                'dec': '12', 'december': '12'
+            };
+            
+            const parts = dateStr.toLowerCase().split(/\s+/);
+            if (parts.length !== 3) return null;
+            
+            const monthKey = parts[0];
+            const day = parts[1];
+            const year = parts[2];
+            
+            const month = months[monthKey];
+            if (!month) return null;
+            
+            const dayPadded = day.padStart(2, '0');
+            return `${year}-${month}-${dayPadded}`;
+        }
+        
+        function cleanStoreName(description) {
+            // Extract just the store name, remove merchant codes and locations
+            // e.g., "TST*SHANGHAI BISTRO Eau Claire WI" → "Shanghai Bistro"
+            //       "KWIK TRIP #633 EAU CLAIRE WI" → "Kwik Trip"
+            
+            description = description.trim();
+            
+            // Remove common prefixes
+            description = description.replace(/^[A-Z]{2,4}\s?\*/, ''); // Remove merchant codes like TST*, PY *
+            description = description.replace(/^SQ\s\*/, ''); // Remove SQ *
+            
+            // Remove store numbers
+            description = description.replace(/#\d+\s/i, '');
+            
+            // Remove location info (usually at the end after store name)
+            description = description.replace(/\s+(EAU\s+CLAIRE|SAINT\s+LOUIS|BENTONVILLE|GLENDALE|NEENAH|FALL\s+CREEK|BROOKLYN|BROOKLYN PARK|PARKMN|PARKINSON).*$/i, '');
+            description = description.replace(/\s+WI\s*$/i, '');
+            description = description.replace(/\s+AR\s*$/i, '');
+            description = description.replace(/\s+CA\s*$/i, '');
+            description = description.replace(/\s+MO\s*$/i, '');
+            description = description.replace(/\s+MN\s*$/i, '');
+            
+            // Clean up special text
+            description = description.replace(/\s+SAM'S\/WAL-MART PURCHASE.*/i, '');
+            
+            // Title case
+            return description
+                .split(/\s+/)
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join(' ')
+                .trim();
+        }
+        
+        function copyToClipboard() {
+            const jsonOutput = document.getElementById('jsonOutput');
+            if (!jsonOutput.value) {
+                alert('Please convert CSV first');
+                return;
+            }
+            
+            jsonOutput.select();
+            document.execCommand('copy');
+            alert('✓ JSON copied to clipboard!');
+        }
+        
+        // Allow drag and drop
+        const textarea = document.getElementById('csvInput');
+        textarea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            textarea.style.background = '#f0f0f0';
+        });
+        textarea.addEventListener('dragleave', () => {
+            textarea.style.background = '';
+        });
+        textarea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            textarea.style.background = '';
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    textarea.value = event.target.result;
+                };
+                reader.readAsText(file);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1843 @@
+[
+  {
+    "date": "2026-6-5",
+    "source": "Shanghai Bistro",
+    "amount": 47.17,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-6-5",
+    "source": "Kwik Trip",
+    "amount": 68.07,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-6-3",
+    "source": "Walmart.com",
+    "amount": 42.44,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-6-27",
+    "source": "Automatic Payment",
+    "amount": 12.33,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-31",
+    "source": "Aldi 72053",
+    "amount": 198.15,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-30",
+    "source": "Cousins Maine Lobs",
+    "amount": 74.71,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-30",
+    "source": "Kwik Trip",
+    "amount": 23.86,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-29",
+    "source": "Kobe's Japanese Restau",
+    "amount": 26.11,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-29",
+    "source": "Panda Express",
+    "amount": 16.99,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-28",
+    "source": "Jewelers-mutual-pmnt",
+    "amount": 89,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-28",
+    "source": "Kwik Trip",
+    "amount": 61.89,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-27",
+    "source": "Spectrum Mobile",
+    "amount": 20.27,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-27",
+    "source": "Subway",
+    "amount": 21.28,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-27",
+    "source": "Culvers Eau Claire-gol",
+    "amount": 16.23,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-24",
+    "source": "Aldi 72053",
+    "amount": 72.28,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-24",
+    "source": "Burr Store 104",
+    "amount": 24.98,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-24",
+    "source": "Burr Store 104",
+    "amount": 6.16,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-24",
+    "source": "Sam's Club 008185 Eau Claire Wi",
+    "amount": 87.75,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-23",
+    "source": "Weaver's Country Store",
+    "amount": 73.77,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-22",
+    "source": "Spectrum",
+    "amount": 55,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-22",
+    "source": "Buggsys Barbershop",
+    "amount": 50,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-22",
+    "source": "Kobe's Japanese Restau",
+    "amount": 39.16,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-22",
+    "source": "Target.com Brooklyn",
+    "amount": 7.81,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-21",
+    "source": "Jacobsons Market",
+    "amount": 22.09,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-21",
+    "source": "Walgreens",
+    "amount": 4.03,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-21",
+    "source": "Festival Foods",
+    "amount": 35.4,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-20",
+    "source": "Eau Claire Area School",
+    "amount": 20,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-20",
+    "source": "Kwik Trip",
+    "amount": 66.31,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-20",
+    "source": "Kwik Trip",
+    "amount": 29.56,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-19",
+    "source": "Target.com Brooklyn",
+    "amount": 72.64,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-19",
+    "source": "Target.com Brooklyn",
+    "amount": 5.45,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-17",
+    "source": "Target Field Concessio Minneapolis",
+    "amount": 25.23,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-17",
+    "source": "Culvers Of Hudson Hudson",
+    "amount": 33.93,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-16",
+    "source": "Kwik Trip",
+    "amount": 24.24,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-16",
+    "source": "Kwik Trip",
+    "amount": 11.47,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-16",
+    "source": "Walmart 001669 Eau Claire Wi",
+    "amount": 56.64,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-16",
+    "source": "Walmart.com",
+    "amount": 139.82,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-15",
+    "source": "Lambeaufieldconcession Green Bay",
+    "amount": 19.4,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-14",
+    "source": "Walgreens",
+    "amount": 7.55,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-13",
+    "source": "Circle K",
+    "amount": 11,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-13",
+    "source": "Dairy Queen",
+    "amount": 24.75,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-13",
+    "source": "Kwik Trip",
+    "amount": 52.27,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-12",
+    "source": "Festival Foods",
+    "amount": 56.31,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-12",
+    "source": "Disney Plus 8889057888",
+    "amount": 13.7,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-12",
+    "source": "Chewy.com 7863207111",
+    "amount": 28.33,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-11",
+    "source": "Kwik Trip",
+    "amount": 30.47,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-10",
+    "source": "Aldi 72005 Chippewa Fallwi",
+    "amount": 125.04,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-10",
+    "source": "Your.smarty-me Afton",
+    "amount": 6.93,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-10",
+    "source": "Hy-vee Eau Claire 1166",
+    "amount": 4.22,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-9",
+    "source": "Panera Bread O",
+    "amount": 23.26,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-6",
+    "source": "Alcatraz Cruises San Franciscoca",
+    "amount": 141.05,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-6",
+    "source": "Aldi 72053",
+    "amount": 65.59,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-6",
+    "source": "Sp Yosemite Conservan San Franciscoca",
+    "amount": 17.32,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-4",
+    "source": "Alcatraz Cruises San Franciscoca",
+    "amount": 141.05,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-4",
+    "source": "Alcatraz.click Austin",
+    "amount": 23.85,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-2",
+    "source": "Prairie Market St2293 Saint Paul",
+    "amount": 15.94,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-1",
+    "source": "Mmc-mfld Cafe 888-258-9775",
+    "amount": 2.5,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-1",
+    "source": "Panera Bread O",
+    "amount": 16.1,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-5-1",
+    "source": "Cenex-allied Cooperati Granton",
+    "amount": 52.22,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-30",
+    "source": "Mcdonald's F3903",
+    "amount": 20,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-30",
+    "source": "Kwik Trip",
+    "amount": 16.98,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-29",
+    "source": "Festival Foods",
+    "amount": 68.86,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-29",
+    "source": "Randys Family Restaura",
+    "amount": 19.87,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-29",
+    "source": "Kwik Trip",
+    "amount": 59.34,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-27",
+    "source": "Spectrum Mobile",
+    "amount": 20.27,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-27",
+    "source": "Panera Bread P",
+    "amount": 13.58,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-27",
+    "source": "Aldi 72053",
+    "amount": 44.99,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-26",
+    "source": "Hy-vee Eau Claire 1166",
+    "amount": 6.49,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-25",
+    "source": "Texas Roadhouse",
+    "amount": 126.38,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-25",
+    "source": "Kwik Trip",
+    "amount": 41.34,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-23",
+    "source": "Aldi 72053",
+    "amount": 98.57,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-23",
+    "source": "Chewy.com 7863207111",
+    "amount": 76.34,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-22",
+    "source": "Spectrum",
+    "amount": 55,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-22",
+    "source": "Kwik Trip",
+    "amount": 17.55,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-19",
+    "source": "Aldi 72053",
+    "amount": 109.32,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-19",
+    "source": "Aldi 72053",
+    "amount": 4.98,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-19",
+    "source": "Festival Foods",
+    "amount": 47.3,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-19",
+    "source": "Mcdonald's F162",
+    "amount": 20,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-19",
+    "source": "Kwik Trip",
+    "amount": 37.38,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-18",
+    "source": "Oakwood Mall",
+    "amount": 21.81,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-18",
+    "source": "Kobe's Japanese Restau",
+    "amount": 40.95,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-18",
+    "source": "Dairy Queen",
+    "amount": 9.37,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-18",
+    "source": "Venuplus Inc Orlando",
+    "amount": 3,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-18",
+    "source": "Kwik Trip",
+    "amount": 57.74,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-17",
+    "source": "Festival Foods",
+    "amount": 36.26,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-17",
+    "source": "Nayax **madison Concou Madison",
+    "amount": 1.5,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-17",
+    "source": "Nayax **madison Concou Madison",
+    "amount": 1.25,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-16",
+    "source": "Speedway 46569 Osseo",
+    "amount": 62.44,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-16",
+    "source": "Wp Beverages Windsor",
+    "amount": 3.25,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-16",
+    "source": "Walmart.com",
+    "amount": 68.57,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-12",
+    "source": "Altoona Family Restaur Altoona",
+    "amount": 57.19,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-12",
+    "source": "Wahlburgers Bloomingto Bloomington",
+    "amount": 72.57,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-12",
+    "source": "Disney Plus 8889057888",
+    "amount": 13.7,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-11",
+    "source": "Flyover America Bloomington",
+    "amount": 80.26,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-11",
+    "source": "Pryes Brewing Company Minneapolis",
+    "amount": 22,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-11",
+    "source": "Dairy Queen Hudson",
+    "amount": 16.84,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-11",
+    "source": "Hyatt Regency Minneapo Minneapolis",
+    "amount": 41.77,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-10",
+    "source": "Hyatt Reg Mnneapolis F Minneapolis",
+    "amount": 29.49,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-8",
+    "source": "Kwik Trip",
+    "amount": 64.91,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-7",
+    "source": "Target 00017749",
+    "amount": 107.56,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-7",
+    "source": "Festival Foods",
+    "amount": 42.33,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-4",
+    "source": "Aldi 72053",
+    "amount": 15.86,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-3",
+    "source": "Kwik Trip",
+    "amount": 33.13,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-2",
+    "source": "Panera Bread O",
+    "amount": 31.47,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-2",
+    "source": "Dairy Queen",
+    "amount": 9.46,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-4-1",
+    "source": "Kwik Trip",
+    "amount": 18.54,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-31",
+    "source": "Princeton Valley G",
+    "amount": 13.02,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-31",
+    "source": "Princeton Valley G",
+    "amount": 14.58,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-31",
+    "source": "Aldi 72053",
+    "amount": 66.66,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-29",
+    "source": "Aldi 72053",
+    "amount": 67.37,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-29",
+    "source": "Kwik Trip",
+    "amount": 34.6,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-28",
+    "source": "River Walk Pub Wisconsin Delwi",
+    "amount": 62.9,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-28",
+    "source": "Kwik Trip Reedsburg",
+    "amount": 67.1,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-28",
+    "source": "Late Fee",
+    "amount": 29,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-27",
+    "source": "Micon Cinemas Eau Clai",
+    "amount": 23.75,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-27",
+    "source": "Micon Cinemas Eau Clai",
+    "amount": 7,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-27",
+    "source": "Spectrum Mobile",
+    "amount": 20.27,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-27",
+    "source": "Culvers Of Lake Delton Baraboo",
+    "amount": 28.37,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-27",
+    "source": "Walmart.com",
+    "amount": 82.24,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-25",
+    "source": "Eau Claire Area Sch -g",
+    "amount": 42,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-25",
+    "source": "Chewy.com 7863207111",
+    "amount": 28.33,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-24",
+    "source": "Walgreens",
+    "amount": 1.15,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-22",
+    "source": "Spectrum 855-707-7328",
+    "amount": 55,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-22",
+    "source": "Cale America Inc Clearwater",
+    "amount": 1.5,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-22",
+    "source": "Kwik Trip",
+    "amount": 41.69,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-21",
+    "source": "Panera Bread O",
+    "amount": 24.03,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-21",
+    "source": "Culvers Of River Falls River Falls",
+    "amount": 39.51,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-20",
+    "source": "Lucette Brewing Co Menomonie",
+    "amount": 96,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-20",
+    "source": "Aldi 72053",
+    "amount": 103.03,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-19",
+    "source": "Cowboy Jacks - Altoona Altoona",
+    "amount": 47.38,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-19",
+    "source": "Culvers Eau Claire-bra",
+    "amount": 13.79,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-19",
+    "source": "Kwik Trip Altoona",
+    "amount": 59.18,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-15",
+    "source": "Altoona Family Restaur Altoona",
+    "amount": 49.01,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-14",
+    "source": "Panera Bread P",
+    "amount": 29.17,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-12",
+    "source": "Panera Bread O",
+    "amount": 36.03,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-12",
+    "source": "Disney Plus 8889057888",
+    "amount": 13.7,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-12",
+    "source": "Culvers Eau Claire-gol",
+    "amount": 7.47,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-12",
+    "source": "Kwik Trip",
+    "amount": 37.7,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-11",
+    "source": "Hy-vee Eau Claire 1166",
+    "amount": 53.83,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-11",
+    "source": "Kwik Trip",
+    "amount": 51.61,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-10",
+    "source": "Walgreens",
+    "amount": 18.24,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-10",
+    "source": "Culvers Of Eau Claire",
+    "amount": 4.53,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-10",
+    "source": "Kwik Trip",
+    "amount": 15.81,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-8",
+    "source": "Tommy Salami Wisconsin Delwi",
+    "amount": 58.24,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-8",
+    "source": "Aldi 72053",
+    "amount": 125,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-8",
+    "source": "Eau Claire Area School",
+    "amount": 50,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-7",
+    "source": "Kwik Trip",
+    "amount": 45.85,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-7",
+    "source": "Walmart.com",
+    "amount": 21.92,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-6",
+    "source": "Walmart.com",
+    "amount": 47.17,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-2",
+    "source": "4 Treasures Advent",
+    "amount": 5.81,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-2",
+    "source": "4 Treasures Advent",
+    "amount": 10.55,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-2",
+    "source": "Kwik Trip",
+    "amount": 31.08,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-3-1",
+    "source": "Dunkin",
+    "amount": 15.46,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-28",
+    "source": "Festival Foods",
+    "amount": 73.67,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-28",
+    "source": "Kwik Trip",
+    "amount": 24.3,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-28",
+    "source": "Culvers Eau Claire-bra",
+    "amount": 11.47,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-27",
+    "source": "Spectrum Mobile 855-707-7328",
+    "amount": 20.27,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-23",
+    "source": "Festival Foods",
+    "amount": 74.51,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-22",
+    "source": "Target 00017749",
+    "amount": 126.94,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-22",
+    "source": "Spectrum 855-707-7328",
+    "amount": 55,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-22",
+    "source": "Target.com Brooklyn",
+    "amount": 7.17,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-21",
+    "source": "Panera Bread O",
+    "amount": 45.29,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-20",
+    "source": "Subway",
+    "amount": 12.85,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-19",
+    "source": "Walgreens",
+    "amount": 45.17,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-19",
+    "source": "Target.com Brooklyn",
+    "amount": 47.83,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-19",
+    "source": "Kwik Trip",
+    "amount": 31.53,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-19",
+    "source": "Kwik Trip",
+    "amount": 8.08,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-18",
+    "source": "Dairy Queen",
+    "amount": 12.42,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-15",
+    "source": "Eau Claire Area School",
+    "amount": 35,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-15",
+    "source": "Walmart.com",
+    "amount": 73.32,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-14",
+    "source": "Weaver's Country Store",
+    "amount": 51.63,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-14",
+    "source": "Toppers Pizza Clairmo",
+    "amount": 15.81,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-14",
+    "source": "Toppers Pizza Clairmo",
+    "amount": 18.66,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-13",
+    "source": "Culvers Eau Claire-gol",
+    "amount": 31.09,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-12",
+    "source": "Disney Plus 8889057888",
+    "amount": 13.7,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-11",
+    "source": "Eau Claire Area Sch -g",
+    "amount": 42,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-9",
+    "source": "Jacobsons Market",
+    "amount": 56.69,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-9",
+    "source": "Jacobson's Hardware",
+    "amount": 12.65,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-9",
+    "source": "Kwik Trip",
+    "amount": 28.06,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-9",
+    "source": "Kwik Trip",
+    "amount": 31.92,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-8",
+    "source": "Aldi 72053",
+    "amount": 23.07,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-8",
+    "source": "Aldi 72053",
+    "amount": 60.93,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-7",
+    "source": "Crave Food & Drin Woodbury",
+    "amount": 87.4,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-7",
+    "source": "Walmart.com",
+    "amount": 40.79,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-7",
+    "source": "Walmart.com",
+    "amount": 20.9,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-6",
+    "source": "Kwik Trip",
+    "amount": 19.4,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-6",
+    "source": "Kwik Trip",
+    "amount": 47.62,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-5",
+    "source": "Panera Bread O",
+    "amount": 42.12,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-4",
+    "source": "Target.com Brooklyn",
+    "amount": 25.25,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-4",
+    "source": "Target.com Brooklyn",
+    "amount": 14.27,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-4",
+    "source": "Target.com Brooklyn",
+    "amount": 66.04,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-4",
+    "source": "Chewy.com 7863207111",
+    "amount": 28.33,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-4",
+    "source": "Chewy.com 7863207111",
+    "amount": 76.34,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-2-1",
+    "source": "Aldi 72053",
+    "amount": 187.88,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-31",
+    "source": "Walmart.com",
+    "amount": 68.37,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-30",
+    "source": "Kwik Trip",
+    "amount": 35.25,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-28",
+    "source": "Eau Claire Area School",
+    "amount": 50,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-27",
+    "source": "Spectrum Mobile 855-707-7328",
+    "amount": 20.27,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-26",
+    "source": "Jostens Inc. Owatonna",
+    "amount": 24.99,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-26",
+    "source": "Festival Foods",
+    "amount": 146.17,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-25",
+    "source": "The Plus",
+    "amount": 24.88,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-24",
+    "source": "Aldi 72053",
+    "amount": 30.45,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-24",
+    "source": "Cast Iron Pizza",
+    "amount": 42.89,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-24",
+    "source": "Dunkin Menomonie",
+    "amount": 7.99,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-22",
+    "source": "Spectrum 855-707-7328",
+    "amount": 55,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-22",
+    "source": "Culvers Eau Claire-bra",
+    "amount": 15.59,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-22",
+    "source": "Culvers Eau Claire-bra",
+    "amount": 23.29,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-20",
+    "source": "Ymca Eau Claire Niles",
+    "amount": 25,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-20",
+    "source": "Aaa Insurance Ecom Dearborn",
+    "amount": 447.25,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-19",
+    "source": "Target 00017749",
+    "amount": 101.96,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-19",
+    "source": "Kwik Trip Chippewa Fallwi",
+    "amount": 28.77,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-18",
+    "source": "Altoona Family Restaur Altoona",
+    "amount": 97,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-18",
+    "source": "Kwik Trip",
+    "amount": 39.86,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-14",
+    "source": "Kwik Trip",
+    "amount": 29.74,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-14",
+    "source": "Walmart.com",
+    "amount": 90.35,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-12",
+    "source": "Disney Plus 8889057888",
+    "amount": 13.7,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-12",
+    "source": "Walmart.com",
+    "amount": 139.88,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-10",
+    "source": "Krist Oil 85 Ladysmith",
+    "amount": 19.21,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-7",
+    "source": "Festival Foods",
+    "amount": 54.21,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-7",
+    "source": "Eau Claire Area School",
+    "amount": 50,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-7",
+    "source": "Target.com Brooklyn",
+    "amount": 9.38,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-7",
+    "source": "Kwik Trip",
+    "amount": 18.94,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-6",
+    "source": "Festival Foods",
+    "amount": 33.4,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-6",
+    "source": "Buffalo Wild Wngs 0094",
+    "amount": 53.4,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-6",
+    "source": "Target.com *",
+    "amount": 52.53,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-6",
+    "source": "Store",
+    "amount": 15.28,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-6",
+    "source": "Kwik Trip Chippewa Fallwi",
+    "amount": 10.52,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-6",
+    "source": "Kwik Trip Chippewa Fallwi",
+    "amount": 6.38,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-6",
+    "source": "Kwik Trip Ladysmith",
+    "amount": 14.39,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-3",
+    "source": "Fosters Fireside Osseo",
+    "amount": 52.64,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-3",
+    "source": "Carfax Rep 0629462038",
+    "amount": 44.99,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-3",
+    "source": "Kwik Trip",
+    "amount": 41.81,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-3",
+    "source": "Walmart.com",
+    "amount": 107.61,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-2",
+    "source": "Mgm Motors Llc Sarasota",
+    "amount": 517.5,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-2",
+    "source": "9725 Great Clips At",
+    "amount": 32,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-2",
+    "source": "Dairy Queen",
+    "amount": 9,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-2",
+    "source": "Culvers Eau Claire-gol",
+    "amount": 34.04,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-1-1",
+    "source": "Chipotle Mex Gr Online Newport Beachca",
+    "amount": 11.87,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2025-12-31",
+    "source": "Aaa Insurance Ecom Dearborn",
+    "amount": 365.02,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2025-12-31",
+    "source": "Store",
+    "amount": 32.66,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2025-12-30",
+    "source": "Spectrum Mobile 855-707-7328",
+    "amount": 20.27,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2025-12-30",
+    "source": "Kwik Trip",
+    "amount": 29.61,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2025-12-29",
+    "source": "Hampton Inn Minneapoli Minneapolis",
+    "amount": 32.98,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2025-12-29",
+    "source": "Crave Food & Drin Minneapolis",
+    "amount": 134.34,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2025-12-29",
+    "source": "Priceln*hampton Inn By",
+    "amount": 122.98,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2025-12-28",
+    "source": "Kwik Trip",
+    "amount": 18.95,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2025-12-27",
+    "source": "Kwik Trip Portage",
+    "amount": 28.55,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2025-12-27",
+    "source": "Cenex-millston Kwik St Millston",
+    "amount": 14.9,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2025-12-25",
+    "source": "Kwik Trip",
+    "amount": 18.16,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2025-12-24",
+    "source": "Jacobsons Market",
+    "amount": 17.67,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2025-12-24",
+    "source": "Hmongstop",
+    "amount": 20.69,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2025-12-24",
+    "source": "Sp Bargain City Chippewa Fallwi",
+    "amount": 10.5,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2025-12-24",
+    "source": "Kwik Trip",
+    "amount": 7.18,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2025-12-23",
+    "source": "Jacobsons Market",
+    "amount": 48.96,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2025-12-23",
+    "source": "Hmongstop",
+    "amount": 41.04,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2025-12-23",
+    "source": "Kwik Trip",
+    "amount": 8.22,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2025-12-22",
+    "source": "Jacobsons Market",
+    "amount": 20.92,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2025-12-22",
+    "source": "Spectrum 855-707-7328",
+    "amount": 94.99,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2025-12-22",
+    "source": "Hmongstop",
+    "amount": 26.88,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2025-12-22",
+    "source": "Festival Foods",
+    "amount": 15.75,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2025-12-22",
+    "source": "Festival Foods",
+    "amount": 18.97,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2025-12-22",
+    "source": "Eau Claire Area School",
+    "amount": 20,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  },
+  {
+    "date": "2025-12-22",
+    "source": "Target.com Brooklyn",
+    "amount": 34.06,
+    "bill": "Sam's Club",
+    "account": "Sam's"
+  }
+]
