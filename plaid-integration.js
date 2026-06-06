@@ -1,19 +1,31 @@
-// Plaid Server URLs (use Firebase Cloud Functions - already deployed)
-const PLAID_SERVER_BASE = 'http://localhost:3000';
+// Plaid Server URLs (Google Cloud Run endpoints)
+const PLAID_SERVER_BASE = 'https://us-central1-johnson-fam-bills.cloudfunctions.net';
 
-// Helper to call Cloud Functions via Firebase SDK
+// Helper to call Cloud Run functions via HTTP
 async function callCloudFunction(functionName, data = {}) {
     try {
-        // Use Firebase Functions SDK if available
-        if (typeof firebase !== 'undefined' && firebase.functions) {
-            const func = firebase.functions().httpsCallable(functionName);
-            const result = await func(data);
-            return result.data;
+        console.log(`Calling ${functionName} at ${PLAID_SERVER_BASE}/${functionName}`);
+        
+        const response = await fetch(`${PLAID_SERVER_BASE}/${functionName}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+        
+        if (!response.ok) {
+            const errorBody = await response.text();
+            console.error(`HTTP ${response.status}:`, errorBody);
+            throw new Error(`HTTP ${response.status}: ${errorBody}`);
         }
-    } catch (e) {
-        console.error('Firebase Functions not available:', e);
+        
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error(`Error calling ${functionName}:`, error);
+        throw error;
     }
-    throw new Error('Firebase not initialized');
 }
 
 let plaidLinkHandler = null;

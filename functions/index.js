@@ -5,9 +5,11 @@ const cors = require('cors')({ origin: true });
 
 admin.initializeApp();
 
-// Plaid credentials (hardcoded for now - in production use Firebase Secrets)
-const PLAID_CLIENT_ID = '69926fbd4c01cb002166c96c3a3371e9e327e41eed0d59a5568d8bd';
-const PLAID_SECRET = '3a3371e9e327e41eed0d59a5568d8b';
+// Plaid credentials from environment variables (or hardcoded fallback)
+const PLAID_CLIENT_ID = process.env.PLAID_CLIENT_ID || '69926fbd4c01cb002166c96c3a3371e9e327e41eed0d59a5568d8bd';
+const PLAID_SECRET = process.env.PLAID_SECRET || '3a3371e9e327e41eed0d59a5568d8b';
+
+console.log('Plaid credentials loaded. Client ID:', PLAID_CLIENT_ID ? PLAID_CLIENT_ID.substring(0, 10) + '...' : 'MISSING');
 
 // Plaid configuration
 const plaidConfig = new Configuration({
@@ -24,139 +26,170 @@ const plaidClient = new PlaidApi(plaidConfig);
 
 /**
  * Create Plaid Link Token
- * This is called when user wants to connect their bank account
+ * HTTP endpoint for browser calls (replaces onCall)
  */
-exports.createLinkToken = functions.https.onCall(async (data, context) => {
-  // Use hardcoded userId for personal use (not recommended for production)
-  const userId = 'johnsybuddy';
+exports.createLinkToken = functions.https.onRequest((req, res) => {
+  cors(req, res, async () => {
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'Method not allowed' });
+    }
 
-  try {
-    console.log('Creating link token with client_id:', PLAID_CLIENT_ID.substring(0, 10) + '...');
-    const response = await plaidClient.linkTokenCreate({
-      user: {
-        client_user_id: userId,
-      },
-      client_name: 'Buddy Budget Tracker',
-      products: ['transactions'],
-      country_codes: ['US'],
-      language: 'en',
-      webhook: 'https://us-central1-johnson-fam-bills.cloudfunctions.net/plaidWebhook',
-    });
+    const userId = 'johnsybuddy';
 
-    return { link_token: response.data.link_token };
-  } catch (error) {
-    console.error('Error creating link token:', error);
-    throw new functions.https.HttpsError('internal', 'Failed to create link token: ' + error.message);
-  }
+    try {
+      console.log('Creating link token with client_id:', PLAID_CLIENT_ID.substring(0, 10) + '...');
+      
+      if (!PLAID_CLIENT_ID || PLAID_CLIENT_ID === 'undefined') {
+        throw new Error('PLAID_CLIENT_ID is not configured');
+      }
+      
+      const response = await plaidClient.linkTokenCreate({
+        user: {
+          client_user_id: userId,
+        },
+        client_name: 'Buddy Budget Tracker',
+        products: ['transactions'],
+        country_codes: ['US'],
+        language: 'en',
+        webhook: 'https://us-central1-johnson-fam-bills.cloudfunctions.net/plaidWebhook',
+      });
+
+      res.json({ link_token: response.data.link_token });
+    } catch (error) {
+      console.error('Error creating link token:', error);
+      res.status(500).json({ 
+        error: 'Failed to create link token',
+        details: error.message 
+      });
+    }
+  });
 });
 
 /**
  * Exchange Public Token for Access Token
- * Called after user successfully connects their bank
+ * HTTP endpoint for browser calls
  */
-exports.exchangePublicToken = functions.https.onCall(async (data, context) => {
-  const { public_token, metadata } = data;
-  const userId = 'johnsybuddy';
+exports.exchangePublicToken = functions.https.onRequest((req, res) => {
+  cors(req, res, async () => {
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'Method not allowed' });
+    }
 
-  try {
-    // Exchange public token for access token
-    const response = await plaidClient.itemPublicTokenExchange({
-      public_token: public_token,
-    });
+    const { public_token, metadata } = req.body;
+    const userId = 'johnsybuddy';
 
-    const accessToken = response.data.access_token;
-    const itemId = response.data.item_id;
+    try {
+      // Exchange public token for access token
+      const response = await plaidClient.itemPublicTokenExchange({
+        public_token: public_token,
+      });
 
-    // Store access token securely in Firestore
-    await admin.firestore().collection('users').doc(userId).collection('plaidAccounts').add({
-      accessToken: accessToken,
-      itemId: itemId,
-      institutionId: metadata.institution.institution_id,
-      institutionName: metadata.institution.name,
-      accounts: metadata.accounts,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    });
+      const accessToken = response.data.access_token;
+      const itemId = response.data.item_id;
 
-    return { success: true, institutionName: metadata.institution.name };
-  } catch (error) {
-    console.error('Error exchanging public token:', error);
-    throw new functions.https.HttpsError('internal', 'Failed to exchange token');
-  }
+      // Store access token securely in Firestore
+      await admin.firestore().collection('users').doc(userId).collection('plaidAccounts').add({
+        accessToken: accessToken,
+        itemId: itemId,
+        institutionId: metadata.institution.institution_id,
+        institutionName: metadata.institution.name,
+        accounts: metadata.accounts,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      res.json({ success: true, institutionName: metadata.institution.name });
+    } catch (error) {
+      console.error('Error exchanging public token:', error);
+      res.status(500).json({ 
+        error: 'Failed to exchange token',
+        details: error.message 
+      });
+    }
+  });
 });
 
 /**
  * Fetch Transactions
- * Manually triggered or scheduled to sync transactions
+ * HTTP endpoint for browser calls
  */
-exports.fetchTransactions = functions.https.onCall(async (data, context) => {
-  const userId = 'johnsybuddy';
-  const { startDate, endDate } = data;
-
-  try {
-    // Get all connected accounts for this user
-    const accountsSnapshot = await admin.firestore()
-      .collection('users')
-      .doc(userId)
-      .collection('plaidAccounts')
-      .get();
-
-    if (accountsSnapshot.empty) {
-      return { transactions: [], message: 'No accounts connected' };
+exports.fetchTransactions = functions.https.onRequest((req, res) => {
+  cors(req, res, async () => {
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    let allTransactions = [];
+    const userId = 'johnsybuddy';
+    const { startDate, endDate } = req.body;
 
-    // Fetch transactions from each connected account
-    for (const doc of accountsSnapshot.docs) {
-      const accountData = doc.data();
-      const accessToken = accountData.accessToken;
-
-      try {
-        const response = await plaidClient.transactionsGet({
-          access_token: accessToken,
-          start_date: startDate || getDateDaysAgo(30),
-          end_date: endDate || getTodayDate(),
-        });
-
-        const transactions = response.data.transactions.map(t => ({
-          id: t.transaction_id,
-          date: t.date,
-          name: t.name,
-          merchant: t.merchant_name || t.name,
-          amount: t.amount,
-          category: t.category ? t.category[0] : 'Uncategorized',
-          pending: t.pending,
-          accountId: t.account_id,
-          institutionName: accountData.institutionName,
-        }));
-
-        allTransactions = allTransactions.concat(transactions);
-      } catch (error) {
-        console.error(`Error fetching transactions for account ${doc.id}:`, error);
-      }
-    }
-
-    // Store transactions in Firestore
-    const batch = admin.firestore().batch();
-    allTransactions.forEach(transaction => {
-      const docRef = admin.firestore()
+    try {
+      // Get all connected accounts for this user
+      const accountsSnapshot = await admin.firestore()
         .collection('users')
         .doc(userId)
-        .collection('transactions')
-        .doc(transaction.id);
-      batch.set(docRef, transaction, { merge: true });
-    });
-    await batch.commit();
+        .collection('plaidAccounts')
+        .get();
 
-    return { 
-      transactions: allTransactions,
-      count: allTransactions.length,
-      message: `Synced ${allTransactions.length} transactions`
-    };
-  } catch (error) {
-    console.error('Error fetching transactions:', error);
-    throw new functions.https.HttpsError('internal', 'Failed to fetch transactions');
-  }
+      if (accountsSnapshot.empty) {
+        return res.json({ transactions: [], message: 'No accounts connected' });
+      }
+
+      let allTransactions = [];
+
+      // Fetch transactions from each connected account
+      for (const doc of accountsSnapshot.docs) {
+        const accountData = doc.data();
+        const accessToken = accountData.accessToken;
+
+        try {
+          const response = await plaidClient.transactionsGet({
+            access_token: accessToken,
+            start_date: startDate || getDateDaysAgo(30),
+            end_date: endDate || getTodayDate(),
+          });
+
+          const transactions = response.data.transactions.map(t => ({
+            id: t.transaction_id,
+            date: t.date,
+            name: t.name,
+            merchant: t.merchant_name || t.name,
+            amount: t.amount,
+            category: t.category ? t.category[0] : 'Uncategorized',
+            pending: t.pending,
+            accountId: t.account_id,
+            institutionName: accountData.institutionName,
+          }));
+
+          allTransactions = allTransactions.concat(transactions);
+        } catch (error) {
+          console.error(`Error fetching transactions for account ${doc.id}:`, error);
+        }
+      }
+
+      // Store transactions in Firestore
+      const batch = admin.firestore().batch();
+      allTransactions.forEach(transaction => {
+        const docRef = admin.firestore()
+          .collection('users')
+          .doc(userId)
+          .collection('transactions')
+          .doc(transaction.id);
+        batch.set(docRef, transaction, { merge: true });
+      });
+      await batch.commit();
+
+      res.json({ 
+        transactions: allTransactions,
+        count: allTransactions.length,
+        message: `Synced ${allTransactions.length} transactions`
+      });
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch transactions',
+        details: error.message 
+      });
+    }
+  });
 });
 
 /**
@@ -253,62 +286,35 @@ exports.plaidWebhook = functions.https.onRequest((req, res) => {
 });
 
 /**
- * Get Connected Accounts
- * Returns list of all connected bank accounts
- */
-exports.getConnectedAccounts = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
-  }
-
-  const userId = context.auth.uid;
-
-  try {
-    const accountsSnapshot = await admin.firestore()
-      .collection('users')
-      .doc(userId)
-      .collection('plaidAccounts')
-      .get();
-
-    const accounts = accountsSnapshot.docs.map(doc => ({
-      id: doc.id,
-      institutionName: doc.data().institutionName,
-      accounts: doc.data().accounts,
-      createdAt: doc.data().createdAt,
-    }));
-
-    return { accounts };
-  } catch (error) {
-    console.error('Error getting connected accounts:', error);
-    throw new functions.https.HttpsError('internal', 'Failed to get accounts');
-  }
-});
-
-/**
  * Remove Connected Account
- * Disconnects a bank account
+ * HTTP endpoint for browser calls
  */
-exports.removeAccount = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
-  }
+exports.removeAccount = functions.https.onRequest((req, res) => {
+  cors(req, res, async () => {
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'Method not allowed' });
+    }
 
-  const userId = context.auth.uid;
-  const { accountId } = data;
+    const userId = 'johnsybuddy';
+    const { accountId } = req.body;
 
-  try {
-    await admin.firestore()
-      .collection('users')
-      .doc(userId)
-      .collection('plaidAccounts')
-      .doc(accountId)
-      .delete();
+    try {
+      await admin.firestore()
+        .collection('users')
+        .doc(userId)
+        .collection('plaidAccounts')
+        .doc(accountId)
+        .delete();
 
-    return { success: true };
-  } catch (error) {
-    console.error('Error removing account:', error);
-    throw new functions.https.HttpsError('internal', 'Failed to remove account');
-  }
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error removing account:', error);
+      res.status(500).json({ 
+        error: 'Failed to remove account',
+        details: error.message 
+      });
+    }
+  });
 });
 
 // Helper functions

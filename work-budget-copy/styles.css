@@ -774,7 +774,7 @@ body {
 .transactions-table th {
     background: var(--bg-main);
     color: var(--text-secondary);
-    padding: 0.75rem 1rem;
+    padding: 0.5rem 0.75rem;
     text-align: left;
     font-weight: 500;
     font-size: 0.75rem;
@@ -784,9 +784,30 @@ body {
 }
 
 .transactions-table td {
-    padding: 0.75rem 1rem;
+    padding: 0.4rem 0.75rem;
     border-bottom: 1px solid var(--border-light);
     font-size: 0.875rem;
+    height: 36px;
+    overflow: visible;
+}
+
+/* Prevent inline select from causing layout shifts */
+.editable-select {
+    position: relative;
+}
+
+.inline-edit-select {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 200px;
+    z-index: 100;
+    padding: 0.4rem 0.5rem;
+    border: 1px solid var(--primary);
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    background: var(--bg-card);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .transactions-table tr:hover {
@@ -1482,3 +1503,61 @@ body {
 .btn-danger:hover {
     background: #DC2626;
 }
+
+/* Carryover Tab */
+.carryover-table-container {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-sm);
+    overflow-x: auto;
+}
+
+.carryover-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.carryover-table th {
+    background: var(--bg-main);
+    color: var(--text-secondary);
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 500;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.carryover-table td {
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--border-light);
+    font-size: 0.875rem;
+    vertical-align: top;
+}
+
+.carryover-table tr:hover td {
+    background: var(--bg-hover);
+}
+
+.carryover-total-row td {
+    background: var(--bg-main) !important;
+    font-weight: 600;
+    border-top: 2px solid var(--border-medium);
+    padding: 0.75rem 1rem;
+}
+
+.carryover-payment-entry {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.carryover-payment-entry .paid-by-erik { color: #3B82F6; font-weight: 600; }
+.carryover-payment-entry .paid-by-sara { color: #8B5CF6; font-weight: 600; }
+.carryover-payment-entry .paid-by-other { color: var(--text-secondary); font-weight: 600; }
+
+.carryover-balance-positive { color: var(--success); font-weight: 600; }
+.carryover-balance-negative { color: var(--danger); font-weight: 600; }
+.carryover-balance-zero { color: var(--success); font-weight: 600; }

@@ -746,9 +746,37 @@ function handleCSVUpload(event) {
 }
 
 function parseCSV(csv) {
+    // Try to parse as JSON first
+    if (csv.trim().startsWith('[') || csv.trim().startsWith('{')) {
+        try {
+            const jsonData = JSON.parse(csv);
+            const transactions = Array.isArray(jsonData) ? jsonData : [jsonData];
+            
+            csvData = [];
+            for (const tx of transactions) {
+                if (tx.date && tx.source && tx.amount !== undefined) {
+                    csvData.push({
+                        date: formatDateForDisplay(tx.date),
+                        source: tx.source,
+                        amount: parseFloat(tx.amount),
+                        bill: tx.bill || 'Miscellaneous',
+                        account: tx.account || 'Unknown'
+                    });
+                }
+            }
+            
+            console.log(`Imported ${csvData.length} transactions from JSON`);
+            displayCSVPreview();
+            return;
+        } catch (e) {
+            console.log('Not JSON, falling back to CSV parsing:', e.message);
+        }
+    }
+    
+    // Parse as CSV
     const lines = csv.split('\n').filter(line => line.trim());
     if (lines.length < 2) {
-        showNotification('CSV must have at least a header and one data row', 'error');
+        showNotification('File must have at least a header and one data row', 'error');
         return;
     }
     

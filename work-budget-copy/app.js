@@ -1,4 +1,4 @@
-console.log('=== APP.JS LOADED - VERSION 20250131q ===');
+console.log('=== APP.JS LOADED - VERSION 20260419 ===');
 
 // Tab functionality
 function showTab(tabName) {
@@ -11,15 +11,20 @@ function showTab(tabName) {
     tabButtons.forEach(btn => btn.classList.remove('active'));
     
     // Show selected tab
-    document.getElementById(tabName).classList.add('active');
+    const tabEl = document.getElementById(tabName);
+    if (tabEl) tabEl.classList.add('active');
     
     // Add active class to clicked button
     if (event && event.target) {
         event.target.classList.add('active');
     } else {
-        // Find and activate the correct tab button
-        const tabBtn = Array.from(tabButtons).find(btn => btn.onclick.toString().includes(tabName));
+        const tabBtn = Array.from(tabButtons).find(btn => btn.onclick && btn.onclick.toString().includes(tabName));
         if (tabBtn) tabBtn.classList.add('active');
+    }
+    
+    // Refresh carryover table when switching to it
+    if (tabName === 'carryover') {
+        updateCarryoverTable();
     }
     
     // Save current tab
@@ -65,25 +70,27 @@ function parseLocalDate(dateString) {
     return new Date(year, month - 1, day);
 }
 
-// Firebase Configuration - WORK INSTANCE
+// Firebase Configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyD4V3DKjbRv5DgjRpZ6BzxPH8SJjJ2Nm-I",
-    authDomain: "work-budget-tracker.firebaseapp.com",
-    projectId: "work-budget-tracker",
-    storageBucket: "work-budget-tracker.firebasestorage.app",
-    messagingSenderId: "704722132019",
-    appId: "1:704722132019:web:7178ac03b6e94832d85746",
-    measurementId: "G-NVLR9RBVGL"
+    apiKey: "AIzaSyCnpK-aY7cQdkW1MoloTHJD-GJSSswJXxE",
+    authDomain: "johnson-fam-bills.firebaseapp.com",
+    projectId: "johnson-fam-bills",
+    storageBucket: "johnson-fam-bills.firebasestorage.app",
+    messagingSenderId: "859356967572",
+    appId: "1:859356967572:web:db2f34908247872ed2ba81",
+    measurementId: "G-GCBWCYHHE4"
 };
 
 // Initialize Firebase
 let db = null;
+let functions = null;
 let isFirebaseEnabled = false;
 
 try {
     if (typeof firebase !== 'undefined') {
         firebase.initializeApp(firebaseConfig);
         db = firebase.firestore();
+        functions = firebase.functions();
         isFirebaseEnabled = true;
         console.log('Firebase initialized successfully');
         
@@ -97,8 +104,8 @@ try {
     isFirebaseEnabled = false;
 }
 
-// User ID for data isolation - WORK INSTANCE
-const userId = 'work-user'; // Different user for work data
+// User ID for data isolation
+const userId = 'johnsybuddy'; // Your username
 
 // Store transactions
 let transactions = [
@@ -326,89 +333,92 @@ function calculatePeriodicBuckets() {
         jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06',
         jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12'
     };
-    
+
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
     const currentMonthIndex = currentDate.getMonth(); // 0-11
-    const actualCurrentMonth = months[currentMonthIndex]; // Use actual calendar month
-    
-    // Reset buckets
+
     periodicBuckets = {};
-    
-    // For each periodic bill, calculate bucket balance
+
     for (const billName in periodicBillsConfig) {
         const config = periodicBillsConfig[billName];
-        
-        // Get monthly budget - try current month first, then fall back to any month, then use default
-        let monthlyBudget = monthlyBudgets[actualCurrentMonth]?.[billName];
-        
-        // If current month doesn't have this bill, try to find it in any month
+
+        // Get monthly budget amount
+        let monthlyBudget = monthlyBudgets[months[currentMonthIndex]]?.[billName];
         if (!monthlyBudget || monthlyBudget === 0) {
             for (const m of months) {
-                if (monthlyBudgets[m]?.[billName] && monthlyBudgets[m][billName] > 0) {
+                if (monthlyBudgets[m]?.[billName] > 0) {
                     monthlyBudget = monthlyBudgets[m][billName];
-                    console.log(`${billName}: Using budget from ${m}: $${monthlyBudget}`);
                     break;
                 }
             }
         }
-        
-        // If still not found, use default from config
         if ((!monthlyBudget || monthlyBudget === 0) && config.defaultMonthly) {
             monthlyBudget = config.defaultMonthly;
-            console.log(`${billName}: Using default monthly budget: $${monthlyBudget}`);
         }
-        
-        // Skip bills with $0 budget (inactive)
-        if (!monthlyBudget || monthlyBudget === 0) {
-            console.log(`Skipping ${billName} - monthly budget is $0 (inactive)`);
-            continue;
+        if (!monthlyBudget || monthlyBudget === 0) continue;
+
+        // Figure out the most recent due date that has already passed (0-indexed month)
+        // dueMonth in config is 1-indexed
+        const dueMonthIndex = config.dueMonth - 1; // convert to 0-indexed
+
+        // Find the last due month that has passed (could be this year or previous cycle)
+        // For quarterly: due months are every 3 months starting from dueMonth
+        let lastDueMonthIndex = -1;
+
+        if (config.frequency === 'quarterly') {
+            // Due every 3 months: e.g. Jan(0), Apr(3), Jul(6), Oct(9)
+            const dueDates = [dueMonthIndex, dueMonthIndex + 3, dueMonthIndex + 6, dueMonthIndex + 9]
+                .map(m => m % 12);
+            // Find the most recent one that has passed (already paid)
+            for (let m = currentMonthIndex; m >= 0; m--) {
+                if (dueDates.includes(m)) {
+                    lastDueMonthIndex = m;
+                    break;
+                }
+            }
+        } else {
+            // Annual or semi-annual: last due month that has passed in this cycle
+            if (config.frequency === 'semi-annual') {
+                const due1 = dueMonthIndex;
+                const due2 = (dueMonthIndex + 6) % 12;
+                for (let m = currentMonthIndex; m >= 0; m--) {
+                    if (m === due1 || m === due2) { lastDueMonthIndex = m; break; }
+                }
+            } else {
+                // annual
+                if (dueMonthIndex <= currentMonthIndex) {
+                    lastDueMonthIndex = dueMonthIndex;
+                }
+            }
         }
-        
+
+        // Start accumulating from the month AFTER the last due date (or Jan if no due date passed yet)
+        const startMonthIndex = lastDueMonthIndex >= 0 ? lastDueMonthIndex + 1 : 0;
+
         let bucketBalance = 0;
-        
-        // Check if there's an initial balance (for bills that started before app tracking)
-        // initialBalance represents the amount saved AS OF January 2026
-        if (config.initialBalance) {
-            bucketBalance = config.initialBalance;
-            console.log(`${billName}: Starting with initial balance (as of Jan 2026): $${bucketBalance}`);
-        }
-        
-        // Go through each month up to current month in current year
-        // Start from February (index 1) if we have an initialBalance, otherwise start from January (index 0)
-        const startMonth = config.initialBalance > 0 ? 1 : 0;
-        
-        for (let i = startMonth; i <= currentMonthIndex; i++) {
+
+        for (let i = startMonthIndex; i <= currentMonthIndex; i++) {
             const month = months[i];
             const monthNum = monthNumbers[month];
-            
-            // Get the monthly budget for THIS specific month (in case it changed)
             const thisMonthBudget = monthlyBudgets[month]?.[billName] || monthlyBudget;
-            
-            // Check if there are ANY transactions for this month (not just this bill)
+
             const monthHasTransactions = transactions.some(t => {
-                const tDate = new Date(t.date);
+                const tDate = parseLocalDate(t.date);
                 const tMonth = String(tDate.getMonth() + 1).padStart(2, '0');
                 const tYear = tDate.getFullYear();
                 return tMonth === monthNum && tYear === currentYear && t.bill !== 'Ignore/Internal Transfer';
             });
-            
-            // Add current year months if transactions logged
+
             if (monthHasTransactions) {
                 bucketBalance += thisMonthBudget;
-                console.log(`${billName}: Added $${thisMonthBudget} for ${month} (has transactions)`);
             }
         }
-        
-        // Store bucket balance (only if positive - negative means overpaid which is real surplus)
+
         periodicBuckets[billName] = Math.max(0, bucketBalance);
-        
-        console.log(`Periodic bucket for ${billName}: $${periodicBuckets[billName].toFixed(2)} (monthly budget: $${monthlyBudget.toFixed(2)})`);
     }
-    
-    // Save buckets
+
     savePeriodicBuckets();
-    
     return periodicBuckets;
 }
 
@@ -702,29 +712,10 @@ function calculateMonthOverUnder(monthName) {
 // Calculate all months' over/under values
 function calculateAllMonthsOverUnder() {
     const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-    const currentDate = new Date();
-    const actualCurrentMonth = months[currentDate.getMonth()];
-    
-    // Save the current month selection
-    const savedCurrentMonth = currentMonth;
-    
+    // Use calculateMonthOverUnder directly - no DOM touching, no currentMonth mutation
     months.forEach(month => {
-        // Temporarily set currentMonth so updateBudgetFromTransactions calculates for this month
-        currentMonth = month;
-        
-        // Load the month's budget
-        loadMonthBudget(month);
-        
-        // Calculate the over/under (this will store in monthlyOverUnder[month])
-        updateBudgetFromTransactions();
-        
-        console.log(`Calculated ${month} over/under: ${monthlyOverUnder[month]}`);
+        calculateMonthOverUnder(month);
     });
-    
-    // Restore the original current month
-    currentMonth = savedCurrentMonth;
-    loadMonthBudget(savedCurrentMonth);
-    updateBudgetFromTransactions();
 }
 
 // CSV Import functionality
@@ -1753,37 +1744,19 @@ function updateDashboard() {
     const currentMonth = currentDate.getMonth() + 1; // 1-12
     const currentMonthName = months[currentDate.getMonth()]; // e.g., 'feb'
     
-    // Calculate ANNUAL budget (current month's budget × 12)
+    // Calculate ANNUAL budget by summing all 12 months individually
     let totalBudget = 0;
-    
-    const currentMonthBudgets = monthlyBudgets[currentMonthName] || {};
-    
-    console.log('=== ANNUAL BUDGET CALCULATION DEBUG ===');
-    console.log('Current month:', currentMonthName);
-    console.log('All bills in current month:', currentMonthBudgets);
-    
-    for (const billName in currentMonthBudgets) {
-        const budgetValue = currentMonthBudgets[billName];
-        console.log(`Bill: ${billName}, Value: ${budgetValue}, Type: ${typeof budgetValue}`);
-        
-        // Only count valid budget values (exclude Extra Paid)
-        if (budgetValue > 0 && billName !== 'Extra Paid') {
-            totalBudget += budgetValue;
-            console.log(`  ✓ Added ${budgetValue} to total`);
-        } else {
-            console.log(`  ✗ Skipped (value: ${budgetValue}, billName: ${billName})`);
+    months.forEach(m => {
+        const mBudgets = monthlyBudgets[m] || {};
+        for (const billName in mBudgets) {
+            const v = mBudgets[billName];
+            if (v > 0 && billName !== 'Extra Paid') {
+                totalBudget += v;
+            }
         }
-    }
-    
-    console.log('Monthly total:', totalBudget);
-    
-    // Multiply by 12 for annual budget
-    totalBudget = totalBudget * 12;
-    
-    console.log('Annual budget (monthly × 12):', totalBudget);
-    console.log('=== END DEBUG ===');
-    
-    console.log(`Dashboard - Annual budget (${currentMonthName} budget × 12): $${totalBudget.toFixed(2)}`);
+    });
+
+    console.log(`Dashboard - Annual budget (sum of all months): $${totalBudget.toFixed(2)}`);
     
     months.forEach((month, index) => {
         const monthNumber = monthNumbers[month];
@@ -1947,9 +1920,40 @@ function updatePeriodicBillsBreakdown() {
         
         let dueText = '';
         if (config.dueMonth) {
-            dueText = `Due: ${monthNames[config.dueMonth]} 26`;
+            // Calculate next due date dynamically
+            const now = new Date();
+            const nowMonth = now.getMonth() + 1; // 1-indexed
+            const nowYear = now.getFullYear();
+            const dueMonthNames = {
+                1:'Jan',2:'Feb',3:'Mar',4:'Apr',5:'May',6:'Jun',
+                7:'Jul',8:'Aug',9:'Sep',10:'Oct',11:'Nov',12:'Dec'
+            };
+
+            let nextDueMonth = config.dueMonth;
+            let nextDueYear = nowYear;
+
+            if (config.frequency === 'quarterly') {
+                // Find next quarterly due date
+                const dueDates = [config.dueMonth, config.dueMonth+3, config.dueMonth+6, config.dueMonth+9]
+                    .map(m => ((m - 1) % 12) + 1);
+                nextDueMonth = dueDates.find(m => m >= nowMonth) || dueDates[0];
+                if (nextDueMonth < nowMonth) nextDueYear++;
+            } else if (config.frequency === 'semi-annual') {
+                const due2 = config.dueMonth + 6 > 12 ? config.dueMonth - 6 : config.dueMonth + 6;
+                const options = [config.dueMonth, due2].sort((a, b) => a - b);
+                nextDueMonth = options.find(m => m >= nowMonth) || options[0];
+                if (nextDueMonth < nowMonth) nextDueYear++;
+            } else {
+                // annual
+                if (config.dueMonth < nowMonth) nextDueYear++;
+                nextDueMonth = config.dueMonth;
+            }
+
+            const freqLabel = config.frequency === 'quarterly' ? 'Quarterly' :
+                              config.frequency === 'semi-annual' ? 'Semi-Annual' : 'Annual';
+            dueText = `${freqLabel} · Next due: ${dueMonthNames[nextDueMonth]} ${nextDueYear}`;
         } else {
-            dueText = `${config.frequency}`;
+            dueText = config.frequency;
         }
         
         // Determine status color
@@ -2009,12 +2013,105 @@ function updateDashboardMonth() {
     dashboardMonth.textContent = `${monthName} ${currentYear}`;
 }
 
+
+// ============================================
+// CARRYOVER TRACKER
+// ============================================
+
+let carryoverPayments = [];
+
+async function saveCarryoverPayments() {
+    if (isFirebaseEnabled) {
+        try {
+            await db.collection('users').doc(userId).set({ carryoverPayments, lastUpdated: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+        } catch (e) { localStorage.setItem('carryoverPayments', JSON.stringify(carryoverPayments)); }
+    } else { localStorage.setItem('carryoverPayments', JSON.stringify(carryoverPayments)); }
+}
+
+async function loadCarryoverPayments() {
+    if (isFirebaseEnabled) {
+        try {
+            const doc = await db.collection('users').doc(userId).get();
+            if (doc.exists && doc.data().carryoverPayments) { carryoverPayments = doc.data().carryoverPayments; return; }
+        } catch (e) {}
+    }
+    const saved = localStorage.getItem('carryoverPayments');
+    if (saved) carryoverPayments = JSON.parse(saved);
+}
+
+function showAddCarryoverPayment() {
+    document.getElementById('addCarryoverPaymentModal').style.display = 'block';
+    document.getElementById('carryoverPaymentDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('carryoverPaymentAmount').value = '';
+    document.getElementById('carryoverPaymentPaidBy').value = '';
+    document.getElementById('carryoverPaymentNote').value = '';
+}
+
+function closeAddCarryoverPayment() {
+    document.getElementById('addCarryoverPaymentModal').style.display = 'none';
+}
+
+function updateCarryoverTable() {
+    const tbody = document.getElementById('carryoverBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    const months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+    const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const currentMonthIndex = new Date().getMonth(); // 0-11, current month is NOT yet over
+    // Only include months that are fully in the past (strictly before current month)
+    const monthData = months.map((m, i) => ({ key: m, name: monthNames[i], index: i, overUnder: monthlyOverUnder[m] || 0 }))
+                            .filter(m => m.index < currentMonthIndex);
+    const sortedPayments = [...carryoverPayments].sort((a, b) => new Date(a.date) - new Date(b.date));
+    const monthBalances = monthData.map(m => ({ ...m, erikShare: m.overUnder * 0.58, saraShare: m.overUnder * 0.42, remaining: m.overUnder, paymentsApplied: [] }));
+    for (const payment of sortedPayments) {
+        let rem = payment.amount;
+        for (const mb of monthBalances) {
+            if (rem <= 0) break;
+            if (mb.remaining >= 0) continue;
+            const applied = Math.min(rem, Math.abs(mb.remaining));
+            mb.remaining += applied;
+            mb.paymentsApplied.push({ ...payment, applied });
+            rem -= applied;
+        }
+    }
+    let ytdOU = 0, ytdE = 0, ytdS = 0, ytdP = 0, ytdB = 0;
+    for (const mb of monthBalances) {
+        if (mb.overUnder === 0 && mb.paymentsApplied.length === 0) continue;
+        ytdOU += mb.overUnder; ytdE += mb.erikShare; ytdS += mb.saraShare;
+        const totalPaid = mb.paymentsApplied.reduce((s, p) => s + p.applied, 0);
+        ytdP += totalPaid; ytdB += mb.remaining;
+        const balClass = mb.remaining > 0 ? 'carryover-balance-positive' : mb.remaining < 0 ? 'carryover-balance-negative' : 'carryover-balance-zero';
+        const paymentsHtml = mb.paymentsApplied.length === 0 ? '<span style="color:var(--text-muted)">�</span>' :
+            mb.paymentsApplied.map(p => {
+                const cls = p.paidBy === 'Erik' ? 'paid-by-erik' : p.paidBy === 'Sara' ? 'paid-by-sara' : 'paid-by-other';
+                const d = new Date(p.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' });
+                return `<div class="carryover-payment-entry"><span class="${cls}">${p.paidBy}</span> $${p.applied.toFixed(2)} <span style="color:var(--text-muted)">(${d}${p.note ? ' � ' + p.note : ''})</span></div>`;
+            }).join('');
+        const row = document.createElement('tr');
+        row.innerHTML = `<td><strong>${mb.name}</strong></td><td style="color:${mb.overUnder>=0?'var(--success)':'var(--danger)'}">${mb.overUnder>=0?'+':''}$${mb.overUnder.toFixed(2)}</td><td style="color:${mb.erikShare>=0?'var(--success)':'var(--danger)'}">${mb.erikShare>=0?'+':''}$${mb.erikShare.toFixed(2)}</td><td style="color:${mb.saraShare>=0?'var(--success)':'var(--danger)'}">${mb.saraShare>=0?'+':''}$${mb.saraShare.toFixed(2)}</td><td>${paymentsHtml}</td><td class="${balClass}">${mb.remaining>=0?'+':''}$${mb.remaining.toFixed(2)}</td>`;
+        tbody.appendChild(row);
+    }
+    const fmt = (v) => `${v>=0?'+':''}$${v.toFixed(2)}`;
+    document.getElementById('carryoverYTDOverUnder').textContent = fmt(ytdOU);
+    document.getElementById('carryoverYTDOverUnder').style.color = ytdOU>=0?'var(--success)':'var(--danger)';
+    document.getElementById('carryoverYTDErik').textContent = fmt(ytdE);
+    document.getElementById('carryoverYTDSara').textContent = fmt(ytdS);
+    document.getElementById('carryoverYTDPaid').textContent = `$${ytdP.toFixed(2)}`;
+    document.getElementById('carryoverYTDBalance').className = ytdB>=0?'carryover-balance-positive':'carryover-balance-negative';
+    document.getElementById('carryoverYTDBalance').textContent = fmt(ytdB);
+}
+
+// ============================================
+// END CARRYOVER TRACKER
+// ============================================
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async function() {
     // Load saved data first
     await loadTransactions();
     loadFamilyExpenses();
     await loadMonthlyBudgets();
+    await loadCarryoverPayments();
     
     // Determine which month to show (saved or current)
     const savedMonth = localStorage.getItem('currentMonth');
@@ -2050,6 +2147,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     updateBudgetTotals();
     updateTransactionTable();
     updateDashboard();
+    updateCarryoverTable();
     
     // Restore saved tab or default to dashboard (do this last)
     const savedTab = localStorage.getItem('currentTab') || 'dashboard';
@@ -2070,6 +2168,27 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (tabBtn) tabBtn.classList.add('active');
 });
 
+
+// Carryover payment form handler
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('addCarryoverPaymentForm');
+    if (!form) return;
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const payment = {
+            date: document.getElementById('carryoverPaymentDate').value,
+            amount: parseFloat(document.getElementById('carryoverPaymentAmount').value),
+            paidBy: document.getElementById('carryoverPaymentPaidBy').value,
+            note: document.getElementById('carryoverPaymentNote').value,
+            id: Date.now()
+        };
+        carryoverPayments.push(payment);
+        await saveCarryoverPayments();
+        closeAddCarryoverPayment();
+        updateCarryoverTable();
+        showNotification(`Payment of $${payment.amount.toFixed(2)} by ${payment.paidBy} recorded!`);
+    });
+});
 // Transaction modal functions
 function showAddTransaction() {
     populateTransactionBillDropdown();
@@ -2194,13 +2313,13 @@ function updateTransactionTable() {
                 year: 'numeric'
             });
             
-            // Determine if this is a credit/deposit (negative amount or specific bill categories)
-            const isCredit = transaction.amount < 0 || 
-                           transaction.bill === 'Ignore/Internal Transfer' ||
-                           transaction.source.toLowerCase().includes('deposit') ||
-                           transaction.source.toLowerCase().includes('credit') ||
-                           transaction.source.toLowerCase().includes('refund') ||
-                           transaction.source.toLowerCase().includes('return');
+            // Show green + for actual credits (negative Plaid amounts = money coming in)
+            const isCredit = transaction.amount < 0;
+
+
+
+
+
             
             const amountClass = isCredit ? 'amount-credit' : '';
             const displayAmount = Math.abs(transaction.amount).toFixed(2);
@@ -2386,7 +2505,12 @@ function editField(cell) {
     };
     
     const cancelEdit = () => {
-        cell.textContent = originalText;
+        if (input.tagName === 'SELECT') {
+            input.remove();
+            cell.style.position = '';
+        } else {
+            cell.textContent = originalText;
+        }
     };
     
     input.addEventListener('blur', saveEdit);
@@ -2400,10 +2524,18 @@ function editField(cell) {
         }
     });
     
-    cell.textContent = '';
-    cell.appendChild(input);
-    input.focus();
-    if (input.select) input.select();
+    // For selects: overlay absolutely so row height doesn't change
+    // For inputs: replace content normally
+    if (input.tagName === 'SELECT') {
+        cell.style.position = 'relative';
+        cell.appendChild(input);
+        input.focus();
+    } else {
+        cell.textContent = '';
+        cell.appendChild(input);
+        input.focus();
+        if (input.select) input.select();
+    }
 }
 
 // Quick delete transaction
@@ -2517,12 +2649,11 @@ function updateBudgetTotals() {
     
     const rows = document.querySelectorAll('.budget-table tbody tr:not(.separator)');
     rows.forEach(row => {
-        // Column indices: 0=Bill, 1=Due Date, 2=Monthly Expense, 3=Actual, 4=Over/Under
         if (row.cells[2] && row.cells[3] && row.cells[4]) {
-            const budget = parseFloat(row.cells[2].textContent.replace(/[$,]/g, '')) || 0;
+            const budget = parseFloat(row.cells[2].textContent.replace(/[^0-9.-]/g, '')) || 0;
             const actualSpan = row.cells[3].querySelector('.actual-amount');
-            const actual = actualSpan ? parseFloat(actualSpan.textContent.replace(/[$,]/g, '')) || 0 : 0;
-            const overUnder = parseFloat(row.cells[4].textContent.replace(/[$,]/g, '')) || 0;
+            const actual = actualSpan ? parseFloat(actualSpan.textContent.replace(/[^0-9.-]/g, '')) || 0 : 0;
+            const overUnder = parseFloat(row.cells[4].textContent.replace(/[^0-9.-]/g, '')) || 0;
             
             totalBudget += budget;
             totalActual += actual;
@@ -2535,16 +2666,17 @@ function updateBudgetTotals() {
     document.getElementById('totalOverUnder').textContent = `$${totalOverUnder.toFixed(2)}`;
     document.getElementById('totalOverUnder').style.color = totalOverUnder >= 0 ? 'var(--success)' : 'var(--danger)';
     
-    // Calculate responsibility subtotals
-    const erikTotal = totalBudget * 0.58;
-    const saraTotal = totalBudget * 0.42;
+    // Calculate responsibility subtotals from the clean totalBudget value
+    const cleanBudget = parseFloat(totalBudget) || 0;
+    const erikTotal = cleanBudget * 0.58;
+    const saraTotal = cleanBudget * 0.42;
     const erikBiweekly = erikTotal / 2;
     const saraBiweekly = saraTotal / 2;
     
-    document.getElementById('erikTotal').textContent = `${erikTotal.toFixed(2)}`;
-    document.getElementById('erikBiweekly').textContent = `${erikBiweekly.toFixed(2)}`;
-    document.getElementById('saraTotal').textContent = `${saraTotal.toFixed(2)}`;
-    document.getElementById('saraBiweekly').textContent = `${saraBiweekly.toFixed(2)}`;
+    document.getElementById('erikTotal').textContent = `$${erikTotal.toFixed(2)}`;
+    document.getElementById('erikBiweekly').textContent = `$${erikBiweekly.toFixed(2)}`;
+    document.getElementById('saraTotal').textContent = `$${saraTotal.toFixed(2)}`;
+    document.getElementById('saraBiweekly').textContent = `$${saraBiweekly.toFixed(2)}`;
 }
 
 function showAddBill() {
