@@ -1,0 +1,793 @@
+[
+  {
+    "date": "2026-06-05",
+    "source": "TST*SHANGHAI BISTRO Eau Claire WI",
+    "amount": 47.17,
+    "bill": "Restaurants/Entertainment",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-06-05",
+    "source": "KWIK TRIP #633 EAU CLAIRE WI",
+    "amount": 68.07,
+    "bill": "Gas",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-06-03",
+    "source": "WALMART.COM",
+    "amount": 42.44,
+    "bill": "Groceries",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-31",
+    "source": "ALDI 72053 EAU CLAIRE WI",
+    "amount": 198.15,
+    "bill": "Groceries",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-30",
+    "source": "COUSINS MAINE LOBS",
+    "amount": 74.71,
+    "bill": "Restaurants/Entertainment",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-30",
+    "source": "KWIK TRIP #201 EAU CLAIRE WI",
+    "amount": 23.86,
+    "bill": "Gas",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-29",
+    "source": "KOBE'S JAPANESE RESTAU EAU CLAIRE WI",
+    "amount": 26.11,
+    "bill": "Restaurants/Entertainment",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-29",
+    "source": "PANDA EXPRESS #3445",
+    "amount": 16.99,
+    "bill": "Restaurants/Entertainment",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-28",
+    "source": "JEWELERS-MUTUAL-PMNT NEENAH WI",
+    "amount": 89.00,
+    "bill": "Miscellaneous",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-28",
+    "source": "KWIK TRIP #472 EAU CLAIRE WI",
+    "amount": 61.89,
+    "bill": "Gas",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-27",
+    "source": "SPECTRUM MOBILE SAINT LOUIS MO",
+    "amount": 20.27,
+    "bill": "Phones & Internet",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-27",
+    "source": "SUBWAY 43003 EAU CLAIRE WI",
+    "amount": 21.28,
+    "bill": "Restaurants/Entertainment",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-27",
+    "source": "CULVERS EAU CLAIRE",
+    "amount": 16.23,
+    "bill": "Restaurants/Entertainment",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-24",
+    "source": "ALDI 72053 EAU CLAIRE WI",
+    "amount": 72.28,
+    "bill": "Groceries",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-24",
+    "source": "BURR STORE 104 EAU CLAIRE WI",
+    "amount": 24.98,
+    "bill": "Family Expenses",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-24",
+    "source": "BURR STORE 104 EAU CLAIRE WI",
+    "amount": 6.16,
+    "bill": "Family Expenses",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-24",
+    "source": "SAM'S CLUB 008185 EAU CLAIRE WI",
+    "amount": 87.75,
+    "bill": "Groceries",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-23",
+    "source": "WEAVER'S COUNTRY STORE",
+    "amount": 73.77,
+    "bill": "Family Expenses",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-22",
+    "source": "SPECTRUM SAINT LOUIS MO",
+    "amount": 55.00,
+    "bill": "Phones & Internet",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-22",
+    "source": "BUGGSYS BARBERSHOP",
+    "amount": 50.00,
+    "bill": "Miscellaneous",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-22",
+    "source": "KOBE'S JAPANESE RESTAU",
+    "amount": 39.16,
+    "bill": "Restaurants/Entertainment",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-22",
+    "source": "TARGET.COM",
+    "amount": 7.81,
+    "bill": "Miscellaneous",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-21",
+    "source": "JACOBSONS MARKET",
+    "amount": 22.09,
+    "bill": "Groceries",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-21",
+    "source": "WALGREENS #1937",
+    "amount": 4.03,
+    "bill": "Miscellaneous",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-21",
+    "source": "FESTIVAL FOODS",
+    "amount": 35.40,
+    "bill": "Groceries",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-20",
+    "source": "EAU CLAIRE AREA SCHOOL",
+    "amount": 20.00,
+    "bill": "Dylan's School Lunches",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-20",
+    "source": "KWIK TRIP #472 EAU CLAIRE WI",
+    "amount": 66.31,
+    "bill": "Gas",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-20",
+    "source": "KWIK TRIP #472 EAU CLAIRE WI",
+    "amount": 29.56,
+    "bill": "Gas",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-19",
+    "source": "TARGET.COM",
+    "amount": 72.64,
+    "bill": "Miscellaneous",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-19",
+    "source": "TARGET.COM",
+    "amount": 5.45,
+    "bill": "Miscellaneous",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-18",
+    "source": "PAYMENT",
+    "amount": 1718.67,
+    "bill": "Miscellaneous",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-17",
+    "source": "TARGET FIELD CONCESSIO",
+    "amount": 25.23,
+    "bill": "Restaurants/Entertainment",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-17",
+    "source": "CULVERS OF HUDSON",
+    "amount": 33.93,
+    "bill": "Restaurants/Entertainment",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-16",
+    "source": "KWIK TRIP #1162 EAU CLAIRE WI",
+    "amount": 24.24,
+    "bill": "Gas",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-16",
+    "source": "KWIK TRIP #1162 EAU CLAIRE WI",
+    "amount": 11.47,
+    "bill": "Gas",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-16",
+    "source": "WALMART 001669 EAU CLAIRE WI",
+    "amount": 56.64,
+    "bill": "Groceries",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-16",
+    "source": "WALMART.COM",
+    "amount": 139.82,
+    "bill": "Miscellaneous",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-15",
+    "source": "LAMBEAUFIELDCONCESSION",
+    "amount": 19.40,
+    "bill": "Restaurants/Entertainment",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-14",
+    "source": "WALGREENS #1937",
+    "amount": 7.55,
+    "bill": "Miscellaneous",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-13",
+    "source": "CIRCLE K #2746577",
+    "amount": 11.00,
+    "bill": "Gas",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-13",
+    "source": "DAIRY QUEEN #43616",
+    "amount": 24.75,
+    "bill": "Restaurants/Entertainment",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-13",
+    "source": "KWIK TRIP #633 EAU CLAIRE WI",
+    "amount": 52.27,
+    "bill": "Gas",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-12",
+    "source": "FESTIVAL FOODS",
+    "amount": 56.31,
+    "bill": "Groceries",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-12",
+    "source": "DISNEY PLUS",
+    "amount": 13.70,
+    "bill": "Roku / Disney Subscriptions",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-12",
+    "source": "CHEWY.COM",
+    "amount": 28.33,
+    "bill": "Cat Food",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-11",
+    "source": "KWIK TRIP #1162 EAU CLAIRE WI",
+    "amount": 30.47,
+    "bill": "Gas",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-10",
+    "source": "ALDI 72005 CHIPPEWA FALL WI",
+    "amount": 125.04,
+    "bill": "Groceries",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-10",
+    "source": "YOUR.SMARTY-ME",
+    "amount": 6.93,
+    "bill": "Miscellaneous",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-10",
+    "source": "HY-VEE EAU CLAIRE 1166",
+    "amount": 4.22,
+    "bill": "Groceries",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-09",
+    "source": "PANERA BREAD #606376",
+    "amount": 23.26,
+    "bill": "Restaurants/Entertainment",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-09",
+    "source": "ALCATRAZ CRUISES",
+    "amount": 141.05,
+    "bill": "Travel Spending",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-06",
+    "source": "ALCATRAZ CRUISES",
+    "amount": 141.05,
+    "bill": "Travel Spending",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-06",
+    "source": "ALDI 72053 EAU CLAIRE WI",
+    "amount": 65.59,
+    "bill": "Groceries",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-06",
+    "source": "YOSEMITE CONSERVANCY",
+    "amount": 17.32,
+    "bill": "Travel Spending",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-04",
+    "source": "ALCATRAZ CRUISES",
+    "amount": 141.05,
+    "bill": "Travel Spending",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-04",
+    "source": "ALCATRAZ.CLICK",
+    "amount": 23.85,
+    "bill": "Travel Spending",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-02",
+    "source": "PRAIRIE MARKET",
+    "amount": 15.94,
+    "bill": "Groceries",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-01",
+    "source": "MMC-MFLD CAFE",
+    "amount": 2.50,
+    "bill": "Restaurants/Entertainment",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-01",
+    "source": "PANERA BREAD #606376",
+    "amount": 16.10,
+    "bill": "Restaurants/Entertainment",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-05-01",
+    "source": "CENEX-ALLIED COOPERATI",
+    "amount": 52.22,
+    "bill": "Gas",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-30",
+    "source": "MCDONALD'S F3903",
+    "amount": 20.00,
+    "bill": "Restaurants/Entertainment",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-30",
+    "source": "KWIK TRIP #472 EAU CLAIRE WI",
+    "amount": 16.98,
+    "bill": "Gas",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-29",
+    "source": "FESTIVAL FOODS",
+    "amount": 68.86,
+    "bill": "Groceries",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-29",
+    "source": "RANDYS FAMILY RESTAURA",
+    "amount": 19.87,
+    "bill": "Restaurants/Entertainment",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-29",
+    "source": "KWIK TRIP #398 EAU CLAIRE WI",
+    "amount": 59.34,
+    "bill": "Gas",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-27",
+    "source": "SPECTRUM MOBILE",
+    "amount": 20.27,
+    "bill": "Phones & Internet",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-27",
+    "source": "PANERA BREAD #606376",
+    "amount": 13.58,
+    "bill": "Restaurants/Entertainment",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-27",
+    "source": "ALDI 72053 EAU CLAIRE WI",
+    "amount": 44.99,
+    "bill": "Groceries",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-26",
+    "source": "HY-VEE EAU CLAIRE 1166",
+    "amount": 6.49,
+    "bill": "Groceries",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-25",
+    "source": "TEXAS ROADHOUSE #2271",
+    "amount": 126.38,
+    "bill": "Restaurants/Entertainment",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-25",
+    "source": "KWIK TRIP #201 EAU CLAIRE WI",
+    "amount": 41.34,
+    "bill": "Gas",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-23",
+    "source": "ALDI 72053 EAU CLAIRE WI",
+    "amount": 98.57,
+    "bill": "Groceries",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-23",
+    "source": "CHEWY.COM",
+    "amount": 76.34,
+    "bill": "Cat Food",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-23",
+    "source": "PAYMENT",
+    "amount": 1500.00,
+    "bill": "Miscellaneous",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-22",
+    "source": "SPECTRUM",
+    "amount": 55.00,
+    "bill": "Phones & Internet",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-22",
+    "source": "KWIK TRIP #472 EAU CLAIRE WI",
+    "amount": 17.55,
+    "bill": "Gas",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-19",
+    "source": "ALDI 72053 EAU CLAIRE WI",
+    "amount": 109.32,
+    "bill": "Groceries",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-19",
+    "source": "ALDI 72053 EAU CLAIRE WI",
+    "amount": 4.98,
+    "bill": "Groceries",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-19",
+    "source": "FESTIVAL FOODS",
+    "amount": 47.30,
+    "bill": "Groceries",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-19",
+    "source": "MCDONALD'S F162",
+    "amount": 20.00,
+    "bill": "Restaurants/Entertainment",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-19",
+    "source": "KWIK TRIP #1162 EAU CLAIRE WI",
+    "amount": 37.38,
+    "bill": "Gas",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-18",
+    "source": "OAKWOOD MALL",
+    "amount": 21.81,
+    "bill": "Family Expenses",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-18",
+    "source": "KOBE'S JAPANESE RESTAU",
+    "amount": 40.95,
+    "bill": "Restaurants/Entertainment",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-18",
+    "source": "DAIRY QUEEN #11011",
+    "amount": 9.37,
+    "bill": "Restaurants/Entertainment",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-18",
+    "source": "VENUPLUS INC",
+    "amount": 3.00,
+    "bill": "Miscellaneous",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-18",
+    "source": "KWIK TRIP #633 EAU CLAIRE WI",
+    "amount": 57.74,
+    "bill": "Gas",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-17",
+    "source": "FESTIVAL FOODS",
+    "amount": 36.26,
+    "bill": "Groceries",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-17",
+    "source": "NAYAX MADISON CONCOU",
+    "amount": 1.50,
+    "bill": "Miscellaneous",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-17",
+    "source": "NAYAX MADISON CONCOU",
+    "amount": 1.25,
+    "bill": "Miscellaneous",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-16",
+    "source": "SPEEDWAY 46569",
+    "amount": 62.44,
+    "bill": "Gas",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-16",
+    "source": "WP BEVERAGES",
+    "amount": 3.25,
+    "bill": "Miscellaneous",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-16",
+    "source": "WALMART.COM",
+    "amount": 68.57,
+    "bill": "Groceries",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-14",
+    "source": "EAU CLAIRE AREA SCHOOL",
+    "amount": 42.00,
+    "bill": "Dylan's School Lunches",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-12",
+    "source": "ALTOONA FAMILY RESTAUR",
+    "amount": 57.19,
+    "bill": "Restaurants/Entertainment",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-12",
+    "source": "WAHLBURGERS",
+    "amount": 72.57,
+    "bill": "Restaurants/Entertainment",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-12",
+    "source": "DISNEY PLUS",
+    "amount": 13.70,
+    "bill": "Roku / Disney Subscriptions",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-12",
+    "source": "SAM'S CLUB 008185",
+    "amount": 30.09,
+    "bill": "Groceries",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-12",
+    "source": "SAM'S CLUB 008185",
+    "amount": 16.33,
+    "bill": "Groceries",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-11",
+    "source": "FLYOVER AMERICA",
+    "amount": 80.26,
+    "bill": "Restaurants/Entertainment",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-11",
+    "source": "PRYES BREWING COMPANY",
+    "amount": 22.00,
+    "bill": "Restaurants/Entertainment",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-11",
+    "source": "DAIRY QUEEN #12859",
+    "amount": 16.84,
+    "bill": "Restaurants/Entertainment",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-11",
+    "source": "HYATT REGENCY MINNEAPO",
+    "amount": 41.77,
+    "bill": "Travel Spending",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-10",
+    "source": "HYATT REG MINNEAPOLIS",
+    "amount": 29.49,
+    "bill": "Travel Spending",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-08",
+    "source": "KWIK TRIP #633 EAU CLAIRE WI",
+    "amount": 64.91,
+    "bill": "Gas",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-07",
+    "source": "TARGET 00017749",
+    "amount": 107.56,
+    "bill": "Family Expenses",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-07",
+    "source": "FESTIVAL FOODS",
+    "amount": 42.33,
+    "bill": "Groceries",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-06",
+    "source": "SAMS CLUB.COM",
+    "amount": 27.67,
+    "bill": "Groceries",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-06",
+    "source": "SAMS CLUB.COM",
+    "amount": 6.48,
+    "bill": "Groceries",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-04",
+    "source": "ALDI 72053 EAU CLAIRE WI",
+    "amount": 15.86,
+    "bill": "Groceries",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-03",
+    "source": "KWIK TRIP #1162 EAU CLAIRE WI",
+    "amount": 33.13,
+    "bill": "Gas",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-02",
+    "source": "PANERA BREAD #606173",
+    "amount": 31.47,
+    "bill": "Restaurants/Entertainment",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-02",
+    "source": "DAIRY QUEEN #43616",
+    "amount": 9.46,
+    "bill": "Restaurants/Entertainment",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-04-01",
+    "source": "KWIK TRIP #633 EAU CLAIRE WI",
+    "amount": 18.54,
+    "bill": "Gas",
+    "account": "Sam's"
+  }
+]

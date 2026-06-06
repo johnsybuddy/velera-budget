@@ -472,6 +472,7 @@
                 <button class="btn-secondary" onclick="showImportCSV()">Import CSV/JSON</button>
                 <button class="btn-secondary" onclick="showLearnedPatterns()">🧠 View Learned Patterns</button>
                 <button id="linkBankButton" class="btn-secondary" onclick="showBankConnectionsModal()">🏦 Connect Bank Account</button>
+                <button class="btn-secondary" onclick="cleanupDuplicatesUI()" style="background-color: #FEF3C7; border-color: #FCD34D; color: #92400E;">🧹 Clean Duplicates</button>
             </div>
             <div class="transactions-table-container">
                 <div class="bulk-actions" style="margin-bottom: 1rem; display: none;" id="bulkActions">
@@ -572,13 +573,22 @@
     <div id="importCSVModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeImportCSV()">&times;</span>
-            <h2>Import Transactions</h2>
+            <h2>📥 Import Transactions</h2>
             <div class="csv-instructions">
-                <p>Upload a CSV file with columns: Date, Description, Amount</p>
-                <p>Or upload a JSON file with: date, source, amount, bill, account</p>
-                <p><small>Date format: YYYY-MM-DD or MM/DD/YYYY</small></p>
+                <div style="background: #f0f8ff; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
+                    <p><strong>Supported Formats:</strong></p>
+                    <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                        <li><strong>CSV:</strong> Date, Description, Amount columns (any format)</li>
+                        <li><strong>JSON:</strong> Array of objects with: date, source, amount, bill, account</li>
+                    </ul>
+                    <p><small>📅 Date formats: YYYY-MM-DD, MM/DD/YYYY, MM-DD-YYYY</small></p>
+                    <p><small>🏦 Bank formats supported: Chase, Wells Fargo, Bank of America, Capital One, or Generic</small></p>
+                </div>
             </div>
-            <input type="file" id="csvFileInput" accept=".csv,.json" onchange="handleCSVUpload(event)">
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Select File to Import:</label>
+                <input type="file" id="csvFileInput" accept=".csv,.json" onchange="handleCSVUpload(event)" style="display: block; width: 100%;">
+            </div>
             <div id="csvPreview" class="csv-preview"></div>
             <div class="form-actions">
                 <button type="button" class="btn-secondary" onclick="closeImportCSV()">Cancel</button>
@@ -816,16 +826,26 @@
                         Sync Transactions Now
                     </button>
                 </div>
+                
+                <div style="margin-top: 1rem;">
+                    <button class="btn-secondary" onclick="showDuplicateCleanupOption()" style="width: 100%; background-color: #FEF3C7; border-color: #FCD34D; color: #92400E;">
+                        <span style="margin-right: 0.5rem;">🧹</span>
+                        Clean Up Duplicate Transactions
+                    </button>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">
+                        Removes any exact duplicate transactions from your existing data. Run this once to clean up historical duplicates.
+                    </p>
+                </div>
             </div>
         </div>
     </div>
 
-    <script src="app.js?v=20260419"></script>
+    <script src="app.js?v=20260605"></script>
     
     <!-- Plaid Link SDK -->
     <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
     
     <!-- Plaid Integration -->
-    <script src="plaid-integration.js?v=20260605"></script>
+    <script src="plaid-integration.js?v=20260605b"></script>
 </body>
 </html>

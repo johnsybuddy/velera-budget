@@ -119,6 +119,28 @@ let categoryConfidence = {};
 
 // Enhanced cloud storage functions
 async function saveTransactions() {
+    // DUPLICATE PREVENTION: Remove duplicates before saving
+    if (transactions && transactions.length > 0) {
+        const seen = new Map();
+        const cleaned = [];
+        let duplicatesRemoved = 0;
+        
+        for (const tx of transactions) {
+            const key = `${tx.date}|${(tx.source || '').toLowerCase()}|${tx.amount}|${tx.account || 'RCU'}`;
+            if (!seen.has(key)) {
+                seen.set(key, true);
+                cleaned.push(tx);
+            } else {
+                duplicatesRemoved++;
+            }
+        }
+        
+        if (duplicatesRemoved > 0) {
+            console.log(`⚠️ Prevented ${duplicatesRemoved} duplicates during save`);
+            transactions = cleaned;
+        }
+    }
+    
     if (isFirebaseEnabled) {
         try {
             await db.collection('users').doc(userId).set({
@@ -737,46 +759,52 @@ function handleCSVUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
     
+    // Check file size (max 10MB)
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+        showNotification('File is too large. Maximum size is 10MB', 'error');
+        return;
+    }
+    
+    const fileName = file.name.toLowerCase();
+    const isJSON = fileName.endsWith('.json');
+    const isCSV = fileName.endsWith('.csv');
+    
+    if (!isJSON && !isCSV) {
+        showNotification('Please upload a .csv or .json file', 'error');
+        document.getElementById('csvFileInput').value = '';
+        return;
+    }
+    
     const reader = new FileReader();
+    reader.onerror = function() {
+        showNotification('Error reading file', 'error');
+        document.getElementById('csvFileInput').value = '';
+    };
     reader.onload = function(e) {
-        const csv = e.target.result;
-        parseCSV(csv);
+        try {
+            const content = e.target.result;
+            if (isJSON) {
+                parseJSON(content);
+            } else {
+                parseCSV(content);
+            }
+        } catch (error) {
+            showNotification(`Error parsing file: ${error.message}`, 'error');
+            console.error('File parsing error:', error);
+            document.getElementById('csvFileInput').value = '';
+            csvData = [];
+        }
     };
     reader.readAsText(file);
 }
 
 function parseCSV(csv) {
-    // Try to parse as JSON first
-    if (csv.trim().startsWith('[') || csv.trim().startsWith('{')) {
-        try {
-            const jsonData = JSON.parse(csv);
-            const transactions = Array.isArray(jsonData) ? jsonData : [jsonData];
-            
-            csvData = [];
-            for (const tx of transactions) {
-                if (tx.date && tx.source && tx.amount !== undefined) {
-                    csvData.push({
-                        date: formatDateForDisplay(tx.date),
-                        source: tx.source,
-                        amount: parseFloat(tx.amount),
-                        bill: tx.bill || 'Miscellaneous',
-                        account: tx.account || 'Unknown'
-                    });
-                }
-            }
-            
-            console.log(`Imported ${csvData.length} transactions from JSON`);
-            displayCSVPreview();
-            return;
-        } catch (e) {
-            console.log('Not JSON, falling back to CSV parsing:', e.message);
-        }
-    }
-    
     // Parse as CSV
     const lines = csv.split('\n').filter(line => line.trim());
     if (lines.length < 2) {
         showNotification('File must have at least a header and one data row', 'error');
+        csvData = [];
         return;
     }
     
@@ -791,12 +819,12 @@ function parseCSV(csv) {
     // Detect bank type and column mapping
     const bankConfig = detectBankType(headers);
     if (!bankConfig) {
-        showNotification('Could not identify bank format. Please check that your CSV has Date, Description, and Amount columns. Supported: Chase, Wells Fargo, Bank of America, Capital One, or Generic CSV', 'error');
+        showNotification('Could not identify CSV format. Please check that your file has Date, Description, and Amount columns.', 'error');
         console.log('Available headers:', headers);
         return;
     }
     
-    showNotification(`Detected ${bankConfig.name} format`);
+    showNotification(`✅ Detected ${bankConfig.name} format`);
     console.log('Bank config:', bankConfig);
     
     // Parse data rows - simple split, no complex quote handling
@@ -834,6 +862,92 @@ function parseCSV(csv) {
         });
     }
     displayCSVPreview();
+}
+
+function parseJSON(jsonString) {
+    try {
+        const data = JSON.parse(jsonString);
+        const items = Array.isArray(data) ? data : (data.transactions ? data.transactions : [data]);
+        
+        if (!Array.isArray(items) || items.length === 0) {
+            showNotification('JSON file must contain an array of transactions or a "transactions" property', 'error');
+            csvData = [];
+            return;
+        }
+        
+        csvData = [];
+        let skippedItems = [];
+        
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            
+            // Validate required fields
+            if (!item.date || !item.source || (item.amount === undefined || item.amount === null)) {
+                skippedItems.push({
+                    index: i + 1,
+                    reason: `Missing required fields (date: ${item.date}, source: ${item.source}, amount: ${item.amount})`,
+                    data: item
+                });
+                continue;
+            }
+            
+            // Parse the JSON transaction
+            const transaction = {
+                date: normalizeDate(item.date),
+                source: String(item.source).trim(),
+                amount: Math.abs(parseFloat(item.amount)),
+                bill: item.bill || autoCategorizeBill(item.source),
+                account: item.account || 'RCU'
+            };
+            
+            // Validate date parsing
+            if (!transaction.date) {
+                skippedItems.push({
+                    index: i + 1,
+                    reason: `Invalid date format: ${item.date}`,
+                    data: item
+                });
+                continue;
+            }
+            
+            // Validate amount
+            if (isNaN(transaction.amount) || transaction.amount === 0) {
+                skippedItems.push({
+                    index: i + 1,
+                    reason: `Invalid amount: ${item.amount}`,
+                    data: item
+                });
+                continue;
+            }
+            
+            // Check for duplicates
+            if (!isDuplicate(transaction)) {
+                csvData.push(transaction);
+            } else {
+                skippedItems.push({
+                    index: i + 1,
+                    reason: 'Duplicate transaction',
+                    data: item
+                });
+            }
+        }
+        
+        console.log(`JSON Import: Parsed ${csvData.length} transactions from ${items.length} items`);
+        if (skippedItems.length > 0) {
+            console.warn(`⚠️ Skipped ${skippedItems.length} items:`);
+            skippedItems.forEach(skip => {
+                console.warn(`  Item ${skip.index}: ${skip.reason}`, skip.data);
+            });
+        }
+        
+        showNotification(`✅ Loaded ${items.length} items from JSON (${csvData.length} valid, ${skippedItems.length} skipped)`);
+        displayCSVPreview();
+        
+    } catch (error) {
+        showNotification(`Invalid JSON format: ${error.message}`, 'error');
+        console.error('JSON parsing error:', error);
+        csvData = [];
+    }
 }
 
 function detectBankType(headers) {
@@ -3764,3 +3878,103 @@ async function fixSpectrumBill() {
 }
 
 console.log('To fix Spectrum bill mismatch, run: fixSpectrumBill()');
+
+
+/**
+ * Initialize cleanup button on page load
+ */
+function initializeCleanupButton() {
+    // Find the add-transaction div
+    const addTransDiv = document.querySelector('.add-transaction');
+    if (!addTransDiv) {
+        console.log('Could not find .add-transaction div');
+        return;
+    }
+    
+    // Check if button already exists
+    if (document.getElementById('cleanupDupButton')) {
+        return; // Already exists
+    }
+    
+    // Create the button
+    const btn = document.createElement('button');
+    btn.id = 'cleanupDupButton';
+    btn.className = 'btn-secondary';
+    btn.onclick = cleanupDuplicatesUI;
+    btn.textContent = '🧹 Clean Duplicates';
+    btn.style.backgroundColor = '#FEF3C7';
+    btn.style.borderColor = '#FCD34D';
+    btn.style.color = '#92400E';
+    
+    // Add to the div
+    addTransDiv.appendChild(btn);
+    console.log('✅ Cleanup button added');
+}
+
+// Initialize when document loads
+document.addEventListener('DOMContentLoaded', initializeCleanupButton);
+
+/**
+ * Clean up duplicate transactions - UI wrapper
+ */
+async function cleanupDuplicatesUI() {
+    const result = confirm(
+        '🧹 Remove Duplicate Transactions?\n\n' +
+        'This will remove any transactions with identical:\n' +
+        '• Date\n' +
+        '• Source/Merchant\n' +
+        '• Amount\n' +
+        '• Account\n\n' +
+        'WARNING: This cannot be undone!'
+    );
+    
+    if (!result) {
+        console.log('Cleanup cancelled');
+        return;
+    }
+    
+    console.log('Starting duplicate cleanup...');
+    
+    try {
+        const seen = new Map();
+        const toKeep = [];
+        let duplicatesFound = 0;
+        
+        for (const tx of transactions) {
+            const key = `${tx.date}|${(tx.source || '').toLowerCase()}|${tx.amount}|${tx.account || 'RCU'}`;
+            if (seen.has(key)) {
+                duplicatesFound++;
+            } else {
+                seen.set(key, tx);
+                toKeep.push(tx);
+            }
+        }
+        
+        if (duplicatesFound === 0) {
+            showNotification('✅ No duplicates found!', 'success');
+            console.log('No duplicates found');
+            return;
+        }
+        
+        transactions = toKeep;
+        await saveTransactions();
+        updateTransactionTable();
+        updateBudgetFromTransactions();
+        updateDashboard();
+        
+        const message = `✅ Cleanup Complete!\n🗑️ Removed: ${duplicatesFound}\n✓ Kept: ${transactions.length}`;
+        showNotification(message, 'success');
+        
+        console.log(`
+╔════════════════════════════════════════╗
+║   DUPLICATE CLEANUP COMPLETE          ║
+╠════════════════════════════════════════╣
+║ Duplicates Removed: ${duplicatesFound.toString().padStart(19)}│
+║ Transactions Kept:  ${transactions.length.toString().padStart(19)}│
+╚════════════════════════════════════════╝`);
+        
+    } catch (error) {
+        console.error('Error during cleanup:', error);
+        showNotification('❌ Error during cleanup: ' + error.message, 'error');
+    }
+}

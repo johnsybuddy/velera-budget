@@ -1,0 +1,237 @@
+═══════════════════════════════════════════════════════════════════════════════
+                    BILLS WEBSITE - IMPORT VISUAL GUIDE
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                                                             │
+│                        1. OPEN IMPORT DIALOG                               │
+│                                                                             │
+│  📊 Expenses Tab → "Import CSV/JSON" Button                               │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐  │
+│  │  📥 Import Transactions                          [X]               │  │
+│  │  ─────────────────────────────────────────────────────────────────  │  │
+│  │                                                                     │  │
+│  │  🏦 Supported Formats:                                              │  │
+│  │    • CSV: Date, Description, Amount columns (any format)           │  │
+│  │    • JSON: Array of objects with date, source, amount, ...         │  │
+│  │                                                                     │  │
+│  │  📅 Date formats: YYYY-MM-DD, MM/DD/YYYY, MM-DD-YYYY              │  │
+│  │                                                                     │  │
+│  │  Select File to Import:                                            │  │
+│  │  ┌─────────────────────────────────────────────────────────────┐  │  │
+│  │  │ [Choose File...] sample-import.csv                          │  │  │
+│  │  └─────────────────────────────────────────────────────────────┘  │  │
+│  │                                                                     │  │
+│  │  (import preview will appear here after selecting file)            │  │
+│  │                                                                     │  │
+│  │                         [Cancel] [Import Transactions]             │  │
+│  │                                                                     │  │
+│  └─────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                                                             │
+│                      2. SELECT FILE & PREVIEW APPEARS                      │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐  │
+│  │  📥 Import Transactions                          [X]               │  │
+│  │  ─────────────────────────────────────────────────────────────────  │  │
+│  │                                                                     │  │
+│  │  Select File to Import:                                            │  │
+│  │  ┌─────────────────────────────────────────────────────────────┐  │  │
+│  │  │ [Choose File...] sample-import.csv                 ✅ Selected │  │
+│  │  └─────────────────────────────────────────────────────────────┘  │  │
+│  │                                                                     │  │
+│  │  ┌─── 📊 IMPORT SUMMARY ───────────────────────────────────────┐  │  │
+│  │  │  ┌──────────┐  ┌──────────┐  ┌──────────┐                   │  │  │
+│  │  │  │    5     │  │    5     │  │    0     │                   │  │  │
+│  │  │  │ CSV Rows │  │ Will Imp │  │Duplicates│                   │  │  │
+│  │  │  └──────────┘  └──────────┘  └──────────┘                   │  │  │
+│  │  └──────────────────────────────────────────────────────────────┘  │  │
+│  │                                                                     │  │
+│  │  ┌─── PREVIEW TABLE ────────────────────────────────────────────┐  │  │
+│  │  │ Date       │ Description │ Amount  │ Category │ Account │ St  │  │  │
+│  │  ├────────────┼─────────────┼─────────┼──────────┼─────────┼─────┤  │  │
+│  │  │ 6/1/2026   │ Target      │ $45.99  │ Grocers. │ RCU    │ ✅  │  │  │
+│  │  │ 6/2/2026   │ Shell Gas   │ $52.00  │ Gas      │ RCU    │ ✅  │  │  │
+│  │  │ 6/3/2026   │ Walmart     │ $127.50 │ Family E.│ Sam's  │ ✅  │  │  │
+│  │  │ 6/4/2026   │ Chipotle    │ $18.75  │ Restaur. │ RCU    │ ✅  │  │  │
+│  │  │ 6/5/2026   │ CVS         │ $29.99  │ Dylan's  │ RCU    │ ✅  │  │  │
+│  │  └────────────┴─────────────┴─────────┴──────────┴─────────┴─────┘  │  │
+│  │                                                                     │  │
+│  │                         [Cancel] [Import Transactions] ✅         │  │
+│  │                                                                     │  │
+│  └─────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+│  STATUS: ✅ 5 new transactions ready to import                            │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                                                             │
+│                    3. DUPLICATE DETECTION EXAMPLE                          │
+│                                                                             │
+│  (When importing same file twice)                                         │
+│                                                                             │
+│  ┌─── 📊 IMPORT SUMMARY ───────────────────────────────────────────┐      │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐                      │      │
+│  │  │    5     │  │    0     │  │    5     │                      │      │
+│  │  │ CSV Rows │  │ Will Imp │  │Duplicates│                      │      │
+│  │  └──────────┘  └──────────┘  └──────────┘                      │      │
+│  └──────────────────────────────────────────────────────────────────┘      │
+│                                                                             │
+│  ┌─── PREVIEW TABLE (Duplicates grayed out) ────────────────────────┐      │
+│  │ Date       │ Description │ Amount  │ Category │ Account │ Status  │      │
+│  ├────────────┼─────────────┼─────────┼──────────┼─────────┼─────────┤      │
+│  │ 6/1/2026   │ Target      │ $45.99  │ Grocers. │ RCU    │ 🔄 Dup. │      │
+│  │ 6/2/2026   │ Shell Gas   │ $52.00  │ Gas      │ RCU    │ 🔄 Dup. │      │
+│  │ 6/3/2026   │ Walmart     │ $127.50 │ Family E.│ Sam's  │ 🔄 Dup. │      │
+│  │ 6/4/2026   │ Chipotle    │ $18.75  │ Restaur. │ RCU    │ 🔄 Dup. │      │
+│  │ 6/5/2026   │ CVS         │ $29.99  │ Dylan's  │ RCU    │ 🔄 Dup. │      │
+│  └────────────┴─────────────┴─────────┴──────────┴─────────┴─────────┘      │
+│                                                                             │
+│  (Import button disabled - nothing new to import)                          │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                                                             │
+│                       4. IMPORT COMPLETE - SUCCESS                         │
+│                                                                             │
+│  After clicking "Import Transactions":                                    │
+│                                                                             │
+│  ╔═════════════════════════════════════════════════════════════════════╗  │
+│  ║  ✅ Import Complete!                                                 ║  │
+│  ║  📊 CSV Rows: 5                                                      ║  │
+│  ║  ✅ Imported: 5                                                      ║  │
+│  ║  (Duplicates skipped: 0)                                            ║  │
+│  ╚═════════════════════════════════════════════════════════════════════╝  │
+│                                                                             │
+│  📋 Transaction Log now shows:                                            │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐  │
+│  │ Date     │ Source/Store   │ Amount   │ Account │ Bill Category     │  │
+│  ├──────────┼────────────────┼──────────┼─────────┼──────────────────┤  │
+│  │ 6/5/2026 │ CVS Pharmacy   │ $29.99   │ RCU     │ Dylan's Medic.   │  │
+│  │ 6/4/2026 │ Chipotle       │ $18.75   │ RCU     │ Restaurants/Ent. │  │
+│  │ 6/3/2026 │ Walmart        │ $127.50  │ Sam's   │ Family Expenses  │  │
+│  │ 6/2/2026 │ Shell Gas      │ $52.00   │ RCU     │ Gas              │  │
+│  │ 6/1/2026 │ Target         │ $45.99   │ RCU     │ Groceries        │  │
+│  └──────────┴────────────────┴──────────┴─────────┴──────────────────┘  │
+│                                                                             │
+│  Dashboard & Budget updated automatically! 📊                            │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                        JSON FILE FORMAT EXAMPLE
+═══════════════════════════════════════════════════════════════════════════════
+
+sample-import.json (Simple format):
+
+[
+  {
+    "date": "2026-06-01",
+    "source": "Target",
+    "amount": 45.99,
+    "bill": "Groceries",
+    "account": "RCU"
+  },
+  {
+    "date": "2026-06-02",
+    "source": "Shell Gas Station",
+    "amount": 52.00,
+    "bill": "Gas",
+    "account": "RCU"
+  },
+  ...
+]
+
+═══════════════════════════════════════════════════════════════════════════════
+                        CSV FILE FORMAT EXAMPLE
+═══════════════════════════════════════════════════════════════════════════════
+
+sample-import.csv (Generic format):
+
+Date,Description,Amount
+06/01/2026,Target,45.99
+06/02/2026,Shell Gas Station,52.00
+06/03/2026,Walmart,127.50
+06/04/2026,Chipotle,18.75
+06/05/2026,CVS Pharmacy,29.99
+
+═══════════════════════════════════════════════════════════════════════════════
+                        VALIDATION ERROR EXAMPLES
+═══════════════════════════════════════════════════════════════════════════════
+
+❌ "File is too large"
+   → Your file is >10MB. Split into smaller files.
+
+❌ "Please upload a .csv or .json file"
+   → You selected wrong file type. Choose .csv or .json only.
+
+❌ "Could not identify CSV format"
+   → CSV headers don't have Date, Description, Amount.
+   → Solution: Check your CSV structure.
+
+❌ "Invalid JSON format: Unexpected token"
+   → JSON syntax error. Check for missing commas, quotes, brackets.
+   → Validate JSON at jsonlint.com
+
+❌ "No valid transactions found"
+   → No rows passed validation. Check:
+      • Date format is YYYY-MM-DD or MM/DD/YYYY
+      • Amount is a valid number
+      • Has date, source (description), and amount
+
+═══════════════════════════════════════════════════════════════════════════════
+                        CONSOLE LOGS (F12 → Console)
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ Successful CSV import shows:
+   Bank config: {name: "Generic CSV", dateCol: 0, descCol: 1, ...}
+   Total parsed transactions: 5 (from 5 rows)
+   CSV Import Summary:
+       - Total rows in CSV: 5
+       - New transactions imported: 5
+       - Duplicates skipped: 0
+       - Total transactions now: XXX
+
+⚠️ Some duplicates shows:
+   CSV Import Summary:
+       - Total rows in CSV: 5
+       - New transactions imported: 0
+       - Duplicates skipped: 5
+
+✅ Successful JSON import shows:
+   JSON Import: Parsed 5 transactions from 5 items
+   ✅ Loaded 5 items from JSON (5 valid, 0 skipped)
+
+═══════════════════════════════════════════════════════════════════════════════
+                        QUICK WORKFLOW
+═══════════════════════════════════════════════════════════════════════════════
+
+1️⃣  Click "Import CSV/JSON" in Expenses tab
+    ↓
+2️⃣  Select file (sample-import.json or sample-import.csv)
+    ↓
+3️⃣  Review preview:
+    • Check summary stats
+    • Verify transactions shown
+    • Confirm categories
+    ↓
+4️⃣  Click "Import Transactions"
+    ↓
+5️⃣  Wait for success notification
+    ↓
+6️⃣  Check Transaction Log
+    ↓
+7️⃣  View updated Dashboard
+
+═══════════════════════════════════════════════════════════════════════════════

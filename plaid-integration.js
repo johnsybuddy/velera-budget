@@ -129,9 +129,33 @@ async function syncTransactions() {
         
         if (result.transactions) {
             const count = result.count || result.transactions.length || 0;
-            // Import transactions into your existing system
-            await importPlaidTransactions(result.transactions);
-            showNotification(`Synced ${count} transactions!`, 'success');
+            
+            // CLIENT-SIDE DUPLICATE PREVENTION
+            // Filter out any transactions that already exist locally
+            const plaidTransactions = result.transactions;
+            const newTransactions = [];
+            let duplicatesFiltered = 0;
+            
+            for (const plaidTx of plaidTransactions) {
+                const isDuplicate = transactions.some(t => 
+                    t.date === plaidTx.date &&
+                    (t.source || '').toLowerCase() === (plaidTx.merchant || plaidTx.name || '').toLowerCase() &&
+                    Math.abs(t.amount - Math.abs(plaidTx.amount)) < 0.01 &&
+                    t.account === ((plaidTx.institutionName || '').includes('Sam') ? 'Sam\'s' : 'RCU')
+                );
+                
+                if (!isDuplicate) {
+                    newTransactions.push(plaidTx);
+                } else {
+                    duplicatesFiltered++;
+                }
+            }
+            
+            console.log(`Plaid Sync - Duplicates filtered out: ${duplicatesFiltered}, New transactions: ${newTransactions.length}`);
+            
+            // Import only the new transactions
+            await importPlaidTransactions(newTransactions);
+            showNotification(`Synced ${newTransactions.length} new transactions!`, 'success');
             
             // Refresh the transaction table
             updateTransactionTable();
@@ -149,11 +173,30 @@ async function syncTransactions() {
  */
 async function importPlaidTransactions(plaidTransactions) {
     let importedCount = 0;
+    let skippedCount = 0;
     
     for (const plaidTx of plaidTransactions) {
-        // Check if transaction already exists
-        const exists = transactions.some(t => t.plaidId === plaidTx.id);
-        if (exists) continue;
+        // First check: if it has a plaidId, check for exact Plaid ID match
+        const plaidIdExists = transactions.some(t => t.plaidId === plaidTx.id);
+        if (plaidIdExists) {
+            skippedCount++;
+            continue;
+        }
+        
+        // Second check: detect duplicates by matching transaction details
+        // This catches duplicates from earlier imports that don't have plaidId
+        const isDuplicate = transactions.some(t => 
+            t.date === plaidTx.date &&
+            (t.source || '').toLowerCase() === (plaidTx.merchant || plaidTx.name || '').toLowerCase() &&
+            Math.abs(t.amount - Math.abs(plaidTx.amount)) < 0.01 && // Allow for rounding
+            t.account === ((plaidTx.institutionName || '').includes('Sam') ? 'Sam\'s' : 'RCU')
+        );
+        
+        if (isDuplicate) {
+            skippedCount++;
+            console.log(`Skipping duplicate: ${plaidTx.date} ${plaidTx.merchant} $${plaidTx.amount}`);
+            continue;
+        }
         
         // Map Plaid transaction to your format
         const transaction = {
@@ -174,7 +217,11 @@ async function importPlaidTransactions(plaidTransactions) {
     // Save to Firebase
     await saveTransactions();
     
-    console.log(`Imported ${importedCount} new transactions`);
+    console.log(`Plaid Sync Summary:
+    - New transactions imported: ${importedCount}
+    - Duplicates skipped: ${skippedCount}
+    - Total transactions now: ${transactions.length}`);
+    
     return importedCount;
 }
 
@@ -312,3 +359,72 @@ function getDateDaysAgo(days) {
 // ============================================
 // END PLAID INTEGRATION
 // ============================================
+
+
+/**
+ * CLEANUP: Remove duplicate transactions from your existing data
+ * Call this once to clean up old duplicates, then future syncs will prevent them
+ */
+async function removeDuplicateTransactions() {
+    if (!transactions || transactions.length === 0) return 0;
+    
+    console.log('Starting duplicate cleanup...');
+    console.log(`Initial transaction count: ${transactions.length}`);
+    
+    const seen = new Map(); // Map of "date|source|amount|account" -> transaction
+    const toKeep = [];
+    let duplicatesFound = 0;
+    
+    for (const tx of transactions) {
+        // Create a unique key for this transaction
+        const key = `${tx.date}|${(tx.source || '').toLowerCase()}|${tx.amount}|${tx.account || 'RCU'}`;
+        
+        if (seen.has(key)) {
+            // This is a duplicate - skip it
+            duplicatesFound++;
+            console.log(`Duplicate found and removed: ${key}`);
+        } else {
+            // First occurrence - keep it
+            seen.set(key, tx);
+            toKeep.push(tx);
+        }
+    }
+    
+    // Replace transactions array with cleaned data
+    transactions = toKeep;
+    
+    // Save to Firebase
+    if (duplicatesFound > 0) {
+        await saveTransactions();
+    }
+    
+    console.log(`Duplicate Cleanup Summary:
+    - Duplicates removed: ${duplicatesFound}
+    - Transactions kept: ${transactions.length}
+    - Saved to database: ${duplicatesFound > 0 ? 'Yes' : 'No'}`);
+    
+    showNotification(`✅ Removed ${duplicatesFound} duplicate transactions!`, 'success');
+    
+    // Refresh UI
+    updateTransactionTable();
+    updateBudgetFromTransactions();
+    updateDashboard();
+    
+    return duplicatesFound;
+}
+
+/**
+ * Show option to clean up existing duplicates
+ */
+function showDuplicateCleanupOption() {
+    const result = confirm(
+        'Found duplicate transactions in your database.\n\n' +
+        'Click OK to remove all duplicates now.\n' +
+        'This will clean up your existing data and prevent future duplicates.\n\n' +
+        'WARNING: This cannot be undone!'
+    );
+    
+    if (result) {
+        removeDuplicateTransactions();
+    }
+}

@@ -66,6 +66,11 @@ exports.fetchTransactions = onCall({ cors: CORS_ORIGINS }, async (request) => {
     const accountsSnapshot = await admin.firestore()
       .collection('users').doc(userId).collection('plaidAccounts').get();
     if (accountsSnapshot.empty) return { transactions: [], count: 0 };
+    
+    // Get previously synced transaction IDs to prevent duplicates
+    const userDoc = await admin.firestore().collection('users').doc(userId).get();
+    const syncedTransactionIds = userDoc.data()?.syncedTransactionIds || [];
+    
     let allTransactions = [];
     for (const doc of accountsSnapshot.docs) {
       const { accessToken, accounts } = doc.data();
@@ -78,7 +83,11 @@ exports.fetchTransactions = onCall({ cors: CORS_ORIGINS }, async (request) => {
           end_date: endDate,
           options: { account_ids: [targetAccount.id] },
         });
-        allTransactions = allTransactions.concat(response.data.transactions.map(t => ({
+        
+        // Filter out already-synced transactions
+        const newTransactions = response.data.transactions.filter(t => !syncedTransactionIds.includes(t.transaction_id));
+        
+        allTransactions = allTransactions.concat(newTransactions.map(t => ({
           id: t.transaction_id,
           date: t.date,
           name: t.name,
@@ -89,6 +98,13 @@ exports.fetchTransactions = onCall({ cors: CORS_ORIGINS }, async (request) => {
           account_id: t.account_id,
           institutionName: doc.data().institutionName || '',
         })));
+        
+        // Add newly synced IDs to the list
+        const newSyncedIds = [...syncedTransactionIds, ...newTransactions.map(t => t.transaction_id)];
+        await admin.firestore().collection('users').doc(userId).update({
+          syncedTransactionIds: newSyncedIds
+        });
+        
       } catch (e) {
         console.error('fetchTransactions inner error:', e.message);
       }

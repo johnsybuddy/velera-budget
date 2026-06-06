@@ -1,0 +1,37 @@
+[
+  {
+    "date": "2026-06-01",
+    "source": "Target",
+    "amount": 45.99,
+    "bill": "Groceries",
+    "account": "RCU"
+  },
+  {
+    "date": "2026-06-02",
+    "source": "Shell Gas Station",
+    "amount": 52.00,
+    "bill": "Gas",
+    "account": "RCU"
+  },
+  {
+    "date": "2026-06-03",
+    "source": "Walmart",
+    "amount": 127.50,
+    "bill": "Family Expenses",
+    "account": "Sam's"
+  },
+  {
+    "date": "2026-06-04",
+    "source": "Chipotle",
+    "amount": 18.75,
+    "bill": "Restaurants/Entertainment",
+    "account": "RCU"
+  },
+  {
+    "date": "2026-06-05",
+    "source": "CVS Pharmacy",
+    "amount": 29.99,
+    "bill": "Dylan's Medication",
+    "account": "RCU"
+  }
+]

@@ -1,0 +1,164 @@
+================================================================================
+                    IMPORT QUICK REFERENCE - JSON & CSV
+================================================================================
+
+BASIC STEPS:
+1. Click "Import CSV/JSON" button in Expenses tab
+2. Select a .csv or .json file
+3. Review preview
+4. Click "Import Transactions"
+
+================================================================================
+                            JSON FORMAT (SIMPLEST)
+================================================================================
+
+Basic Example:
+[
+  {"date": "2026-06-01", "source": "Target", "amount": 45.99},
+  {"date": "2026-06-02", "source": "Shell", "amount": 52.00}
+]
+
+With Full Fields:
+[
+  {
+    "date": "2026-06-01",
+    "source": "Target",
+    "amount": 45.99,
+    "bill": "Groceries",
+    "account": "RCU"
+  }
+]
+
+Required Fields: date, source, amount
+Optional Fields: bill, account
+Date Formats: YYYY-MM-DD or MM/DD/YYYY
+Accounts: "RCU" (default), "Sam's"
+
+================================================================================
+                            CSV FORMAT (FROM BANK)
+================================================================================
+
+Simple Format (Auto-Detected):
+Date,Description,Amount
+06/01/2026,Target,45.99
+06/02/2026,Shell,52.00
+
+Supported Banks:
+- Chase: Transaction Date | Description | Amount
+- Wells Fargo: Date | Description | Amount
+- Bank of America: Posted Date | Payee | Amount
+- Capital One: Transaction Date | Description | Debit | Credit
+- Generic: Any Date/Desc/Amount columns
+
+Delimiters: Tab or Comma (auto-detected)
+Date Formats: YYYY-MM-DD, MM/DD/YYYY, MM-DD-YYYY
+
+================================================================================
+                            SUPPORTED DATE FORMATS
+================================================================================
+
+All these work:
+✓ 2026-06-01        (ISO format)
+✓ 06/01/2026        (US format)
+✓ 06-01-2026        (Alternative US)
+✓ 2026/06/01        (ISO with slashes)
+
+================================================================================
+                            IMPORT PREVIEW SHOWS
+================================================================================
+
+📊 CSV Rows        = Total rows in file
+✅ Will Import     = New transactions
+⚠️ Duplicates      = Skipped (already exist)
+
+Status Indicators:
+✅ New             = Will be imported
+🔄 Duplicate       = Skipped (grayed out)
+
+================================================================================
+                            DUPLICATE DETECTION
+================================================================================
+
+A transaction is considered a duplicate if it has:
+- Same date
+- Same source/merchant
+- Same amount
+- Same account
+- Same bill category
+
+Safe to import same file multiple times - duplicates auto-skipped.
+
+================================================================================
+                            AUTO-CATEGORIZATION
+================================================================================
+
+If "bill" not provided in JSON or CSV missing category:
+- System looks at merchant name
+- Matches against learned patterns
+- Falls back to common keywords
+- Default: "Miscellaneous"
+
+Examples auto-categorized:
+- "Target" → Groceries
+- "Shell" → Gas
+- "Chipotle" → Restaurants/Entertainment
+
+Can edit after import if needed.
+
+================================================================================
+                            ERROR MESSAGES
+================================================================================
+
+"File is too large"
+→ Max 10MB. Split into smaller files.
+
+"Could not identify CSV format"
+→ CSV needs Date, Description/Payee, Amount columns.
+
+"No valid transactions found"
+→ Check: header row, date format, all 3 required fields.
+
+"Invalid JSON format"
+→ Check JSON syntax. Use [{ ... }] or { "transactions": [...] }
+
+================================================================================
+                            TROUBLESHOOTING
+================================================================================
+
+All transactions marked duplicate?
+→ You've imported this file before. Check Transaction Log.
+
+Categories wrong?
+→ Edit individual transactions after import.
+→ Or use JSON format to specify categories.
+
+Import seems slow?
+→ Large files take time. Don't close the page.
+
+Want to see what happened?
+→ Open DevTools (F12) → Console tab for detailed logs.
+
+Column detection wrong?
+→ Ensure headers match: Date, Description/Payee, Amount.
+
+================================================================================
+                            SAMPLE FILES IN PROJECT
+================================================================================
+
+sample-import.json   - Example JSON format (5 transactions)
+sample-import.csv    - Example CSV format (5 transactions)
+
+Use these to test before importing your real data.
+
+================================================================================
+                            TIPS
+================================================================================
+
+💡 Export from your bank as CSV and import directly
+💡 Use JSON if you have custom/manual data to add
+💡 Check console (F12) for detailed import logs
+💡 Verify transactions in log after import
+💡 Safe to re-import - duplicates automatically skip
+💡 Edit transactions after import if categories wrong
+
+================================================================================
