@@ -847,5 +847,34 @@
     
     <!-- Plaid Integration -->
     <script src="plaid-integration.js?v=20260606"></script>
+    
+    <!-- Inline Cleanup Function -->
+    <script>
+        function cleanupDuplicatesUI() {
+            if (!confirm('Remove all duplicate transactions?')) return;
+            
+            const seen = new Map();
+            const toKeep = [];
+            let removed = 0;
+            
+            for (const tx of transactions) {
+                const key = tx.date + '|' + (tx.source || '').toLowerCase() + '|' + tx.amount + '|' + (tx.account || 'RCU');
+                if (!seen.has(key)) {
+                    seen.set(key, true);
+                    toKeep.push(tx);
+                } else {
+                    removed++;
+                }
+            }
+            
+            transactions = toKeep;
+            saveTransactions();
+            updateTransactionTable();
+            updateBudgetFromTransactions();
+            updateDashboard();
+            
+            alert('Removed ' + removed + ' duplicates! Kept ' + transactions.length + ' transactions.');
+        }
+    </script>
 </body>
 </html>
