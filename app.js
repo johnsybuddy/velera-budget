@@ -245,14 +245,14 @@ async function loadMonthlyBudgets() {
         'Groceries': 850.00,
         'Restaurants/Entertainment': 300.00,
         'Cat Food': 20.00,
-        "Dylan's Medication": 90.00,
-        "Dylan's School Lunches": 50.00,
+        "Health & Wellness": 90.00,
+        "Education & Training": 50.00,
         'Roku / Disney Subscriptions': 25.00,
         'Miscellaneous': 50.00,
         'Emergency Fund': 225.00,
         'Travel Spending': 100.00,
-        'Dylan Investment': 35.00,
-        'Brooks Investment': 25.00,
+        'Student Investment': 35.00,
+        'Child Investment': 25.00,
         'Extra Paid': 0.00
     };
     
@@ -508,14 +508,14 @@ function updateBudgetFromTransactions() {
     // Bills that should show positive credit when under budget
     const positiveCreditBills = [
         'Gas', 'Groceries', 'Restaurants/Entertainment', 'Cat Food',
-        "Dylan's Medication", "Dylan's School Lunches", 'Roku / Disney Subscriptions',
-        'Miscellaneous', 'Emergency Fund', 'Travel Spending', 'Dylan Investment', 'Brooks Investment',
-        'Miscellaneous Erik', 'Miscellaneous Sara', 'Daycare'
+        "Health & Wellness", "Education & Training", 'Roku / Disney Subscriptions',
+        'Miscellaneous', 'Emergency Fund', 'Travel Spending', 'Student Investment', 'Child Investment',
+        'Miscellaneous Person A', 'Miscellaneous Person B', 'Daycare'
     ];
     
     // Update actual amounts and over/under
     let totalActual = 0;
-    let extraPaidAmount = (billTotals['Extra Paid Erik'] || 0) + (billTotals['Erik Paid Sara'] || 0);
+    let extraPaidAmount = (billTotals['Extra Paid Person A'] || 0) + (billTotals['Person A Paid Person B'] || 0);
     const rows = document.querySelectorAll('.budget-table tbody tr:not(.separator)');
     
     rows.forEach(row => {
@@ -542,7 +542,7 @@ function updateBudgetFromTransactions() {
                 actualSpan.style.cursor = 'default';
             }
             
-            if (billName === 'Extra Paid Erik' || billName === 'Erik Paid Sara') {
+            if (billName === 'Extra Paid Person A' || billName === 'Person A Paid Person B') {
                 // Extra Paid categories are always positive
                 overUnderCell.textContent = `$${actual.toFixed(2)}`;
                 overUnderCell.style.color = 'var(--success)';
@@ -621,15 +621,15 @@ function updateBudgetFromTransactions() {
     monthlyOverUnder[currentMonth] = totalOverUnder;
     
     // Calculate responsibility subtotals
-    const erikTotal = totalBudget * 0.58;
-    const saraTotal = totalBudget * 0.42;
-    const erikBiweekly = erikTotal / 2;
-    const saraBiweekly = saraTotal / 2;
+    const Person ATotal = totalBudget * 0.58;
+    const Person BTotal = totalBudget * 0.42;
+    const Person ABiweekly = Person ATotal / 2;
+    const Person BBiweekly = Person BTotal / 2;
     
-    document.getElementById('erikTotal').textContent = `$${erikTotal.toFixed(2)}`;
-    document.getElementById('erikBiweekly').textContent = `$${erikBiweekly.toFixed(2)}`;
-    document.getElementById('saraTotal').textContent = `$${saraTotal.toFixed(2)}`;
-    document.getElementById('saraBiweekly').textContent = `$${saraBiweekly.toFixed(2)}`;
+    document.getElementById('Person ATotal').textContent = `$${Person ATotal.toFixed(2)}`;
+    document.getElementById('Person ABiweekly').textContent = `$${Person ABiweekly.toFixed(2)}`;
+    document.getElementById('Person BTotal').textContent = `$${Person BTotal.toFixed(2)}`;
+    document.getElementById('Person BBiweekly').textContent = `$${Person BBiweekly.toFixed(2)}`;
 }
 
 // Helper function to calculate over/under for any specific month
@@ -663,10 +663,10 @@ function calculateMonthOverUnder(monthName) {
     const budgets = monthlyBudgets[monthName] || {};
     
     const positiveCreditBills = [
-        'Gas', 'Groceries', 'Restaurants/Entertainment', 'Cat Food', "Dylan's Medication",
-        "Dylan's School Lunches", 'Roku / Disney Subscriptions', 'Miscellaneous',
-        'Emergency Fund', 'Travel Spending', 'Dylan Investment', 'Brooks Investment',
-        'Miscellaneous Erik', 'Miscellaneous Sara', 'Daycare'
+        'Gas', 'Groceries', 'Restaurants/Entertainment', 'Cat Food', "Health & Wellness",
+        "Education & Training", 'Roku / Disney Subscriptions', 'Miscellaneous',
+        'Emergency Fund', 'Travel Spending', 'Student Investment', 'Child Investment',
+        'Miscellaneous Person A', 'Miscellaneous Person B', 'Daycare'
     ];
     
     let totalOverUnder = 0;
@@ -681,7 +681,7 @@ function calculateMonthOverUnder(monthName) {
         const actual = billTotals[billName] || 0;
         let overUnder = 0;
         
-        if (billName === 'Extra Paid Erik' || billName === 'Erik Paid Sara') {
+        if (billName === 'Extra Paid Person A' || billName === 'Person A Paid Person B') {
             overUnder = actual;
         } else if (isPeriodicBill(billName)) {
             const config = periodicBillsConfig[billName];
@@ -1398,7 +1398,7 @@ function autoCategorizeBill(description) {
         desc.includes('medicine') || desc.includes('drug store') || desc.includes('rite aid') ||
         desc.includes('meijer pharmacy') || desc.includes('walmart pharmacy') || desc.includes('target pharmacy') ||
         desc.includes('costco pharmacy') || desc.includes('kroger pharmacy') || desc.includes('safeway pharmacy')) {
-        return "Dylan's Medication";
+        return "Health & Wellness";
     }
     
     // School related - Enhanced matching
@@ -1406,7 +1406,7 @@ function autoCategorizeBill(description) {
         desc.includes('student') || desc.includes('education') || desc.includes('school district') ||
         desc.includes('elementary') || desc.includes('middle school') || desc.includes('high school') ||
         desc.includes('meal plan') || desc.includes('school meals')) {
-        return "Dylan's School Lunches";
+        return "Education & Training";
     }
     
     // Pet supplies - Enhanced matching
@@ -1431,10 +1431,10 @@ function autoCategorizeBill(description) {
         desc.includes('ira') || desc.includes('retirement') || desc.includes('mutual fund') ||
         desc.includes('vanguard') || desc.includes('fidelity') || desc.includes('schwab') ||
         desc.includes('edward jones') || desc.includes('ameriprise') || desc.includes('merrill lynch')) {
-        if (desc.includes('dylan') || desc.includes('child') || desc.includes('kid')) {
-            return 'Dylan Investment';
-        } else if (desc.includes('brooks') || desc.includes('baby')) {
-            return 'Brooks Investment';
+        if (desc.includes('child') || desc.includes('child') || desc.includes('kid')) {
+            return 'Student Investment';
+        } else if (desc.includes('dependent') || desc.includes('baby')) {
+            return 'Child Investment';
         } else {
             return 'Emergency Fund';
         }
@@ -1692,9 +1692,9 @@ function updateBudget() {
         'Mortgage + Escrow (Ins-Taxes)', 'Car Payment', 'Auto Insurance', 'AAA Roadside Assistance',
         'Gas', 'Jewelers Insurance', 'Earthbound Garbage', 'Water', 'Xcel Energy', 'Spectrum Internet + Helium Mobile',
         'YMCA Membership', 'Charity', 'Daycare', 'Groceries', 'Restaurants/Entertainment', 'Cat Food',
-        "Dylan's Medication", "Dylan's School Lunches", 'Roku / Disney Subscriptions', 'Miscellaneous',
-        'Emergency Fund', 'Travel Spending', 'Dylan Investment', 'Brooks Investment', 
-        'Extra Paid Erik', 'Erik Paid Sara', 'Miscellaneous Erik', 'Miscellaneous Sara'
+        "Health & Wellness", "Education & Training", 'Roku / Disney Subscriptions', 'Miscellaneous',
+        'Emergency Fund', 'Travel Spending', 'Student Investment', 'Child Investment', 
+        'Extra Paid Person A', 'Person A Paid Person B', 'Miscellaneous Person A', 'Miscellaneous Person B'
     ];
     
     budgetInputs.forEach((input, index) => {
@@ -1815,17 +1815,17 @@ function updateBudgetCategories() {
     const familyExpenses = (budgets['Groceries'] || 0) + 
                           (budgets['Restaurants/Entertainment'] || 0) + 
                           (budgets['Cat Food'] || 0) + 
-                          (budgets["Dylan's Medication"] || 0) + 
-                          (budgets["Dylan's School Lunches"] || 0) + 
+                          (budgets["Health & Wellness"] || 0) + 
+                          (budgets["Education & Training"] || 0) + 
                           (budgets['Roku / Disney Subscriptions'] || 0) + 
                           (budgets['Miscellaneous'] || 0) + 
-                          (budgets['Miscellaneous Erik'] || 0) + 
-                          (budgets['Miscellaneous Sara'] || 0);
+                          (budgets['Miscellaneous Person A'] || 0) + 
+                          (budgets['Miscellaneous Person B'] || 0);
     
     const savingsInvestment = (budgets['Emergency Fund'] || 0) + 
                              (budgets['Travel Spending'] || 0) + 
-                             (budgets['Dylan Investment'] || 0) + 
-                             (budgets['Brooks Investment'] || 0);
+                             (budgets['Student Investment'] || 0) + 
+                             (budgets['Child Investment'] || 0);
     
     const totalBudget = housingInsurance + billsUtilities + familyExpenses + savingsInvestment;
     
@@ -2225,7 +2225,7 @@ function updateCarryoverTable() {
         const balClass = mb.remaining > 0 ? 'carryover-balance-positive' : mb.remaining < 0 ? 'carryover-balance-negative' : 'carryover-balance-zero';
         const paymentsHtml = mb.paymentsApplied.length === 0 ? '<span style="color:var(--text-muted)">�</span>' :
             mb.paymentsApplied.map(p => {
-                const cls = p.paidBy === 'Erik' ? 'paid-by-erik' : p.paidBy === 'Sara' ? 'paid-by-sara' : 'paid-by-other';
+                const cls = p.paidBy === 'Person A' ? 'paid-by-Person A' : p.paidBy === 'Person B' ? 'paid-by-Person B' : 'paid-by-other';
                 const d = new Date(p.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' });
                 return `<div class="carryover-payment-entry"><span class="${cls}">${p.paidBy}</span> $${p.applied.toFixed(2)} <span style="color:var(--text-muted)">(${d}${p.note ? ' � ' + p.note : ''})</span></div>`;
             }).join('');
@@ -2577,9 +2577,9 @@ function editField(cell) {
             'Mortgage + Escrow (Ins-Taxes)', 'Car Payment', 'Auto Insurance', 'AAA Roadside Assistance',
             'Gas', 'Jewelers Insurance', 'Earthbound Garbage', 'Water', 'Xcel Energy', 'Spectrum Internet + Helium Mobile',
             'YMCA Membership', 'Charity', 'Daycare', 'Groceries', 'Restaurants/Entertainment', 'Cat Food',
-            "Dylan's Medication", "Dylan's School Lunches", 'Roku / Disney Subscriptions', 'Miscellaneous',
-            'Emergency Fund', 'Travel Spending', 'Dylan Investment', 'Brooks Investment', 
-            'Extra Paid Erik', 'Erik Paid Sara', 'Miscellaneous Erik', 'Miscellaneous Sara', 'Ignore/Internal Transfer'
+            "Health & Wellness", "Education & Training", 'Roku / Disney Subscriptions', 'Miscellaneous',
+            'Emergency Fund', 'Travel Spending', 'Student Investment', 'Child Investment', 
+            'Extra Paid Person A', 'Person A Paid Person B', 'Miscellaneous Person A', 'Miscellaneous Person B', 'Ignore/Internal Transfer'
         ];
         categories.forEach(cat => {
             const option = document.createElement('option');
@@ -2808,15 +2808,15 @@ function updateBudgetTotals() {
     
     // Calculate responsibility subtotals from the clean totalBudget value
     const cleanBudget = parseFloat(totalBudget) || 0;
-    const erikTotal = cleanBudget * 0.58;
-    const saraTotal = cleanBudget * 0.42;
-    const erikBiweekly = erikTotal / 2;
-    const saraBiweekly = saraTotal / 2;
+    const Person ATotal = cleanBudget * 0.58;
+    const Person BTotal = cleanBudget * 0.42;
+    const Person ABiweekly = Person ATotal / 2;
+    const Person BBiweekly = Person BTotal / 2;
     
-    document.getElementById('erikTotal').textContent = `$${erikTotal.toFixed(2)}`;
-    document.getElementById('erikBiweekly').textContent = `$${erikBiweekly.toFixed(2)}`;
-    document.getElementById('saraTotal').textContent = `$${saraTotal.toFixed(2)}`;
-    document.getElementById('saraBiweekly').textContent = `$${saraBiweekly.toFixed(2)}`;
+    document.getElementById('Person ATotal').textContent = `$${Person ATotal.toFixed(2)}`;
+    document.getElementById('Person ABiweekly').textContent = `$${Person ABiweekly.toFixed(2)}`;
+    document.getElementById('Person BTotal').textContent = `$${Person BTotal.toFixed(2)}`;
+    document.getElementById('Person BBiweekly').textContent = `$${Person BBiweekly.toFixed(2)}`;
 }
 
 function showAddBill() {
@@ -3329,8 +3329,8 @@ function matchBillCategory(transcript) {
         'Mortgage + Escrow (Ins-Taxes)', 'Car Payment', 'Auto Insurance', 'AAA Roadside Assistance',
         'Gas', 'Jewelers Insurance', 'Earthbound Garbage', 'Water', 'Xcel Energy', 'Spectrum Internet + Helium Mobile',
         'YMCA Membership', 'Charity', 'Daycare', 'Groceries', 'Restaurants/Entertainment', 'Cat Food',
-        "Dylan's Medication", "Dylan's School Lunches", 'Roku / Disney Subscriptions', 'Miscellaneous',
-        'Emergency Fund', 'Travel Spending', 'Dylan Investment', 'Brooks Investment', 'Extra Paid'
+        "Health & Wellness", "Education & Training", 'Roku / Disney Subscriptions', 'Miscellaneous',
+        'Emergency Fund', 'Travel Spending', 'Student Investment', 'Child Investment', 'Extra Paid'
     ];
     
     const keywords = {
@@ -3367,11 +3367,11 @@ function matchBillCategory(transcript) {
         'cat food': 'Cat Food',
         'cat': 'Cat Food',
         'pet food': 'Cat Food',
-        'dylan medication': "Dylan's Medication",
-        'medication': "Dylan's Medication",
-        'medicine': "Dylan's Medication",
-        'school lunch': "Dylan's School Lunches",
-        'lunch': "Dylan's School Lunches",
+        'child medication': "Health & Wellness",
+        'medication': "Health & Wellness",
+        'medicine': "Health & Wellness",
+        'school lunch': "Education & Training",
+        'lunch': "Education & Training",
         'roku': 'Roku / Disney Subscriptions',
         'disney': 'Roku / Disney Subscriptions',
         'streaming': 'Roku / Disney Subscriptions',
@@ -3383,9 +3383,9 @@ function matchBillCategory(transcript) {
         'savings': 'Emergency Fund',
         'travel': 'Travel Spending',
         'vacation': 'Travel Spending',
-        'dylan investment': 'Dylan Investment',
-        'brooks investment': 'Brooks Investment',
-        'investment': 'Dylan Investment',
+        'Student Investment': 'Student Investment',
+        'Child Investment': 'Child Investment',
+        'investment': 'Student Investment',
         'extra paid': 'Extra Paid',
         'extra': 'Extra Paid'
     };
@@ -3803,14 +3803,14 @@ async function initializeAllMonthsWithDefaults() {
         'Groceries': 850.00,
         'Restaurants/Entertainment': 300.00,
         'Cat Food': 20.00,
-        "Dylan's Medication": 90.00,
-        "Dylan's School Lunches": 50.00,
+        "Health & Wellness": 90.00,
+        "Education & Training": 50.00,
         'Roku / Disney Subscriptions': 25.00,
         'Miscellaneous': 50.00,
         'Emergency Fund': 225.00,
         'Travel Spending': 100.00,
-        'Dylan Investment': 35.00,
-        'Brooks Investment': 25.00,
+        'Student Investment': 35.00,
+        'Child Investment': 25.00,
         'Extra Paid': 0.00
     };
     
@@ -3943,3 +3943,24 @@ async function cleanupDuplicatesUI() {
         showNotification('❌ Error during cleanup: ' + error.message, 'error');
     }
 }
+
+
+
+
+// ===== INITIALIZATION =====
+// Load demo data when page loads
+window.addEventListener('load', async function() {
+    console.log('Page loaded, initializing Velera-Budget demo...');
+    try {
+        await loadMonthlyBudgets();
+        await loadTransactions();
+        loadMonthBudget('jan');
+        updateBudgetTotals();
+        updateTransactionTable();
+        updateDashboard();
+        updateCarryoverTable();
+        console.log('✅ Demo initialized');
+    } catch(e) {
+        console.error('Error initializing:', e);
+    }
+});
