@@ -3880,39 +3880,6 @@ async function fixSpectrumBill() {
 console.log('To fix Spectrum bill mismatch, run: fixSpectrumBill()');
 
 
-/**
- * Initialize cleanup button on page load
- */
-function initializeCleanupButton() {
-    // Find the add-transaction div
-    const addTransDiv = document.querySelector('.add-transaction');
-    if (!addTransDiv) {
-        console.log('Could not find .add-transaction div');
-        return;
-    }
-    
-    // Check if button already exists
-    if (document.getElementById('cleanupDupButton')) {
-        return; // Already exists
-    }
-    
-    // Create the button
-    const btn = document.createElement('button');
-    btn.id = 'cleanupDupButton';
-    btn.className = 'btn-secondary';
-    btn.onclick = cleanupDuplicatesUI;
-    btn.textContent = '🧹 Clean Duplicates';
-    btn.style.backgroundColor = '#FEF3C7';
-    btn.style.borderColor = '#FCD34D';
-    btn.style.color = '#92400E';
-    
-    // Add to the div
-    addTransDiv.appendChild(btn);
-    console.log('✅ Cleanup button added');
-}
-
-// Initialize when document loads
-document.addEventListener('DOMContentLoaded', initializeCleanupButton);
 
 /**
  * Clean up duplicate transactions - UI wrapper
