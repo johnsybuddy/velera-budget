@@ -848,9 +848,10 @@
     <!-- Plaid Integration -->
     <script src="plaid-integration.js?v=20260606"></script>
     
-    <!-- Inline Cleanup Function -->
+    <!-- Inline Cleanup Function and Button Injection -->
     <script>
-        function cleanupDuplicatesUI() {
+        // Create cleanup function
+        window.cleanupDuplicatesUI = function() {
             if (!confirm('Remove all duplicate transactions?')) return;
             
             const seen = new Map();
@@ -874,7 +875,24 @@
             updateDashboard();
             
             alert('Removed ' + removed + ' duplicates! Kept ' + transactions.length + ' transactions.');
-        }
+        };
+        
+        // Inject button as soon as DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            const addTransDiv = document.querySelector('.add-transaction');
+            if (addTransDiv && !document.getElementById('cleanupBtn')) {
+                const btn = document.createElement('button');
+                btn.id = 'cleanupBtn';
+                btn.className = 'btn-secondary';
+                btn.innerHTML = '🧹 Clean Duplicates';
+                btn.style.backgroundColor = '#FEF3C7';
+                btn.style.borderColor = '#FCD34D';
+                btn.style.color = '#92400E';
+                btn.onclick = window.cleanupDuplicatesUI;
+                addTransDiv.appendChild(btn);
+                console.log('✅ Cleanup button injected');
+            }
+        });
     </script>
 </body>
 </html>
