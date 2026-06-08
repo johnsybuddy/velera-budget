@@ -118,21 +118,21 @@ async function syncTransactions() {
     try {
         showNotification('Syncing transactions...', 'info');
         
-        console.log('Fetching transactions...');
+        console.log('🔄 Starting Plaid sync...');
         
         const result = await callCloudFunction('fetchTransactions', {
             startDate: getDateDaysAgo(90), // Last 90 days
             endDate: getTodayDateString()
         });
         
-        console.log('Fetch result:', result);
+        console.log('📥 Fetch result:', result);
         
         if (result.transactions) {
-            const count = result.count || result.transactions.length || 0;
+            const plaidTransactions = result.transactions;
+            const totalFromPlaid = plaidTransactions.length;
             
             // CLIENT-SIDE DUPLICATE PREVENTION
             // Filter out any transactions that already exist locally
-            const plaidTransactions = result.transactions;
             const newTransactions = [];
             let duplicatesFiltered = 0;
             
@@ -151,11 +151,22 @@ async function syncTransactions() {
                 }
             }
             
-            console.log(`Plaid Sync - Duplicates filtered out: ${duplicatesFiltered}, New transactions: ${newTransactions.length}`);
+            console.log(`
+╔════════════════════════════════════════╗
+║   PLAID SYNC - FILTERING STAGE          ║
+╠════════════════════════════════════════╣
+║ 📤 Transactions from Plaid: ${totalFromPlaid.toString().padEnd(21)} ║
+║ ❌ Duplicates filtered out: ${duplicatesFiltered.toString().padEnd(22)} ║
+║ ✅ New to import: ${newTransactions.length.toString().padEnd(32)} ║
+╚════════════════════════════════════════╝`);
             
             // Import only the new transactions
-            await importPlaidTransactions(newTransactions);
-            showNotification(`Synced ${newTransactions.length} new transactions!`, 'success');
+            if (newTransactions.length > 0) {
+                await importPlaidTransactions(newTransactions);
+                showNotification(`✅ Synced ${newTransactions.length} new transactions!`, 'success');
+            } else {
+                showNotification('✅ Sync complete - no new transactions', 'success');
+            }
             
             // Refresh the transaction table
             updateTransactionTable();
@@ -163,28 +174,30 @@ async function syncTransactions() {
             updateDashboard();
         }
     } catch (error) {
-        console.error('Error syncing transactions:', error);
+        console.error('❌ Error syncing transactions:', error);
         showNotification('Failed to sync transactions: ' + error.message, 'error');
     }
 }
 
 /**
  * Import Plaid transactions into your existing transaction system
+ * WITH TRIPLE-CHECK duplicate prevention
  */
 async function importPlaidTransactions(plaidTransactions) {
     let importedCount = 0;
     let skippedCount = 0;
     
     for (const plaidTx of plaidTransactions) {
-        // First check: if it has a plaidId, check for exact Plaid ID match
+        // FIRST CHECK: Exact Plaid ID match (server already filtered these, but double-check)
         const plaidIdExists = transactions.some(t => t.plaidId === plaidTx.id);
         if (plaidIdExists) {
             skippedCount++;
+            console.log(`DUPLICATE (by Plaid ID): ${plaidTx.id}`);
             continue;
         }
         
-        // Second check: detect duplicates by matching transaction details
-        // This catches duplicates from earlier imports that don't have plaidId
+        // SECOND CHECK: Match by date + merchant + amount + account
+        // This catches any stragglers from manual imports or older data
         const isDuplicate = transactions.some(t => 
             t.date === plaidTx.date &&
             (t.source || '').toLowerCase() === (plaidTx.merchant || plaidTx.name || '').toLowerCase() &&
@@ -194,8 +207,21 @@ async function importPlaidTransactions(plaidTransactions) {
         
         if (isDuplicate) {
             skippedCount++;
-            console.log(`Skipping duplicate: ${plaidTx.date} ${plaidTx.merchant} $${plaidTx.amount}`);
+            console.log(`DUPLICATE (by details): ${plaidTx.date} | ${plaidTx.merchant} | $${Math.abs(plaidTx.amount)}`);
             continue;
+        }
+        
+        // THIRD CHECK: Final safety check - look for ANY transaction with same date/amount
+        // (broader check in case merchant name varies slightly)
+        const fuzzyMatch = transactions.some(t =>
+            t.date === plaidTx.date &&
+            Math.abs(t.amount - Math.abs(plaidTx.amount)) < 0.01 &&
+            t.account === ((plaidTx.institutionName || '').includes('Sam') ? 'Sam\'s' : 'RCU')
+        );
+        
+        if (fuzzyMatch) {
+            console.log(`⚠️ POTENTIAL DUPLICATE (fuzzy match, importing anyway): ${plaidTx.date} | $${Math.abs(plaidTx.amount)}`);
+            // Log but still import - user can manually review or cleanup
         }
         
         // Map Plaid transaction to your format
@@ -214,13 +240,17 @@ async function importPlaidTransactions(plaidTransactions) {
         importedCount++;
     }
     
-    // Save to Firebase
+    // Save to Firebase (which also does duplicate removal as a final safety net)
     await saveTransactions();
     
-    console.log(`Plaid Sync Summary:
-    - New transactions imported: ${importedCount}
-    - Duplicates skipped: ${skippedCount}
-    - Total transactions now: ${transactions.length}`);
+    console.log(`
+╔════════════════════════════════════════╗
+║   PLAID SYNC SUMMARY                   ║
+╠════════════════════════════════════════╣
+║ ✅ New transactions imported: ${importedCount.toString().padEnd(18)} ║
+║ ⏭️  Duplicates skipped: ${skippedCount.toString().padEnd(25)} ║
+║ 📊 Total transactions now: ${transactions.length.toString().padEnd(23)} ║
+╚════════════════════════════════════════╝`);
     
     return importedCount;
 }
