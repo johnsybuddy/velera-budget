@@ -104,7 +104,7 @@ const firebaseConfig = {
     storageBucket: "work-budget-tracker.firebasestorage.app",
     messagingSenderId: "704722132019",
     appId: "1:704722132019:web:7178ac03b6e94832d85746",
-    measurementId: "G-GCBWCYHHE4"
+    measurementId: "G-NVLR9RBVGL"
 };
 
 // Initialize Firebase
