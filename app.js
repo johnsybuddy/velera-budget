@@ -2204,7 +2204,7 @@ function updateCarryoverTable() {
     const monthData = months.map((m, i) => ({ key: m, name: monthNames[i], index: i, overUnder: monthlyOverUnder[m] || 0 }))
                             .filter(m => m.index < currentMonthIndex);
     const sortedPayments = [...carryoverPayments].sort((a, b) => new Date(a.date) - new Date(b.date));
-    const monthBalances = monthData.map(m => ({ ...m, erikShare: m.overUnder * 0.58, saraShare: m.overUnder * 0.42, remaining: m.overUnder, paymentsApplied: [] }));
+    const monthBalances = monthData.map(m => ({ ...m, remaining: m.overUnder, paymentsApplied: [] }));
     for (const payment of sortedPayments) {
         let rem = payment.amount;
         for (const mb of monthBalances) {
@@ -2216,10 +2216,10 @@ function updateCarryoverTable() {
             rem -= applied;
         }
     }
-    let ytdOU = 0, ytdE = 0, ytdS = 0, ytdP = 0, ytdB = 0;
+    let ytdOU = 0, ytdP = 0, ytdB = 0;
     for (const mb of monthBalances) {
         if (mb.overUnder === 0 && mb.paymentsApplied.length === 0) continue;
-        ytdOU += mb.overUnder; ytdE += mb.erikShare; ytdS += mb.saraShare;
+        ytdOU += mb.overUnder;
         const totalPaid = mb.paymentsApplied.reduce((s, p) => s + p.applied, 0);
         ytdP += totalPaid; ytdB += mb.remaining;
         const balClass = mb.remaining > 0 ? 'carryover-balance-positive' : mb.remaining < 0 ? 'carryover-balance-negative' : 'carryover-balance-zero';
@@ -2230,14 +2230,12 @@ function updateCarryoverTable() {
                 return `<div class="carryover-payment-entry"><span class="${cls}">${p.paidBy}</span> $${p.applied.toFixed(2)} <span style="color:var(--text-muted)">(${d}${p.note ? ' � ' + p.note : ''})</span></div>`;
             }).join('');
         const row = document.createElement('tr');
-        row.innerHTML = `<td><strong>${mb.name}</strong></td><td style="color:${mb.overUnder>=0?'var(--success)':'var(--danger)'}">${mb.overUnder>=0?'+':''}$${mb.overUnder.toFixed(2)}</td><td style="color:${mb.erikShare>=0?'var(--success)':'var(--danger)'}">${mb.erikShare>=0?'+':''}$${mb.erikShare.toFixed(2)}</td><td style="color:${mb.saraShare>=0?'var(--success)':'var(--danger)'}">${mb.saraShare>=0?'+':''}$${mb.saraShare.toFixed(2)}</td><td>${paymentsHtml}</td><td class="${balClass}">${mb.remaining>=0?'+':''}$${mb.remaining.toFixed(2)}</td>`;
+        row.innerHTML = `<td><strong>${mb.name}</strong></td><td style="color:${mb.overUnder>=0?'var(--success)':'var(--danger)'}">${mb.overUnder>=0?'+':''}$${mb.overUnder.toFixed(2)}</td><td>${paymentsHtml}</td><td class="${balClass}">${mb.remaining>=0?'+':''}$${mb.remaining.toFixed(2)}</td>`;
         tbody.appendChild(row);
     }
     const fmt = (v) => `${v>=0?'+':''}$${v.toFixed(2)}`;
     document.getElementById('carryoverYTDOverUnder').textContent = fmt(ytdOU);
     document.getElementById('carryoverYTDOverUnder').style.color = ytdOU>=0?'var(--success)':'var(--danger)';
-    document.getElementById('carryoverYTDErik').textContent = fmt(ytdE);
-    document.getElementById('carryoverYTDSara').textContent = fmt(ytdS);
     document.getElementById('carryoverYTDPaid').textContent = `$${ytdP.toFixed(2)}`;
     document.getElementById('carryoverYTDBalance').className = ytdB>=0?'carryover-balance-positive':'carryover-balance-negative';
     document.getElementById('carryoverYTDBalance').textContent = fmt(ytdB);
