@@ -73,9 +73,9 @@ function parseLocalDate(dateString) {
 // Firebase Configuration
 const firebaseConfig = {
     apiKey: "AIzaSyCnpK-aY7cQdkW1MoloTHJD-GJSSswJXxE",
-    authDomain: "johnson-fam-bills.firebaseapp.com",
-    projectId: "johnson-fam-bills",
-    storageBucket: "johnson-fam-bills.firebasestorage.app",
+    authDomain: "work-budget-tracker.firebaseapp.com",
+    projectId: "work-budget-tracker",
+    storageBucket: "work-budget-tracker.firebasestorage.app",
     messagingSenderId: "859356967572",
     appId: "1:859356967572:web:db2f34908247872ed2ba81",
     measurementId: "G-GCBWCYHHE4"
@@ -105,7 +105,7 @@ try {
 }
 
 // User ID for data isolation
-const userId = 'johnsybuddy'; // Your username
+const userId = 'work-user'; // Separate workspace for work budget
 
 // Store transactions
 let transactions = [
