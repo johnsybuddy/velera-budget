@@ -245,14 +245,14 @@ async function loadMonthlyBudgets() {
         'Groceries': 850.00,
         'Restaurants/Entertainment': 300.00,
         'Cat Food': 20.00,
-        "Health & Wellness": 90.00,
-        "Education & Training": 50.00,
+        "Dylan's Medication": 90.00,
+        "Dylan's School Lunches": 50.00,
         'Roku / Disney Subscriptions': 25.00,
         'Miscellaneous': 50.00,
         'Emergency Fund': 225.00,
         'Travel Spending': 100.00,
-        'Student Investment': 35.00,
-        'Child Investment': 25.00,
+        'Dylan Investment': 35.00,
+        'Brooks Investment': 25.00,
         'Extra Paid': 0.00
     };
     
@@ -508,14 +508,14 @@ function updateBudgetFromTransactions() {
     // Bills that should show positive credit when under budget
     const positiveCreditBills = [
         'Gas', 'Groceries', 'Restaurants/Entertainment', 'Cat Food',
-        "Health & Wellness", "Education & Training", 'Roku / Disney Subscriptions',
-        'Miscellaneous', 'Emergency Fund', 'Travel Spending', 'Student Investment', 'Child Investment',
-        'Miscellaneous Person A', 'Miscellaneous Person B', 'Daycare'
+        "Dylan's Medication", "Dylan's School Lunches", 'Roku / Disney Subscriptions',
+        'Miscellaneous', 'Emergency Fund', 'Travel Spending', 'Dylan Investment', 'Brooks Investment',
+        'Miscellaneous Erik', 'Miscellaneous Sara', 'Daycare'
     ];
     
     // Update actual amounts and over/under
     let totalActual = 0;
-    let extraPaidAmount = (billTotals['Extra Paid Person A'] || 0) + (billTotals['Person A Paid Person B'] || 0);
+    let extraPaidAmount = (billTotals['Extra Paid Erik'] || 0) + (billTotals['Erik Paid Sara'] || 0);
     const rows = document.querySelectorAll('.budget-table tbody tr:not(.separator)');
     
     rows.forEach(row => {
@@ -542,7 +542,7 @@ function updateBudgetFromTransactions() {
                 actualSpan.style.cursor = 'default';
             }
             
-            if (billName === 'Extra Paid Person A' || billName === 'Person A Paid Person B') {
+            if (billName === 'Extra Paid Erik' || billName === 'Erik Paid Sara') {
                 // Extra Paid categories are always positive
                 overUnderCell.textContent = `$${actual.toFixed(2)}`;
                 overUnderCell.style.color = 'var(--success)';
@@ -621,15 +621,15 @@ function updateBudgetFromTransactions() {
     monthlyOverUnder[currentMonth] = totalOverUnder;
     
     // Calculate responsibility subtotals
-    const Person ATotal = totalBudget * 0.58;
-    const Person BTotal = totalBudget * 0.42;
-    const Person ABiweekly = Person ATotal / 2;
-    const Person BBiweekly = Person BTotal / 2;
+    const erikTotal = totalBudget * 0.58;
+    const saraTotal = totalBudget * 0.42;
+    const erikBiweekly = erikTotal / 2;
+    const saraBiweekly = saraTotal / 2;
     
-    document.getElementById('Person ATotal').textContent = `$${Person ATotal.toFixed(2)}`;
-    document.getElementById('Person ABiweekly').textContent = `$${Person ABiweekly.toFixed(2)}`;
-    document.getElementById('Person BTotal').textContent = `$${Person BTotal.toFixed(2)}`;
-    document.getElementById('Person BBiweekly').textContent = `$${Person BBiweekly.toFixed(2)}`;
+    document.getElementById('erikTotal').textContent = `$${erikTotal.toFixed(2)}`;
+    document.getElementById('erikBiweekly').textContent = `$${erikBiweekly.toFixed(2)}`;
+    document.getElementById('saraTotal').textContent = `$${saraTotal.toFixed(2)}`;
+    document.getElementById('saraBiweekly').textContent = `$${saraBiweekly.toFixed(2)}`;
 }
 
 // Helper function to calculate over/under for any specific month
@@ -663,10 +663,10 @@ function calculateMonthOverUnder(monthName) {
     const budgets = monthlyBudgets[monthName] || {};
     
     const positiveCreditBills = [
-        'Gas', 'Groceries', 'Restaurants/Entertainment', 'Cat Food', "Health & Wellness",
-        "Education & Training", 'Roku / Disney Subscriptions', 'Miscellaneous',
-        'Emergency Fund', 'Travel Spending', 'Student Investment', 'Child Investment',
-        'Miscellaneous Person A', 'Miscellaneous Person B', 'Daycare'
+        'Gas', 'Groceries', 'Restaurants/Entertainment', 'Cat Food', "Dylan's Medication",
+        "Dylan's School Lunches", 'Roku / Disney Subscriptions', 'Miscellaneous',
+        'Emergency Fund', 'Travel Spending', 'Dylan Investment', 'Brooks Investment',
+        'Miscellaneous Erik', 'Miscellaneous Sara', 'Daycare'
     ];
     
     let totalOverUnder = 0;
@@ -681,7 +681,7 @@ function calculateMonthOverUnder(monthName) {
         const actual = billTotals[billName] || 0;
         let overUnder = 0;
         
-        if (billName === 'Extra Paid Person A' || billName === 'Person A Paid Person B') {
+        if (billName === 'Extra Paid Erik' || billName === 'Erik Paid Sara') {
             overUnder = actual;
         } else if (isPeriodicBill(billName)) {
             const config = periodicBillsConfig[billName];
@@ -1398,7 +1398,7 @@ function autoCategorizeBill(description) {
         desc.includes('medicine') || desc.includes('drug store') || desc.includes('rite aid') ||
         desc.includes('meijer pharmacy') || desc.includes('walmart pharmacy') || desc.includes('target pharmacy') ||
         desc.includes('costco pharmacy') || desc.includes('kroger pharmacy') || desc.includes('safeway pharmacy')) {
-        return "Health & Wellness";
+        return "Dylan's Medication";
     }
     
     // School related - Enhanced matching
@@ -1406,7 +1406,7 @@ function autoCategorizeBill(description) {
         desc.includes('student') || desc.includes('education') || desc.includes('school district') ||
         desc.includes('elementary') || desc.includes('middle school') || desc.includes('high school') ||
         desc.includes('meal plan') || desc.includes('school meals')) {
-        return "Education & Training";
+        return "Dylan's School Lunches";
     }
     
     // Pet supplies - Enhanced matching
@@ -1431,10 +1431,10 @@ function autoCategorizeBill(description) {
         desc.includes('ira') || desc.includes('retirement') || desc.includes('mutual fund') ||
         desc.includes('vanguard') || desc.includes('fidelity') || desc.includes('schwab') ||
         desc.includes('edward jones') || desc.includes('ameriprise') || desc.includes('merrill lynch')) {
-        if (desc.includes('child') || desc.includes('child') || desc.includes('kid')) {
-            return 'Student Investment';
-        } else if (desc.includes('dependent') || desc.includes('baby')) {
-            return 'Child Investment';
+        if (desc.includes('dylan') || desc.includes('child') || desc.includes('kid')) {
+            return 'Dylan Investment';
+        } else if (desc.includes('brooks') || desc.includes('baby')) {
+            return 'Brooks Investment';
         } else {
             return 'Emergency Fund';
         }
@@ -1654,8 +1654,12 @@ function loadMonthBudget(month) {
         const isDeleted = months.some(m => monthlyBudgets[m] && monthlyBudgets[m][billName] === null);
         if (isDeleted) {
             row.style.display = 'none';
+            console.log(`Bill ${billName} is marked as deleted, hiding row`);
             return;
         }
+        
+        // Show the row if it was previously hidden (not deleted)
+        row.style.display = '';
         
         // Get saved value from Firebase (no defaults)
         const savedValue = monthlyBudgets[month] && monthlyBudgets[month][billName];
@@ -1692,9 +1696,9 @@ function updateBudget() {
         'Mortgage + Escrow (Ins-Taxes)', 'Car Payment', 'Auto Insurance', 'AAA Roadside Assistance',
         'Gas', 'Jewelers Insurance', 'Earthbound Garbage', 'Water', 'Xcel Energy', 'Spectrum Internet + Helium Mobile',
         'YMCA Membership', 'Charity', 'Daycare', 'Groceries', 'Restaurants/Entertainment', 'Cat Food',
-        "Health & Wellness", "Education & Training", 'Roku / Disney Subscriptions', 'Miscellaneous',
-        'Emergency Fund', 'Travel Spending', 'Student Investment', 'Child Investment', 
-        'Extra Paid Person A', 'Person A Paid Person B', 'Miscellaneous Person A', 'Miscellaneous Person B'
+        "Dylan's Medication", "Dylan's School Lunches", 'Roku / Disney Subscriptions', 'Miscellaneous',
+        'Emergency Fund', 'Travel Spending', 'Dylan Investment', 'Brooks Investment', 
+        'Extra Paid Erik', 'Erik Paid Sara', 'Miscellaneous Erik', 'Miscellaneous Sara'
     ];
     
     budgetInputs.forEach((input, index) => {
@@ -1815,17 +1819,17 @@ function updateBudgetCategories() {
     const familyExpenses = (budgets['Groceries'] || 0) + 
                           (budgets['Restaurants/Entertainment'] || 0) + 
                           (budgets['Cat Food'] || 0) + 
-                          (budgets["Health & Wellness"] || 0) + 
-                          (budgets["Education & Training"] || 0) + 
+                          (budgets["Dylan's Medication"] || 0) + 
+                          (budgets["Dylan's School Lunches"] || 0) + 
                           (budgets['Roku / Disney Subscriptions'] || 0) + 
                           (budgets['Miscellaneous'] || 0) + 
-                          (budgets['Miscellaneous Person A'] || 0) + 
-                          (budgets['Miscellaneous Person B'] || 0);
+                          (budgets['Miscellaneous Erik'] || 0) + 
+                          (budgets['Miscellaneous Sara'] || 0);
     
     const savingsInvestment = (budgets['Emergency Fund'] || 0) + 
                              (budgets['Travel Spending'] || 0) + 
-                             (budgets['Student Investment'] || 0) + 
-                             (budgets['Child Investment'] || 0);
+                             (budgets['Dylan Investment'] || 0) + 
+                             (budgets['Brooks Investment'] || 0);
     
     const totalBudget = housingInsurance + billsUtilities + familyExpenses + savingsInvestment;
     
@@ -2225,7 +2229,7 @@ function updateCarryoverTable() {
         const balClass = mb.remaining > 0 ? 'carryover-balance-positive' : mb.remaining < 0 ? 'carryover-balance-negative' : 'carryover-balance-zero';
         const paymentsHtml = mb.paymentsApplied.length === 0 ? '<span style="color:var(--text-muted)">�</span>' :
             mb.paymentsApplied.map(p => {
-                const cls = p.paidBy === 'Person A' ? 'paid-by-Person A' : p.paidBy === 'Person B' ? 'paid-by-Person B' : 'paid-by-other';
+                const cls = p.paidBy === 'Erik' ? 'paid-by-erik' : p.paidBy === 'Sara' ? 'paid-by-sara' : 'paid-by-other';
                 const d = new Date(p.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' });
                 return `<div class="carryover-payment-entry"><span class="${cls}">${p.paidBy}</span> $${p.applied.toFixed(2)} <span style="color:var(--text-muted)">(${d}${p.note ? ' � ' + p.note : ''})</span></div>`;
             }).join('');
@@ -2577,9 +2581,9 @@ function editField(cell) {
             'Mortgage + Escrow (Ins-Taxes)', 'Car Payment', 'Auto Insurance', 'AAA Roadside Assistance',
             'Gas', 'Jewelers Insurance', 'Earthbound Garbage', 'Water', 'Xcel Energy', 'Spectrum Internet + Helium Mobile',
             'YMCA Membership', 'Charity', 'Daycare', 'Groceries', 'Restaurants/Entertainment', 'Cat Food',
-            "Health & Wellness", "Education & Training", 'Roku / Disney Subscriptions', 'Miscellaneous',
-            'Emergency Fund', 'Travel Spending', 'Student Investment', 'Child Investment', 
-            'Extra Paid Person A', 'Person A Paid Person B', 'Miscellaneous Person A', 'Miscellaneous Person B', 'Ignore/Internal Transfer'
+            "Dylan's Medication", "Dylan's School Lunches", 'Roku / Disney Subscriptions', 'Miscellaneous',
+            'Emergency Fund', 'Travel Spending', 'Dylan Investment', 'Brooks Investment', 
+            'Extra Paid Erik', 'Erik Paid Sara', 'Miscellaneous Erik', 'Miscellaneous Sara', 'Ignore/Internal Transfer'
         ];
         categories.forEach(cat => {
             const option = document.createElement('option');
@@ -2808,15 +2812,15 @@ function updateBudgetTotals() {
     
     // Calculate responsibility subtotals from the clean totalBudget value
     const cleanBudget = parseFloat(totalBudget) || 0;
-    const Person ATotal = cleanBudget * 0.58;
-    const Person BTotal = cleanBudget * 0.42;
-    const Person ABiweekly = Person ATotal / 2;
-    const Person BBiweekly = Person BTotal / 2;
+    const erikTotal = cleanBudget * 0.58;
+    const saraTotal = cleanBudget * 0.42;
+    const erikBiweekly = erikTotal / 2;
+    const saraBiweekly = saraTotal / 2;
     
-    document.getElementById('Person ATotal').textContent = `$${Person ATotal.toFixed(2)}`;
-    document.getElementById('Person ABiweekly').textContent = `$${Person ABiweekly.toFixed(2)}`;
-    document.getElementById('Person BTotal').textContent = `$${Person BTotal.toFixed(2)}`;
-    document.getElementById('Person BBiweekly').textContent = `$${Person BBiweekly.toFixed(2)}`;
+    document.getElementById('erikTotal').textContent = `$${erikTotal.toFixed(2)}`;
+    document.getElementById('erikBiweekly').textContent = `$${erikBiweekly.toFixed(2)}`;
+    document.getElementById('saraTotal').textContent = `$${saraTotal.toFixed(2)}`;
+    document.getElementById('saraBiweekly').textContent = `$${saraBiweekly.toFixed(2)}`;
 }
 
 function showAddBill() {
@@ -2872,17 +2876,18 @@ function closeAddBill() {
     document.getElementById('addBillModal').style.display = 'none';
 }
 
-function deleteBill() {
-    alert('deleteBill function called!');
+async function deleteBill() {
     const billName = document.getElementById('addBillForm').dataset.editBill;
     console.log('Deleting bill:', billName);
     if (billName && confirm(`Delete ${billName} from all months?`)) {
-        // COMPLETELY REMOVE from all months (delete the key)
+        // Mark as deleted by setting to null in all months
         const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
         months.forEach(month => {
-            if (monthlyBudgets[month] && monthlyBudgets[month].hasOwnProperty(billName)) {
-                delete monthlyBudgets[month][billName]; // Actually delete the key
+            if (!monthlyBudgets[month]) {
+                monthlyBudgets[month] = {};
             }
+            // Set to null to mark as deleted - persists across refreshes
+            monthlyBudgets[month][billName] = null;
         });
         
         // Hide the row from the table
@@ -2898,8 +2903,8 @@ function deleteBill() {
         });
         console.log('Rows hidden:', rowsHidden);
         
-        // Save changes
-        saveMonthlyBudgets();
+        // Save changes to Firebase - WAIT for completion before closing
+        await saveMonthlyBudgets();
         
         // Update displays
         updateDashboard();
@@ -2911,7 +2916,7 @@ function deleteBill() {
 }
 
 // Add Bill form submission
-document.getElementById('addBillForm').addEventListener('submit', function(e) {
+document.getElementById('addBillForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
     const billName = document.getElementById('billName').value;
@@ -2919,7 +2924,7 @@ document.getElementById('addBillForm').addEventListener('submit', function(e) {
     const isEdit = this.dataset.editBill;
     
     if (isEdit) {
-        // Get selected months
+        // EDIT MODE: Update existing bill
         const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
         const selectedMonths = months.filter(month => 
             document.getElementById(`month-${month}`).checked
@@ -2943,6 +2948,7 @@ document.getElementById('addBillForm').addEventListener('submit', function(e) {
             const rows = document.querySelectorAll('.budget-table tbody tr');
             rows.forEach(row => {
                 if (row.cells[0] && row.cells[0].textContent.trim() === isEdit) {
+                    row.style.display = ''; // Make sure it's visible
                     row.cells[2].textContent = `$${amount.toFixed(2)}`;
                     // Update the over/under calculation
                     const actualText = row.cells[3]?.querySelector('.actual-amount')?.textContent || '$0.00';
@@ -2959,8 +2965,8 @@ document.getElementById('addBillForm').addEventListener('submit', function(e) {
             updateBudgetTotals();
         }
         
-        // Save to cloud/localStorage
-        saveMonthlyBudgets();
+        // Save to cloud/localStorage - WAIT for completion
+        await saveMonthlyBudgets();
         updateDashboard();
         
         const monthText = selectedMonths.length === 1 ? 
@@ -2968,7 +2974,18 @@ document.getElementById('addBillForm').addEventListener('submit', function(e) {
             `${selectedMonths.length} months`;
         showNotification(`${billName} updated to $${amount.toFixed(2)} for ${monthText}!`);
     } else {
-        showNotification(`${billName} added!`);
+        // ADD MODE: Create new bill (currently limited - would need UI for month selection)
+        // For now, add to current month only
+        if (!monthlyBudgets[currentMonth]) {
+            monthlyBudgets[currentMonth] = {};
+        }
+        monthlyBudgets[currentMonth][billName] = amount;
+        
+        // Save to cloud/localStorage - WAIT for completion
+        await saveMonthlyBudgets();
+        updateDashboard();
+        
+        showNotification(`${billName} added to ${currentMonth.toUpperCase()}!`);
     }
     
     closeAddBill();
@@ -3329,8 +3346,8 @@ function matchBillCategory(transcript) {
         'Mortgage + Escrow (Ins-Taxes)', 'Car Payment', 'Auto Insurance', 'AAA Roadside Assistance',
         'Gas', 'Jewelers Insurance', 'Earthbound Garbage', 'Water', 'Xcel Energy', 'Spectrum Internet + Helium Mobile',
         'YMCA Membership', 'Charity', 'Daycare', 'Groceries', 'Restaurants/Entertainment', 'Cat Food',
-        "Health & Wellness", "Education & Training", 'Roku / Disney Subscriptions', 'Miscellaneous',
-        'Emergency Fund', 'Travel Spending', 'Student Investment', 'Child Investment', 'Extra Paid'
+        "Dylan's Medication", "Dylan's School Lunches", 'Roku / Disney Subscriptions', 'Miscellaneous',
+        'Emergency Fund', 'Travel Spending', 'Dylan Investment', 'Brooks Investment', 'Extra Paid'
     ];
     
     const keywords = {
@@ -3367,11 +3384,11 @@ function matchBillCategory(transcript) {
         'cat food': 'Cat Food',
         'cat': 'Cat Food',
         'pet food': 'Cat Food',
-        'child medication': "Health & Wellness",
-        'medication': "Health & Wellness",
-        'medicine': "Health & Wellness",
-        'school lunch': "Education & Training",
-        'lunch': "Education & Training",
+        'dylan medication': "Dylan's Medication",
+        'medication': "Dylan's Medication",
+        'medicine': "Dylan's Medication",
+        'school lunch': "Dylan's School Lunches",
+        'lunch': "Dylan's School Lunches",
         'roku': 'Roku / Disney Subscriptions',
         'disney': 'Roku / Disney Subscriptions',
         'streaming': 'Roku / Disney Subscriptions',
@@ -3383,9 +3400,9 @@ function matchBillCategory(transcript) {
         'savings': 'Emergency Fund',
         'travel': 'Travel Spending',
         'vacation': 'Travel Spending',
-        'Student Investment': 'Student Investment',
-        'Child Investment': 'Child Investment',
-        'investment': 'Student Investment',
+        'dylan investment': 'Dylan Investment',
+        'brooks investment': 'Brooks Investment',
+        'investment': 'Dylan Investment',
         'extra paid': 'Extra Paid',
         'extra': 'Extra Paid'
     };
@@ -3803,14 +3820,14 @@ async function initializeAllMonthsWithDefaults() {
         'Groceries': 850.00,
         'Restaurants/Entertainment': 300.00,
         'Cat Food': 20.00,
-        "Health & Wellness": 90.00,
-        "Education & Training": 50.00,
+        "Dylan's Medication": 90.00,
+        "Dylan's School Lunches": 50.00,
         'Roku / Disney Subscriptions': 25.00,
         'Miscellaneous': 50.00,
         'Emergency Fund': 225.00,
         'Travel Spending': 100.00,
-        'Student Investment': 35.00,
-        'Child Investment': 25.00,
+        'Dylan Investment': 35.00,
+        'Brooks Investment': 25.00,
         'Extra Paid': 0.00
     };
     
@@ -3943,24 +3960,3 @@ async function cleanupDuplicatesUI() {
         showNotification('❌ Error during cleanup: ' + error.message, 'error');
     }
 }
-
-
-
-
-// ===== INITIALIZATION =====
-// Load demo data when page loads
-window.addEventListener('load', async function() {
-    console.log('Page loaded, initializing Velera-Budget demo...');
-    try {
-        await loadMonthlyBudgets();
-        await loadTransactions();
-        loadMonthBudget('jan');
-        updateBudgetTotals();
-        updateTransactionTable();
-        updateDashboard();
-        updateCarryoverTable();
-        console.log('✅ Demo initialized');
-    } catch(e) {
-        console.error('Error initializing:', e);
-    }
-});
