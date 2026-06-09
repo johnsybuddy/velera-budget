@@ -72,13 +72,13 @@ function parseLocalDate(dateString) {
 
 // Firebase Configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyCnpK-aY7cQdkW1MoloTHJD-GJSSswJXxE",
+    apiKey: "AIzaSyD4V3DKjbRv5DgjRpZ6BzxPH8SJjJ2Nm-I",
     authDomain: "work-budget-tracker.firebaseapp.com",
     projectId: "work-budget-tracker",
     storageBucket: "work-budget-tracker.firebasestorage.app",
-    messagingSenderId: "859356967572",
-    appId: "1:859356967572:web:db2f34908247872ed2ba81",
-    measurementId: "G-GCBWCYHHE4"
+    messagingSenderId: "704722132019",
+    appId: "1:704722132019:web:7178ac03b6e94832d85746",
+    measurementId: "G-NVLR9RBVGL"
 };
 
 // Initialize Firebase
