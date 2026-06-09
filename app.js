@@ -613,9 +613,14 @@ function updateBudgetFromTransactions() {
     });
     
     // Update totals
-    document.getElementById('totalActual').textContent = `$${totalActual.toFixed(2)}`;
-    document.getElementById('totalOverUnder').textContent = `$${totalOverUnder.toFixed(2)}`;
-    document.getElementById('totalOverUnder').style.color = totalOverUnder >= 0 ? 'var(--success)' : 'var(--danger)';
+    const totalActualEl = document.getElementById('totalActual');
+    const totalOverUnderEl = document.getElementById('totalOverUnder');
+    
+    if (totalActualEl) totalActualEl.textContent = `$${totalActual.toFixed(2)}`;
+    if (totalOverUnderEl) {
+        totalOverUnderEl.textContent = `$${totalOverUnder.toFixed(2)}`;
+        totalOverUnderEl.style.color = totalOverUnder >= 0 ? 'var(--success)' : 'var(--danger)';
+    }
     
     // Store this month's over/under for dashboard
     monthlyOverUnder[currentMonth] = totalOverUnder;
@@ -626,10 +631,15 @@ function updateBudgetFromTransactions() {
     const erikBiweekly = erikTotal / 2;
     const saraBiweekly = saraTotal / 2;
     
-    document.getElementById('erikTotal').textContent = `$${erikTotal.toFixed(2)}`;
-    document.getElementById('erikBiweekly').textContent = `$${erikBiweekly.toFixed(2)}`;
-    document.getElementById('saraTotal').textContent = `$${saraTotal.toFixed(2)}`;
-    document.getElementById('saraBiweekly').textContent = `$${saraBiweekly.toFixed(2)}`;
+    const erikTotalEl = document.getElementById('erikTotal');
+    const erikBiweeklyEl = document.getElementById('erikBiweekly');
+    const saraTotalEl = document.getElementById('saraTotal');
+    const saraBiweeklyEl = document.getElementById('saraBiweekly');
+    
+    if (erikTotalEl) erikTotalEl.textContent = `$${erikTotal.toFixed(2)}`;
+    if (erikBiweeklyEl) erikBiweeklyEl.textContent = `$${erikBiweekly.toFixed(2)}`;
+    if (saraTotalEl) saraTotalEl.textContent = `$${saraTotal.toFixed(2)}`;
+    if (saraBiweeklyEl) saraBiweeklyEl.textContent = `$${saraBiweekly.toFixed(2)}`;
 }
 
 // Helper function to calculate over/under for any specific month
@@ -1654,8 +1664,12 @@ function loadMonthBudget(month) {
         const isDeleted = months.some(m => monthlyBudgets[m] && monthlyBudgets[m][billName] === null);
         if (isDeleted) {
             row.style.display = 'none';
+            console.log(`Bill ${billName} is marked as deleted, hiding row`);
             return;
         }
+        
+        // Show the row if it was previously hidden (not deleted)
+        row.style.display = '';
         
         // Get saved value from Firebase (no defaults)
         const savedValue = monthlyBudgets[month] && monthlyBudgets[month][billName];
@@ -2801,10 +2815,16 @@ function updateBudgetTotals() {
         }
     });
     
-    document.getElementById('totalBudget').textContent = `$${totalBudget.toFixed(2)}`;
-    document.getElementById('totalActual').textContent = `$${totalActual.toFixed(2)}`;
-    document.getElementById('totalOverUnder').textContent = `$${totalOverUnder.toFixed(2)}`;
-    document.getElementById('totalOverUnder').style.color = totalOverUnder >= 0 ? 'var(--success)' : 'var(--danger)';
+    const totalBudgetEl = document.getElementById('totalBudget');
+    const totalActualEl = document.getElementById('totalActual');
+    const totalOverUnderEl = document.getElementById('totalOverUnder');
+    
+    if (totalBudgetEl) totalBudgetEl.textContent = `$${totalBudget.toFixed(2)}`;
+    if (totalActualEl) totalActualEl.textContent = `$${totalActual.toFixed(2)}`;
+    if (totalOverUnderEl) {
+        totalOverUnderEl.textContent = `$${totalOverUnder.toFixed(2)}`;
+        totalOverUnderEl.style.color = totalOverUnder >= 0 ? 'var(--success)' : 'var(--danger)';
+    }
     
     // Calculate responsibility subtotals from the clean totalBudget value
     const cleanBudget = parseFloat(totalBudget) || 0;
@@ -2813,10 +2833,15 @@ function updateBudgetTotals() {
     const erikBiweekly = erikTotal / 2;
     const saraBiweekly = saraTotal / 2;
     
-    document.getElementById('erikTotal').textContent = `$${erikTotal.toFixed(2)}`;
-    document.getElementById('erikBiweekly').textContent = `$${erikBiweekly.toFixed(2)}`;
-    document.getElementById('saraTotal').textContent = `$${saraTotal.toFixed(2)}`;
-    document.getElementById('saraBiweekly').textContent = `$${saraBiweekly.toFixed(2)}`;
+    const erikTotalEl = document.getElementById('erikTotal');
+    const erikBiweeklyEl = document.getElementById('erikBiweekly');
+    const saraTotalEl = document.getElementById('saraTotal');
+    const saraBiweeklyEl = document.getElementById('saraBiweekly');
+    
+    if (erikTotalEl) erikTotalEl.textContent = `$${erikTotal.toFixed(2)}`;
+    if (erikBiweeklyEl) erikBiweeklyEl.textContent = `$${erikBiweekly.toFixed(2)}`;
+    if (saraTotalEl) saraTotalEl.textContent = `$${saraTotal.toFixed(2)}`;
+    if (saraBiweeklyEl) saraBiweeklyEl.textContent = `$${saraBiweekly.toFixed(2)}`;
 }
 
 function showAddBill() {
@@ -2872,17 +2897,18 @@ function closeAddBill() {
     document.getElementById('addBillModal').style.display = 'none';
 }
 
-function deleteBill() {
-    alert('deleteBill function called!');
+async function deleteBill() {
     const billName = document.getElementById('addBillForm').dataset.editBill;
     console.log('Deleting bill:', billName);
     if (billName && confirm(`Delete ${billName} from all months?`)) {
-        // COMPLETELY REMOVE from all months (delete the key)
+        // Mark as deleted by setting to null in all months
         const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
         months.forEach(month => {
-            if (monthlyBudgets[month] && monthlyBudgets[month].hasOwnProperty(billName)) {
-                delete monthlyBudgets[month][billName]; // Actually delete the key
+            if (!monthlyBudgets[month]) {
+                monthlyBudgets[month] = {};
             }
+            // Set to null to mark as deleted - persists across refreshes
+            monthlyBudgets[month][billName] = null;
         });
         
         // Hide the row from the table
@@ -2898,8 +2924,8 @@ function deleteBill() {
         });
         console.log('Rows hidden:', rowsHidden);
         
-        // Save changes
-        saveMonthlyBudgets();
+        // Save changes to Firebase - WAIT for completion before closing
+        await saveMonthlyBudgets();
         
         // Update displays
         updateDashboard();
@@ -2911,7 +2937,7 @@ function deleteBill() {
 }
 
 // Add Bill form submission
-document.getElementById('addBillForm').addEventListener('submit', function(e) {
+document.getElementById('addBillForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
     const billName = document.getElementById('billName').value;
@@ -2919,7 +2945,7 @@ document.getElementById('addBillForm').addEventListener('submit', function(e) {
     const isEdit = this.dataset.editBill;
     
     if (isEdit) {
-        // Get selected months
+        // EDIT MODE: Update existing bill
         const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
         const selectedMonths = months.filter(month => 
             document.getElementById(`month-${month}`).checked
@@ -2943,6 +2969,7 @@ document.getElementById('addBillForm').addEventListener('submit', function(e) {
             const rows = document.querySelectorAll('.budget-table tbody tr');
             rows.forEach(row => {
                 if (row.cells[0] && row.cells[0].textContent.trim() === isEdit) {
+                    row.style.display = ''; // Make sure it's visible
                     row.cells[2].textContent = `$${amount.toFixed(2)}`;
                     // Update the over/under calculation
                     const actualText = row.cells[3]?.querySelector('.actual-amount')?.textContent || '$0.00';
@@ -2959,8 +2986,8 @@ document.getElementById('addBillForm').addEventListener('submit', function(e) {
             updateBudgetTotals();
         }
         
-        // Save to cloud/localStorage
-        saveMonthlyBudgets();
+        // Save to cloud/localStorage - WAIT for completion
+        await saveMonthlyBudgets();
         updateDashboard();
         
         const monthText = selectedMonths.length === 1 ? 
@@ -2968,7 +2995,18 @@ document.getElementById('addBillForm').addEventListener('submit', function(e) {
             `${selectedMonths.length} months`;
         showNotification(`${billName} updated to $${amount.toFixed(2)} for ${monthText}!`);
     } else {
-        showNotification(`${billName} added!`);
+        // ADD MODE: Create new bill (currently limited - would need UI for month selection)
+        // For now, add to current month only
+        if (!monthlyBudgets[currentMonth]) {
+            monthlyBudgets[currentMonth] = {};
+        }
+        monthlyBudgets[currentMonth][billName] = amount;
+        
+        // Save to cloud/localStorage - WAIT for completion
+        await saveMonthlyBudgets();
+        updateDashboard();
+        
+        showNotification(`${billName} added to ${currentMonth.toUpperCase()}!`);
     }
     
     closeAddBill();
