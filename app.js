@@ -613,9 +613,14 @@ function updateBudgetFromTransactions() {
     });
     
     // Update totals
-    document.getElementById('totalActual').textContent = `$${totalActual.toFixed(2)}`;
-    document.getElementById('totalOverUnder').textContent = `$${totalOverUnder.toFixed(2)}`;
-    document.getElementById('totalOverUnder').style.color = totalOverUnder >= 0 ? 'var(--success)' : 'var(--danger)';
+    const totalActualEl = document.getElementById('totalActual');
+    const totalOverUnderEl = document.getElementById('totalOverUnder');
+    
+    if (totalActualEl) totalActualEl.textContent = `$${totalActual.toFixed(2)}`;
+    if (totalOverUnderEl) {
+        totalOverUnderEl.textContent = `$${totalOverUnder.toFixed(2)}`;
+        totalOverUnderEl.style.color = totalOverUnder >= 0 ? 'var(--success)' : 'var(--danger)';
+    }
     
     // Store this month's over/under for dashboard
     monthlyOverUnder[currentMonth] = totalOverUnder;
@@ -626,10 +631,15 @@ function updateBudgetFromTransactions() {
     const erikBiweekly = erikTotal / 2;
     const saraBiweekly = saraTotal / 2;
     
-    document.getElementById('erikTotal').textContent = `$${erikTotal.toFixed(2)}`;
-    document.getElementById('erikBiweekly').textContent = `$${erikBiweekly.toFixed(2)}`;
-    document.getElementById('saraTotal').textContent = `$${saraTotal.toFixed(2)}`;
-    document.getElementById('saraBiweekly').textContent = `$${saraBiweekly.toFixed(2)}`;
+    const erikTotalEl = document.getElementById('erikTotal');
+    const erikBiweeklyEl = document.getElementById('erikBiweekly');
+    const saraTotalEl = document.getElementById('saraTotal');
+    const saraBiweeklyEl = document.getElementById('saraBiweekly');
+    
+    if (erikTotalEl) erikTotalEl.textContent = `$${erikTotal.toFixed(2)}`;
+    if (erikBiweeklyEl) erikBiweeklyEl.textContent = `$${erikBiweekly.toFixed(2)}`;
+    if (saraTotalEl) saraTotalEl.textContent = `$${saraTotal.toFixed(2)}`;
+    if (saraBiweeklyEl) saraBiweeklyEl.textContent = `$${saraBiweekly.toFixed(2)}`;
 }
 
 // Helper function to calculate over/under for any specific month
@@ -2805,10 +2815,16 @@ function updateBudgetTotals() {
         }
     });
     
-    document.getElementById('totalBudget').textContent = `$${totalBudget.toFixed(2)}`;
-    document.getElementById('totalActual').textContent = `$${totalActual.toFixed(2)}`;
-    document.getElementById('totalOverUnder').textContent = `$${totalOverUnder.toFixed(2)}`;
-    document.getElementById('totalOverUnder').style.color = totalOverUnder >= 0 ? 'var(--success)' : 'var(--danger)';
+    const totalBudgetEl = document.getElementById('totalBudget');
+    const totalActualEl = document.getElementById('totalActual');
+    const totalOverUnderEl = document.getElementById('totalOverUnder');
+    
+    if (totalBudgetEl) totalBudgetEl.textContent = `$${totalBudget.toFixed(2)}`;
+    if (totalActualEl) totalActualEl.textContent = `$${totalActual.toFixed(2)}`;
+    if (totalOverUnderEl) {
+        totalOverUnderEl.textContent = `$${totalOverUnder.toFixed(2)}`;
+        totalOverUnderEl.style.color = totalOverUnder >= 0 ? 'var(--success)' : 'var(--danger)';
+    }
     
     // Calculate responsibility subtotals from the clean totalBudget value
     const cleanBudget = parseFloat(totalBudget) || 0;
@@ -2817,10 +2833,15 @@ function updateBudgetTotals() {
     const erikBiweekly = erikTotal / 2;
     const saraBiweekly = saraTotal / 2;
     
-    document.getElementById('erikTotal').textContent = `$${erikTotal.toFixed(2)}`;
-    document.getElementById('erikBiweekly').textContent = `$${erikBiweekly.toFixed(2)}`;
-    document.getElementById('saraTotal').textContent = `$${saraTotal.toFixed(2)}`;
-    document.getElementById('saraBiweekly').textContent = `$${saraBiweekly.toFixed(2)}`;
+    const erikTotalEl = document.getElementById('erikTotal');
+    const erikBiweeklyEl = document.getElementById('erikBiweekly');
+    const saraTotalEl = document.getElementById('saraTotal');
+    const saraBiweeklyEl = document.getElementById('saraBiweekly');
+    
+    if (erikTotalEl) erikTotalEl.textContent = `$${erikTotal.toFixed(2)}`;
+    if (erikBiweeklyEl) erikBiweeklyEl.textContent = `$${erikBiweekly.toFixed(2)}`;
+    if (saraTotalEl) saraTotalEl.textContent = `$${saraTotal.toFixed(2)}`;
+    if (saraBiweeklyEl) saraBiweeklyEl.textContent = `$${saraBiweekly.toFixed(2)}`;
 }
 
 function showAddBill() {
