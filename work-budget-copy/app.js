@@ -1,4 +1,4 @@
-console.log('=== APP.JS LOADED - VERSION 20260419 ===');
+console.log('=== APP.JS LOADED - VERSION 20260608 ===');
 
 // Tab functionality
 function showTab(tabName) {
@@ -35,12 +35,38 @@ function showTab(tabName) {
 // This defines which bills are periodic (not monthly) and their payment schedule
 // The totalAmount will be calculated from the actual monthly budget
 const periodicBillsConfig = {
-    'Auto Insurance': { frequency: 'semi-annual', monthsInCycle: 6, dueMonth: 8, defaultMonthly: 136, initialBalance: 0 },  // Aug 26 - paid in Jan
-    'AAA Roadside Assistance': { frequency: 'annual', monthsInCycle: 12, dueMonth: 5, defaultMonthly: 15, initialBalance: 135 },  // May 26 - 9 months saved as of Jan
-    'Jewelers Insurance': { frequency: 'annual', monthsInCycle: 12, dueMonth: 6, defaultMonthly: 7, initialBalance: 56 },  // Jun 15 - 8 months saved as of Jan
-    'Earthbound Garbage': { frequency: 'quarterly', monthsInCycle: 3, dueMonth: 1, defaultMonthly: 98, initialBalance: 0 },  // Jan 26 - paid in Jan
-    'Water': { frequency: 'quarterly', monthsInCycle: 3, dueMonth: 1, defaultMonthly: 70, initialBalance: 0 },  // Jan 26 - paid in Jan
-    'YMCA Membership': { frequency: 'annual', monthsInCycle: 12, dueMonth: 12, defaultMonthly: 0, initialBalance: 0 }  // Dec 26 (deleted)
+    'Auto Insurance': { frequency: 'semi-annual', monthsInCycle: 6, dueMonth: 8, defaultMonthly: 90, initialBalance: 0 },
+    'Roadside Assistance': { frequency: 'annual', monthsInCycle: 12, dueMonth: 5, defaultMonthly: 12, initialBalance: 0 },
+    'Home Insurance': { frequency: 'annual', monthsInCycle: 12, dueMonth: 6, defaultMonthly: 50, initialBalance: 0 },
+    'Trash Service': { frequency: 'quarterly', monthsInCycle: 3, dueMonth: 1, defaultMonthly: 60, initialBalance: 0 },
+    'Water': { frequency: 'quarterly', monthsInCycle: 3, dueMonth: 1, defaultMonthly: 50, initialBalance: 0 }
+};
+
+// Default midwest-average budgets
+const defaultBudgetsBase = {
+    'Mortgage + Taxes': 1800.00,
+    'Car Payment': 350.00,
+    'Auto Insurance': 85.00,
+    'Roadside Assistance': 12.00,
+    'Gas': 120.00,
+    'Home Insurance': 50.00,
+    'Trash Service': 60.00,
+    'Water': 50.00,
+    'Electric': 180.00,
+    'Internet + Phone': 80.00,
+    'Charity': 40.00,
+    'Daycare': 800.00,
+    'Groceries': 650.00,
+    'Restaurants/Entertainment': 250.00,
+    'Household Items': 15.00,
+    'Kids Activities': 60.00,
+    'Subscriptions': 20.00,
+    'Miscellaneous': 40.00,
+    'Emergency Fund': 150.00,
+    'Travel': 75.00,
+    'Kids Savings': 30.00,
+    'Personal Savings': 20.00,
+    'Extra': 0.00
 };
 
 // Get the actual total amount for a periodic bill from current month's budget
@@ -70,15 +96,15 @@ function parseLocalDate(dateString) {
     return new Date(year, month - 1, day);
 }
 
-// Firebase Configuration
+// Firebase Configuration - work-budget-tracker project
 const firebaseConfig = {
-    apiKey: "AIzaSyCnpK-aY7cQdkW1MoloTHJD-GJSSswJXxE",
-    authDomain: "johnson-fam-bills.firebaseapp.com",
-    projectId: "johnson-fam-bills",
-    storageBucket: "johnson-fam-bills.firebasestorage.app",
-    messagingSenderId: "859356967572",
-    appId: "1:859356967572:web:db2f34908247872ed2ba81",
-    measurementId: "G-GCBWCYHHE4"
+    apiKey: "AIzaSyD4V3DKjbRv5DgjRpZ6BzxPH8SJjJ2Nm-I",
+    authDomain: "work-budget-tracker.firebaseapp.com",
+    projectId: "work-budget-tracker",
+    storageBucket: "work-budget-tracker.firebasestorage.app",
+    messagingSenderId: "704722132019",
+    appId: "1:704722132019:web:7178ac03b6e94832d85746",
+    measurementId: "G-NVLR9RBVGL"
 };
 
 // Initialize Firebase
@@ -105,12 +131,56 @@ try {
 }
 
 // User ID for data isolation
-const userId = 'johnsybuddy'; // Your username
+const userId = 'demo-user';
 
-// Store transactions
+// Store transactions - demo data
 let transactions = [
-    { date: '2025-10-15', source: 'Target', amount: 125.50, bill: 'Groceries', account: 'RCU' },
-    { date: '2025-09-20', source: 'Walmart', amount: 89.75, bill: 'Gas', account: 'Sam\'s' }
+    // January - balanced
+    { date: '2026-01-05', source: 'Market Basket', amount: 120.50, bill: 'Groceries', account: 'Bank A' },
+    { date: '2026-01-08', source: 'Shell Gas', amount: 45.00, bill: 'Gas', account: 'Bank A' },
+    { date: '2026-01-12', source: 'Mortgage Payment', amount: 1800.00, bill: 'Mortgage + Taxes', account: 'Bank A' },
+    { date: '2026-01-15', source: 'Daycare Center', amount: 800.00, bill: 'Daycare', account: 'Bank A' },
+    { date: '2026-01-18', source: 'Local Restaurant', amount: 65.00, bill: 'Restaurants/Entertainment', account: 'Bank A' },
+    { date: '2026-01-22', source: 'Electric Utility', amount: 180.00, bill: 'Electric', account: 'Bank A' },
+    { date: '2026-01-25', source: 'Whole Foods', amount: 95.50, bill: 'Groceries', account: 'Bank A' },
+    
+    // February - OVER BUDGET (-$500)
+    { date: '2026-02-03', source: 'Market Basket', amount: 145.00, bill: 'Groceries', account: 'Bank A' },
+    { date: '2026-02-05', source: 'Car Payment', amount: 350.00, bill: 'Car Payment', account: 'Bank A' },
+    { date: '2026-02-08', source: 'Shell Gas', amount: 52.00, bill: 'Gas', account: 'Bank A' },
+    { date: '2026-02-12', source: 'Mortgage Payment', amount: 1800.00, bill: 'Mortgage + Taxes', account: 'Bank A' },
+    { date: '2026-02-15', source: 'Daycare Center', amount: 800.00, bill: 'Daycare', account: 'Bank A' },
+    { date: '2026-02-18', source: 'Electric Utility', amount: 210.00, bill: 'Electric', account: 'Bank A' },
+    { date: '2026-02-20', source: 'Restaurant Week', amount: 180.00, bill: 'Restaurants/Entertainment', account: 'Bank A' },
+    { date: '2026-02-22', source: 'Whole Foods', amount: 120.00, bill: 'Groceries', account: 'Bank A' },
+    { date: '2026-02-25', source: 'Movie Theater', amount: 50.00, bill: 'Restaurants/Entertainment', account: 'Bank A' },
+    
+    // March - OVER BUDGET (-$300)
+    { date: '2026-03-02', source: 'Market Basket', amount: 135.00, bill: 'Groceries', account: 'Bank A' },
+    { date: '2026-03-08', source: 'Shell Gas', amount: 48.00, bill: 'Gas', account: 'Bank A' },
+    { date: '2026-03-12', source: 'Mortgage Payment', amount: 1800.00, bill: 'Mortgage + Taxes', account: 'Bank A' },
+    { date: '2026-03-15', source: 'Daycare Center', amount: 800.00, bill: 'Daycare', account: 'Bank A' },
+    { date: '2026-03-18', source: 'Electric Utility', amount: 175.00, bill: 'Electric', account: 'Bank A' },
+    { date: '2026-03-20', source: 'Restaurant Visit', amount: 85.00, bill: 'Restaurants/Entertainment', account: 'Bank A' },
+    { date: '2026-03-22', source: 'Whole Foods', amount: 110.00, bill: 'Groceries', account: 'Bank A' },
+    { date: '2026-03-25', source: 'Spring Activities', amount: 100.00, bill: 'Kids Activities', account: 'Bank A' },
+    
+    // April - UNDER BUDGET (+$800)
+    { date: '2026-04-05', source: 'Market Basket', amount: 110.00, bill: 'Groceries', account: 'Bank A' },
+    { date: '2026-04-08', source: 'Shell Gas', amount: 42.00, bill: 'Gas', account: 'Bank A' },
+    { date: '2026-04-12', source: 'Mortgage Payment', amount: 1800.00, bill: 'Mortgage + Taxes', account: 'Bank A' },
+    { date: '2026-04-15', source: 'Daycare Center', amount: 800.00, bill: 'Daycare', account: 'Bank A' },
+    { date: '2026-04-18', source: 'Electric Utility', amount: 140.00, bill: 'Electric', account: 'Bank A' },
+    { date: '2026-04-22', source: 'Whole Foods', amount: 85.00, bill: 'Groceries', account: 'Bank A' },
+    
+    // May - balanced
+    { date: '2026-05-03', source: 'Market Basket', amount: 125.00, bill: 'Groceries', account: 'Bank A' },
+    { date: '2026-05-08', source: 'Shell Gas', amount: 46.00, bill: 'Gas', account: 'Bank A' },
+    { date: '2026-05-12', source: 'Mortgage Payment', amount: 1800.00, bill: 'Mortgage + Taxes', account: 'Bank A' },
+    { date: '2026-05-15', source: 'Daycare Center', amount: 800.00, bill: 'Daycare', account: 'Bank A' },
+    { date: '2026-05-18', source: 'Electric Utility', amount: 165.00, bill: 'Electric', account: 'Bank A' },
+    { date: '2026-05-20', source: 'Restaurant Visit', amount: 60.00, bill: 'Restaurants/Entertainment', account: 'Bank A' },
+    { date: '2026-05-22', source: 'Whole Foods', amount: 95.00, bill: 'Groceries', account: 'Bank A' }
 ];
 
 // Learning system for auto-categorization
