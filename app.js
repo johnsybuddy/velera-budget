@@ -72,13 +72,13 @@ function parseLocalDate(dateString) {
 
 // Firebase Configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyD4V3DKjbRv5DgjRpZ6BzxPH8SJjJ2Nm-I",
-    authDomain: "work-budget-tracker.firebaseapp.com",
-    projectId: "work-budget-tracker",
-    storageBucket: "work-budget-tracker.firebasestorage.app",
-    messagingSenderId: "704722132019",
-    appId: "1:704722132019:web:7178ac03b6e94832d85746",
-    measurementId: "G-NVLR9RBVGL"
+    apiKey: "AIzaSyCnpK-aY7cQdkW1MoloTHJD-GJSSswJXxE",
+    authDomain: "johnson-fam-bills.firebaseapp.com",
+    projectId: "johnson-fam-bills",
+    storageBucket: "johnson-fam-bills.firebasestorage.app",
+    messagingSenderId: "859356967572",
+    appId: "1:859356967572:web:db2f34908247872ed2ba81",
+    measurementId: "G-GCBWCYHHE4"
 };
 
 // Initialize Firebase
@@ -105,7 +105,7 @@ try {
 }
 
 // User ID for data isolation
-const userId = 'work-user'; // Separate workspace for work budget
+const userId = 'johnsybuddy'; // Your username
 
 // Store transactions
 let transactions = [
@@ -613,14 +613,9 @@ function updateBudgetFromTransactions() {
     });
     
     // Update totals
-    const totalActualEl = document.getElementById('totalActual');
-    const totalOverUnderEl = document.getElementById('totalOverUnder');
-    
-    if (totalActualEl) totalActualEl.textContent = `$${totalActual.toFixed(2)}`;
-    if (totalOverUnderEl) {
-        totalOverUnderEl.textContent = `$${totalOverUnder.toFixed(2)}`;
-        totalOverUnderEl.style.color = totalOverUnder >= 0 ? 'var(--success)' : 'var(--danger)';
-    }
+    document.getElementById('totalActual').textContent = `$${totalActual.toFixed(2)}`;
+    document.getElementById('totalOverUnder').textContent = `$${totalOverUnder.toFixed(2)}`;
+    document.getElementById('totalOverUnder').style.color = totalOverUnder >= 0 ? 'var(--success)' : 'var(--danger)';
     
     // Store this month's over/under for dashboard
     monthlyOverUnder[currentMonth] = totalOverUnder;
@@ -2931,8 +2926,10 @@ async function deleteBill() {
         updateDashboard();
         updateBudgetTotals();
         
-        showNotification(`${billName} deleted from all months!`);
-        closeAddBill();
+        showNotification(`✓ ${billName} deleted from all months!`);
+        
+        // Close modal after a brief delay
+        setTimeout(() => closeAddBill(), 300);
     }
 }
 
@@ -2993,7 +2990,10 @@ document.getElementById('addBillForm').addEventListener('submit', async function
         const monthText = selectedMonths.length === 1 ? 
             selectedMonths[0].toUpperCase() : 
             `${selectedMonths.length} months`;
-        showNotification(`${billName} updated to $${amount.toFixed(2)} for ${monthText}!`);
+        showNotification(`✓ ${billName} updated to $${amount.toFixed(2)} for ${monthText}!`);
+        
+        // Close modal after a brief delay to ensure all updates complete
+        setTimeout(() => closeAddBill(), 300);
     } else {
         // ADD MODE: Create new bill (currently limited - would need UI for month selection)
         // For now, add to current month only
@@ -3006,10 +3006,11 @@ document.getElementById('addBillForm').addEventListener('submit', async function
         await saveMonthlyBudgets();
         updateDashboard();
         
-        showNotification(`${billName} added to ${currentMonth.toUpperCase()}!`);
+        showNotification(`✓ ${billName} added to ${currentMonth.toUpperCase()}!`);
+        
+        // Close modal after a brief delay
+        setTimeout(() => closeAddBill(), 300);
     }
-    
-    closeAddBill();
 });
 
 // Family Expense Tracking
