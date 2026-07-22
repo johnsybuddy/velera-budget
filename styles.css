@@ -1441,7 +1441,13 @@ body {
 .transactions-table-container,
 .family-expense-table-container {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
+
+/* Subscriptions / Recurring panels: allow each table to scroll on small screens */
+.subs-panel { min-width: 0; }
+.subs-panel .transactions-table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.subs-panel .transactions-table { min-width: 480px; }
 
 /* Health insurance row */
 .health-insurance {

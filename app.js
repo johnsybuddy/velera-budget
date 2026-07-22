@@ -4165,18 +4165,15 @@ function computeRecurringMerchants() {
         }
     });
 
-    // Auto-classify a merchant as a fixed "Subscription" vs general "Recurring" spend
-    const autoClassify = (name, category, amounts, freq) => {
+    // Auto-classify a merchant as a "Subscription" ONLY when it clearly is a
+    // streaming/software/membership service (by known merchant keyword or a
+    // "Subscription" category). Everything else defaults to general "Recurring"
+    // spend; the user can move items manually.
+    const autoClassify = (name, category) => {
         const n = (name || '').toLowerCase();
         const cat = (category || '').toLowerCase();
         if (cat.includes('subscription')) return 'Subscription';
         if (SUBSCRIPTION_KEYWORDS.some(k => n.includes(k))) return 'Subscription';
-        // A near-identical amount charged on a regular cadence looks like a subscription
-        const med = median(amounts);
-        if (med > 0 && (freq === 'Monthly' || freq === 'Biweekly' || freq === 'Weekly')) {
-            const maxDev = Math.max(...amounts.map(a => Math.abs(a - med) / med));
-            if (maxDev <= 0.05) return 'Subscription';
-        }
         return 'Recurring';
     };
 
@@ -4207,7 +4204,7 @@ function computeRecurringMerchants() {
             else freq = 'Occasional';
         }
 
-        const autoType = autoClassify(g.display, g.category, g.amounts, freq);
+        const autoType = autoClassify(g.display, g.category);
         // Manual override takes precedence
         const type = subscriptionOverrides[g.key] || autoType;
 
@@ -4241,19 +4238,47 @@ function renderRecurringList(tbodyId, items, moveTo) {
         return;
     }
 
+    const moveLabel = moveTo === 'Subscription' ? '→ Subscription' : '→ Recurring';
+
     items.forEach(r => {
         const row = document.createElement('tr');
-        const lastStr = r.last.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
-        const safeKey = r.key.replace(/'/g, "\\'");
-        const moveLabel = moveTo === 'Subscription' ? '→ Subscription' : '→ Recurring';
-        row.innerHTML = `
-            <td>${r.display}${r.overridden ? ' <span title="Manually set" style="color:var(--primary);">✎</span>' : ''}</td>
-            <td>${r.category}</td>
-            <td>$${r.typical.toFixed(2)}</td>
-            <td>${r.freq}</td>
-            <td>$${r.estMonthly.toFixed(2)}</td>
-            <td><button class="btn-edit" onclick="reclassifyMerchant('${safeKey}', '${moveTo}')">${moveLabel}</button></td>
-        `;
+
+        const nameTd = document.createElement('td');
+        nameTd.textContent = r.display;
+        if (r.overridden) {
+            const mark = document.createElement('span');
+            mark.title = 'Manually set';
+            mark.style.color = 'var(--primary)';
+            mark.textContent = ' ✎';
+            nameTd.appendChild(mark);
+        }
+
+        const catTd = document.createElement('td');
+        catTd.textContent = r.category;
+
+        const typTd = document.createElement('td');
+        typTd.textContent = '$' + r.typical.toFixed(2);
+
+        const freqTd = document.createElement('td');
+        freqTd.textContent = r.freq;
+
+        const monTd = document.createElement('td');
+        monTd.textContent = '$' + r.estMonthly.toFixed(2);
+
+        const actTd = document.createElement('td');
+        const btn = document.createElement('button');
+        btn.className = 'btn-edit';
+        btn.textContent = moveLabel;
+        // Attach handler directly - avoids any string-escaping issues with merchant keys
+        btn.addEventListener('click', () => reclassifyMerchant(r.key, moveTo));
+        actTd.appendChild(btn);
+
+        row.appendChild(nameTd);
+        row.appendChild(catTd);
+        row.appendChild(typTd);
+        row.appendChild(freqTd);
+        row.appendChild(monTd);
+        row.appendChild(actTd);
         tbody.appendChild(row);
     });
 }
