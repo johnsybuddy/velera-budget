@@ -196,8 +196,54 @@ body {
 
 .dashboard-stats {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 1rem;
+}
+
+/* This Month snapshot card */
+.this-month-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-top: 3px solid var(--primary);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1.5rem;
+}
+.this-month-card h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--velera-navy);
+    margin-bottom: 1rem;
+}
+.this-month-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+}
+.tm-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0.75rem 0.4rem;
+    background: var(--bg-main);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+}
+.tm-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--velera-navy);
+    white-space: nowrap;
+}
+.tm-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--text-muted);
+    margin-top: 0.2rem;
 }
 
 .stat-card {

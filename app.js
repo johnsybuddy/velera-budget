@@ -2013,139 +2013,155 @@ function updateDashboard() {
     
     const monthlyGrid = document.getElementById('monthlyGrid');
     monthlyGrid.innerHTML = '';
-    
-    let overallTotal = 0; // Current month's total only
+
     let totalSpent = 0;
     
-    // Calculate total budget dynamically from current month's budgets
+    // ===== Dynamic annual budget =====
+    // Past & current months use their own configured budget; future months are
+    // projected from the current month's budget (the "most recent" template),
+    // so the annual number reacts whenever bills are changed going forward.
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth() + 1; // 1-12
-    const currentMonthName = months[currentDate.getMonth()]; // e.g., 'feb'
-    
-    // Calculate ANNUAL budget by summing all 12 months individually
-    let totalBudget = 0;
-    months.forEach(m => {
-        const mBudgets = monthlyBudgets[m] || {};
-        for (const billName in mBudgets) {
-            const v = mBudgets[billName];
-            if (v > 0 && billName !== 'Extra Paid') {
-                totalBudget += v;
-            }
+    const curIdx = currentDate.getMonth(); // 0-11
+    const currentMonthName = months[curIdx];
+
+    const monthBudgetTotal = (m) => {
+        const b = monthlyBudgets[m] || {};
+        let t = 0;
+        for (const billName in b) {
+            const v = b[billName];
+            if (v > 0 && billName !== 'Extra Paid') t += v;
         }
+        return t;
+    };
+
+    // Template = current month's budget, else the most recent month that has one
+    let templateTotal = monthBudgetTotal(currentMonthName);
+    for (let i = curIdx; i >= 0 && templateTotal === 0; i--) templateTotal = monthBudgetTotal(months[i]);
+    for (let i = 11; i >= 0 && templateTotal === 0; i--) templateTotal = monthBudgetTotal(months[i]);
+
+    // Annual budget (projected): own totals through current month, template after
+    let totalBudget = 0;
+    months.forEach((m, i) => {
+        totalBudget += (i <= curIdx) ? monthBudgetTotal(m) : templateTotal;
     });
 
-    console.log(`Dashboard - Annual budget (sum of all months): $${totalBudget.toFixed(2)}`);
-    
+    // Budgeted year-to-date (Jan..current month)
+    let budgetedYtd = 0;
+    for (let i = 0; i <= curIdx; i++) budgetedYtd += monthBudgetTotal(months[i]);
+
+    // Spent year-to-date and per-month spend
+    const monthSpent = {};
+    transactions.forEach(tr => {
+        if (tr.bill === 'Ignore/Internal Transfer') return;
+        const d = parseLocalDate(tr.date);
+        if (!d || isNaN(d.getTime()) || d.getFullYear() !== currentYear) return;
+        const mName = months[d.getMonth()];
+        monthSpent[mName] = (monthSpent[mName] || 0) + tr.amount;
+        totalSpent += tr.amount;
+    });
+
+    // Net over/under year-to-date. Only count months that actually have spending
+    // activity, so empty/future months don't create misleading over/under artifacts.
+    let netYtd = 0;
+    for (let i = 0; i <= curIdx; i++) {
+        const m = months[i];
+        if ((monthSpent[m] || 0) !== 0) netYtd += (monthlyOverUnder[m] || 0);
+    }
+
+    // ===== Monthly performance grid =====
     months.forEach((month, index) => {
-        const monthNumber = monthNumbers[month];
-        const monthIndex = index + 1; // 1-12
-        
-        // Only calculate for months that have transactions (not future months)
-        const isCurrentOrPast = monthIndex <= currentMonth || (currentYear > 2026);
-        
-        let monthDifference = 0;
+        const isCurrentOrPast = index <= curIdx || currentYear > 2026;
         let displayAmount = '$0.00';
         let amountClass = 'neutral';
         let cardClass = 'month-card';
-        
-        if (isCurrentOrPast) {
-            const monthTransactions = transactions.filter(transaction => {
-                const transactionDate = parseLocalDate(transaction.date);
-                const transactionMonth = String(transactionDate.getMonth() + 1).padStart(2, '0');
-                const transactionYear = transactionDate.getFullYear();
-                return transactionMonth === monthNumber && transactionYear === currentYear;
-            });
-            
-            // ONLY calculate if there are actual transactions for this month
-            if (monthTransactions.length === 0) {
-                // No transactions - show $0.00 neutral
-                displayAmount = '$0.00';
-                amountClass = 'neutral';
-                cardClass = 'month-card';
-            } else {
-                // Use the stored value from monthlyOverUnder (set by updateBudgetFromTransactions)
-                monthDifference = monthlyOverUnder[month] || 0;
-                
-                console.log(`Dashboard ${month}: Using stored value = ${monthDifference}`);
-                
-                // Count total spent for this month
-                monthTransactions.forEach(transaction => {
-                    if (transaction.bill !== 'Ignore/Internal Transfer') {
-                        totalSpent += transaction.amount;
-                    }
-                });
-                
-                // Only add to overall total if this is the CURRENT month
-                if (month === currentMonthName) {
-                    overallTotal += monthDifference;
-                }
-                
-                amountClass = monthDifference > 0 ? 'positive' : monthDifference < 0 ? 'negative' : 'neutral';
-                cardClass = `month-card ${monthDifference >= 0 ? 'surplus' : 'deficit'}`;
-                displayAmount = monthDifference === 0 ? '$0.00' : `${monthDifference >= 0 ? '+' : ''}$${Math.abs(monthDifference).toFixed(2)}`;
-            }
+
+        if (isCurrentOrPast && (monthSpent[month] || 0) !== 0) {
+            const monthDifference = monthlyOverUnder[month] || 0;
+            amountClass = monthDifference > 0 ? 'positive' : monthDifference < 0 ? 'negative' : 'neutral';
+            cardClass = `month-card ${monthDifference >= 0 ? 'surplus' : 'deficit'}`;
+            displayAmount = monthDifference === 0 ? '$0.00' : `${monthDifference >= 0 ? '+' : ''}$${Math.abs(monthDifference).toFixed(2)}`;
         }
-        
+
         const monthCard = document.createElement('div');
         monthCard.className = cardClass;
-        
         monthCard.innerHTML = `
             <h4>${monthNames[month]}</h4>
             <div class="month-amount ${amountClass}">${displayAmount}</div>
         `;
-        
         monthlyGrid.appendChild(monthCard);
     });
-    
-    // Update header stats
-    document.getElementById('totalBudgetStat').textContent = `$${totalBudget.toLocaleString()}`;
-    document.getElementById('totalSpentStat').textContent = `$${totalSpent.toLocaleString()}`;
-    document.getElementById('remainingStat').textContent = `$${(totalBudget - totalSpent).toLocaleString()}`;
-    
-    // Update overall status
+
+    // ===== This month's snapshot =====
+    const thisMonthBudget = monthBudgetTotal(currentMonthName);
+    const thisMonthSpent = monthSpent[currentMonthName] || 0;
+    // Only show over/under once there's activity this month
+    const thisMonthNet = thisMonthSpent !== 0 ? (monthlyOverUnder[currentMonthName] || 0) : 0;
+
+    // ===== Header stat cards =====
+    const remaining = totalBudget - totalSpent;
+    const setStat = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    setStat('totalBudgetStat', `$${Math.round(totalBudget).toLocaleString()}`);
+    setStat('totalSpentStat', `$${Math.round(totalSpent).toLocaleString()}`);
+    setStat('remainingStat', `$${Math.round(remaining).toLocaleString()}`);
+    const netEl = document.getElementById('netYtdStat');
+    if (netEl) {
+        netEl.textContent = `${netYtd >= 0 ? '+' : '-'}$${Math.abs(netYtd).toFixed(0)}`;
+        netEl.style.color = netYtd >= 0 ? 'var(--success)' : 'var(--danger)';
+    }
+
+    // ===== This Month card =====
+    const capFirst = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+    const monthFull = { jan:'January', feb:'February', mar:'March', apr:'April', may:'May', jun:'June', jul:'July', aug:'August', sep:'September', oct:'October', nov:'November', dec:'December' };
+    setStat('thisMonthName', monthFull[currentMonthName] || capFirst(currentMonthName));
+    setStat('thisMonthBudget', `$${thisMonthBudget.toLocaleString(undefined, {maximumFractionDigits:0})}`);
+    setStat('thisMonthSpent', `$${thisMonthSpent.toLocaleString(undefined, {maximumFractionDigits:0})}`);
+    const tmNet = document.getElementById('thisMonthNet');
+    if (tmNet) {
+        tmNet.textContent = `${thisMonthNet >= 0 ? '+' : '-'}$${Math.abs(thisMonthNet).toFixed(0)}`;
+        tmNet.style.color = thisMonthNet >= 0 ? 'var(--success)' : 'var(--danger)';
+    }
+
+    // Periodic bills reserve + month label (unchanged behavior)
+    updatePeriodicBillsBreakdown();
+    updateDashboardMonth();
+
+    // ===== Financial Health (year-to-date) =====
     const overallStatusCard = document.getElementById('overallStatus');
     const overallAmount = document.getElementById('overallAmount');
     const overallLabel = document.getElementById('overallLabel');
     const statusIndicator = document.getElementById('statusIndicator');
     const overallProgress = document.getElementById('overallProgress');
     const progressText = document.getElementById('progressText');
-    
-    console.log('FINAL overallTotal for dashboard:', overallTotal);
-    
-    // Update periodic bills breakdown
-    updatePeriodicBillsBreakdown();
-    
-    // Update dashboard month
-    updateDashboardMonth();
-    
-    // Financial Health shows actual surplus (buckets shown separately)
-    overallAmount.textContent = `${overallTotal >= 0 ? '+' : ''}$${Math.abs(overallTotal).toFixed(2)}`;
-    overallAmount.className = `status-amount ${overallTotal >= 0 ? 'positive' : 'negative'}`;
-    
-    // Calculate progress percentage
-    const progressPercent = Math.min((totalSpent / totalBudget) * 100, 100);
-    overallProgress.style.width = `${progressPercent}%`;
-    progressText.textContent = `${progressPercent.toFixed(1)}% of budget used`;
-    
-    if (overallTotal > 0) {
-        overallStatusCard.className = 'status-card surplus';
-        overallLabel.textContent = 'Surplus 💰';
-        overallLabel.className = 'status-label surplus';
-        statusIndicator.textContent = '🟢';
-        overallProgress.style.background = 'var(--success)';
-    } else if (overallTotal < 0) {
-        overallStatusCard.className = 'status-card deficit';
-        overallLabel.textContent = 'Behind 📉';
-        overallLabel.className = 'status-label deficit';
-        statusIndicator.textContent = '🔴';
-        overallProgress.style.background = 'var(--danger)';
-    } else {
-        overallStatusCard.className = 'status-card';
-        overallLabel.textContent = 'On Track 🎯';
-        overallLabel.className = 'status-label';
-        statusIndicator.textContent = '🟡';
-        overallProgress.style.background = 'var(--primary)';
+
+    if (overallAmount) {
+        overallAmount.textContent = `${netYtd >= 0 ? '+' : '-'}$${Math.abs(netYtd).toFixed(2)}`;
+        overallAmount.className = `status-amount ${netYtd >= 0 ? 'positive' : 'negative'}`;
+    }
+    const usedPct = budgetedYtd > 0 ? Math.min((totalSpent / budgetedYtd) * 100, 100) : 0;
+    if (overallProgress) overallProgress.style.width = `${usedPct}%`;
+    if (progressText) progressText.textContent = `${usedPct.toFixed(0)}% of YTD budget used`;
+
+    if (overallStatusCard && overallLabel && statusIndicator) {
+        if (netYtd > 0) {
+            overallStatusCard.className = 'status-card surplus';
+            overallLabel.textContent = 'Surplus 💰';
+            overallLabel.className = 'status-label surplus';
+            statusIndicator.textContent = '🟢';
+            if (overallProgress) overallProgress.style.background = 'var(--success)';
+        } else if (netYtd < 0) {
+            overallStatusCard.className = 'status-card deficit';
+            overallLabel.textContent = 'Behind 📉';
+            overallLabel.className = 'status-label deficit';
+            statusIndicator.textContent = '🔴';
+            if (overallProgress) overallProgress.style.background = 'var(--danger)';
+        } else {
+            overallStatusCard.className = 'status-card';
+            overallLabel.textContent = 'On Track 🎯';
+            overallLabel.className = 'status-label';
+            statusIndicator.textContent = '🟡';
+            if (overallProgress) overallProgress.style.background = 'var(--primary)';
+        }
     }
 }
 
