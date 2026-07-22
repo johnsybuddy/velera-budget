@@ -1517,10 +1517,10 @@ body {
     -webkit-overflow-scrolling: touch;
 }
 
-/* Subscriptions / Recurring panels: allow each table to scroll on small screens */
+/* Subscriptions / Recurring panels: stacked full-width, no horizontal scroll */
 .subs-panel { min-width: 0; }
-.subs-panel .transactions-table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.subs-panel .transactions-table { min-width: 480px; }
+.subs-panel .transactions-table-container { overflow-x: visible; }
+.subs-panel .transactions-table { min-width: 0; width: 100%; }
 
 /* Per-panel summary bar (Items / Per Month / Per Year) */
 .subs-summary {
