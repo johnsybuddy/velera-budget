@@ -430,31 +430,6 @@ async function loadMonthlyBudgets() {
             if (doc.exists && doc.data().monthlyBudgets) {
                 monthlyBudgets = doc.data().monthlyBudgets;
                 console.log('Monthly budgets loaded from cloud');
-                
-                // Auto-fill missing bills with defaults
-                const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-                let needsSave = false;
-                
-                months.forEach(month => {
-                    if (!monthlyBudgets[month]) {
-                        monthlyBudgets[month] = {};
-                    }
-                    
-                    // Add any missing bills from defaults
-                    for (const billName in defaultBudgets) {
-                        if (monthlyBudgets[month][billName] === undefined) {
-                            monthlyBudgets[month][billName] = defaultBudgets[billName];
-                            needsSave = true;
-                            console.log(`Added missing bill to ${month}: ${billName} = ${defaultBudgets[billName]}`);
-                        }
-                    }
-                });
-                
-                // Save if we added any missing bills
-                if (needsSave) {
-                    console.log('Saving updated budgets with missing bills filled in...');
-                    await saveMonthlyBudgets();
-                }
             }
             if (doc.exists && doc.data().periodicBuckets) {
                 periodicBuckets = doc.data().periodicBuckets;
@@ -472,7 +447,26 @@ async function loadMonthlyBudgets() {
             monthlyBudgets = JSON.parse(saved);
         }
     }
-    
+
+    // ALWAYS ensure every month has the full default bill set. This fills only
+    // MISSING bills (undefined) and never overwrites edited values or deleted
+    // markers (null), so the dashboard and reconciliation always have budgets to
+    // work with - even on a brand-new database.
+    const allMonths = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    let filledMissing = false;
+    allMonths.forEach(month => {
+        if (!monthlyBudgets[month]) monthlyBudgets[month] = {};
+        for (const billName in defaultBudgets) {
+            if (monthlyBudgets[month][billName] === undefined) {
+                monthlyBudgets[month][billName] = defaultBudgets[billName];
+                filledMissing = true;
+            }
+        }
+    });
+    if (filledMissing) {
+        await saveMonthlyBudgets();
+    }
+
     const savedBuckets = localStorage.getItem('periodicBuckets');
     if (savedBuckets && Object.keys(periodicBuckets).length === 0) {
         periodicBuckets = JSON.parse(savedBuckets);
@@ -2103,21 +2097,6 @@ function updateDashboard() {
         monthlyGrid.appendChild(monthCard);
     });
 
-    // ===== Snapshot month =====
-    // Use the current calendar month if it has activity; otherwise fall back to
-    // the most recent month this year that does, so the card is never blank.
-    let activeIdx = curIdx;
-    if ((monthSpent[months[curIdx]] || 0) === 0) {
-        for (let i = curIdx; i >= 0; i--) {
-            if ((monthSpent[months[i]] || 0) !== 0) { activeIdx = i; break; }
-        }
-    }
-    const activeMonthName = months[activeIdx];
-    const isFallbackMonth = activeIdx !== curIdx;
-    const thisMonthBudget = monthBudgetTotal(activeMonthName);
-    const thisMonthSpent = monthSpent[activeMonthName] || 0;
-    const thisMonthNet = thisMonthSpent !== 0 ? (monthlyOverUnder[activeMonthName] || 0) : 0;
-
     // ===== Header stat cards =====
     const remaining = totalBudget - totalSpent;
     const setStat = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
@@ -2128,19 +2107,6 @@ function updateDashboard() {
     if (netEl) {
         netEl.textContent = `${netYtd >= 0 ? '+' : '-'}$${Math.abs(netYtd).toFixed(0)}`;
         netEl.style.color = netYtd >= 0 ? 'var(--success)' : 'var(--danger)';
-    }
-
-    // ===== This Month card =====
-    const capFirst = (s) => s.charAt(0).toUpperCase() + s.slice(1);
-    const monthFull = { jan:'January', feb:'February', mar:'March', apr:'April', may:'May', jun:'June', jul:'July', aug:'August', sep:'September', oct:'October', nov:'November', dec:'December' };
-    const snapshotLabel = (monthFull[activeMonthName] || capFirst(activeMonthName)) + (isFallbackMonth ? ' (latest activity)' : '');
-    setStat('thisMonthName', snapshotLabel);
-    setStat('thisMonthBudget', `$${thisMonthBudget.toLocaleString(undefined, {maximumFractionDigits:0})}`);
-    setStat('thisMonthSpent', `$${thisMonthSpent.toLocaleString(undefined, {maximumFractionDigits:0})}`);
-    const tmNet = document.getElementById('thisMonthNet');
-    if (tmNet) {
-        tmNet.textContent = `${thisMonthNet >= 0 ? '+' : '-'}$${Math.abs(thisMonthNet).toFixed(0)}`;
-        tmNet.style.color = thisMonthNet >= 0 ? 'var(--success)' : 'var(--danger)';
     }
 
     // Periodic bills reserve + month label (unchanged behavior)
