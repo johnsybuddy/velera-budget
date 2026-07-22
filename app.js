@@ -607,20 +607,17 @@ function updateBudgetFromTransactions() {
     };
     
     const currentMonthNumber = monthNumbers[currentMonth];
-    // Temporarily remove year filter to test
+    // Match the dashboard: count transactions for the current calendar year dynamically
+    const budgetYear = new Date().getFullYear();
     const currentMonthTransactions = transactions.filter(transaction => {
         const transactionDate = parseLocalDate(transaction.date);
         const transactionMonth = String(transactionDate.getMonth() + 1).padStart(2, '0');
         const transactionYear = transactionDate.getFullYear();
-        
-        console.log(`Transaction: ${transaction.date} -> Month: ${transactionMonth}, Year: ${transactionYear}, Bill: ${transaction.bill}`);
-        
+
         const monthMatch = transactionMonth === currentMonthNumber;
-        const yearMatch = transactionYear === 2026; // Only count 2026 transactions
+        const yearMatch = transactionYear === budgetYear;
         const notIgnored = transaction.bill !== 'Ignore/Internal Transfer';
-        
-        console.log(`  Month match: ${monthMatch} (${transactionMonth} === ${currentMonthNumber}), Year match: ${yearMatch}, Not ignored: ${notIgnored}`);
-        
+
         return monthMatch && yearMatch && notIgnored;
     });
     
@@ -4381,4 +4378,29 @@ async function reclassifyMerchant(key, newType) {
     await saveSubscriptionOverrides();
     updateSubscriptionsTable();
     showNotification(`✓ Moved to ${newType}`);
+}
+
+
+// ============================================
+// START FRESH - clear all transactions (demo or otherwise)
+// Keeps your bills, budgets, and periodic config; only wipes transaction history
+// and the derived subscription/reserve data so you can enter real data one at a time.
+// ============================================
+async function clearAllData() {
+    if (!confirm('Start fresh? This permanently deletes ALL transactions.\n\nYour bills, budgets, and periodic settings are kept.')) return;
+    if (!confirm('Are you absolutely sure? This cannot be undone.')) return;
+
+    transactions = [];
+    subscriptionOverrides = {};
+    periodicBuckets = {};
+
+    await saveTransactions();
+    await saveSubscriptionOverrides();
+    await savePeriodicBuckets();
+
+    updateTransactionTable();
+    updateBudgetFromTransactions();
+    updateDashboard();
+
+    showNotification('✓ All transactions cleared — ready for a fresh start!');
 }
