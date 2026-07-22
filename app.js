@@ -22,6 +22,11 @@ function showTab(tabName) {
         if (tabBtn) tabBtn.classList.add('active');
     }
     
+    // Recompute the dashboard from the latest data whenever it's opened
+    if (tabName === 'dashboard') {
+        updateDashboard();
+    }
+    
     // Refresh carryover table when switching to it
     if (tabName === 'carryover') {
         updateCarryoverTable();
@@ -2098,11 +2103,20 @@ function updateDashboard() {
         monthlyGrid.appendChild(monthCard);
     });
 
-    // ===== This month's snapshot =====
-    const thisMonthBudget = monthBudgetTotal(currentMonthName);
-    const thisMonthSpent = monthSpent[currentMonthName] || 0;
-    // Only show over/under once there's activity this month
-    const thisMonthNet = thisMonthSpent !== 0 ? (monthlyOverUnder[currentMonthName] || 0) : 0;
+    // ===== Snapshot month =====
+    // Use the current calendar month if it has activity; otherwise fall back to
+    // the most recent month this year that does, so the card is never blank.
+    let activeIdx = curIdx;
+    if ((monthSpent[months[curIdx]] || 0) === 0) {
+        for (let i = curIdx; i >= 0; i--) {
+            if ((monthSpent[months[i]] || 0) !== 0) { activeIdx = i; break; }
+        }
+    }
+    const activeMonthName = months[activeIdx];
+    const isFallbackMonth = activeIdx !== curIdx;
+    const thisMonthBudget = monthBudgetTotal(activeMonthName);
+    const thisMonthSpent = monthSpent[activeMonthName] || 0;
+    const thisMonthNet = thisMonthSpent !== 0 ? (monthlyOverUnder[activeMonthName] || 0) : 0;
 
     // ===== Header stat cards =====
     const remaining = totalBudget - totalSpent;
@@ -2119,7 +2133,8 @@ function updateDashboard() {
     // ===== This Month card =====
     const capFirst = (s) => s.charAt(0).toUpperCase() + s.slice(1);
     const monthFull = { jan:'January', feb:'February', mar:'March', apr:'April', may:'May', jun:'June', jul:'July', aug:'August', sep:'September', oct:'October', nov:'November', dec:'December' };
-    setStat('thisMonthName', monthFull[currentMonthName] || capFirst(currentMonthName));
+    const snapshotLabel = (monthFull[activeMonthName] || capFirst(activeMonthName)) + (isFallbackMonth ? ' (latest activity)' : '');
+    setStat('thisMonthName', snapshotLabel);
     setStat('thisMonthBudget', `$${thisMonthBudget.toLocaleString(undefined, {maximumFractionDigits:0})}`);
     setStat('thisMonthSpent', `$${thisMonthSpent.toLocaleString(undefined, {maximumFractionDigits:0})}`);
     const tmNet = document.getElementById('thisMonthNet');
