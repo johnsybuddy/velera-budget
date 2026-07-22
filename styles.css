@@ -596,6 +596,22 @@ body {
     color: var(--text-muted);
 }
 
+/* Reviewed & reconciled to budget ($0.00) - light green so it reads as "done" */
+.month-card.reconciled {
+    background: #ECFDF5;
+    border-color: #A7F3D0;
+}
+.month-card.reconciled:hover {
+    background: #D1FAE5;
+    border-color: #6EE7B7;
+}
+.month-amount.reconciled {
+    color: #059669;
+}
+.month-card.reconciled h4 {
+    color: #059669;
+}
+
 /* Action Buttons */
 .action-btn {
     display: flex;

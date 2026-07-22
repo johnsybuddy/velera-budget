@@ -2166,9 +2166,16 @@ function updateDashboard() {
 
         if (isCurrentOrPast && (monthSpent[month] || 0) !== 0) {
             const monthDifference = monthlyOverUnder[month] || 0;
-            amountClass = monthDifference > 0 ? 'positive' : monthDifference < 0 ? 'negative' : 'neutral';
-            cardClass = `month-card ${monthDifference >= 0 ? 'surplus' : 'deficit'}`;
-            displayAmount = monthDifference === 0 ? '$0.00' : `${monthDifference >= 0 ? '+' : ''}$${Math.abs(monthDifference).toFixed(2)}`;
+            if (monthDifference === 0) {
+                // Reviewed and reconciled exactly to budget -> light green
+                amountClass = 'reconciled';
+                cardClass = 'month-card reconciled';
+                displayAmount = '$0.00';
+            } else {
+                amountClass = monthDifference > 0 ? 'positive' : 'negative';
+                cardClass = `month-card ${monthDifference >= 0 ? 'surplus' : 'deficit'}`;
+                displayAmount = `${monthDifference >= 0 ? '+' : ''}$${Math.abs(monthDifference).toFixed(2)}`;
+            }
         }
 
         const monthCard = document.createElement('div');
