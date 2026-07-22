@@ -1,14 +1,21 @@
-/* Monarch-inspired Clean Design */
+/* Velera-inspired design: deep purple→blue with a sleek orange accent */
 :root {
-    /* Primary palette - warm coral/salmon like Monarch */
-    --primary: #E85D4C;
-    --primary-dark: #D14D3D;
-    --primary-light: #F5A898;
-    --primary-bg: #FEF6F4;
-    
+    /* Primary palette - Velera orange accent */
+    --primary: #EE7C1B;
+    --primary-dark: #D46A10;
+    --primary-light: #F8B570;
+    --primary-bg: #FEF4E8;
+
+    /* Velera brand colors */
+    --velera-purple: #4A2A86;
+    --velera-purple-dark: #38206A;
+    --velera-blue: #1E56D6;
+    --velera-navy: #1E2A54;
+    --velera-gradient: linear-gradient(90deg, #4A2A86 0%, #3D34A0 45%, #1E56D6 100%);
+
     /* Neutral palette */
-    --text-primary: #1A1A1A;
-    --text-secondary: #6B7280;
+    --text-primary: #1F2544;
+    --text-secondary: #5B6478;
     --text-muted: #9CA3AF;
     
     /* Backgrounds */
@@ -62,24 +69,24 @@ body {
 }
 
 
-/* Clean Navbar */
+/* Velera Navbar - purple→blue gradient with orange accent line */
 .navbar {
-    background: var(--bg-sidebar);
+    background: var(--velera-gradient);
     padding: 0 1.5rem;
     height: 60px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid var(--border-light);
+    border-bottom: 3px solid var(--primary);
     position: sticky;
     top: 0;
     z-index: 100;
 }
 
 .nav-brand {
-    color: var(--text-primary);
+    color: #FFFFFF;
     font-size: 1.25rem;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: -0.02em;
     display: flex;
     align-items: center;
@@ -99,7 +106,7 @@ body {
 
 .tab-btn {
     background: transparent;
-    color: var(--text-secondary);
+    color: rgba(255, 255, 255, 0.82);
     border: none;
     padding: 0 1rem;
     height: 100%;
@@ -113,12 +120,12 @@ body {
 }
 
 .tab-btn:hover {
-    color: var(--text-primary);
-    background: var(--bg-hover);
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.12);
 }
 
 .tab-btn.active {
-    color: var(--primary);
+    color: #FFFFFF;
     font-weight: 600;
 }
 
@@ -128,7 +135,7 @@ body {
     bottom: 0;
     left: 0;
     right: 0;
-    height: 2px;
+    height: 3px;
     background: var(--primary);
 }
 
@@ -158,29 +165,33 @@ body {
 
 .tab-content h2 {
     font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--text-primary);
+    font-weight: 700;
+    color: var(--velera-navy);
     margin-bottom: 1.5rem;
+    padding-left: 0.75rem;
+    border-left: 4px solid var(--primary);
+    line-height: 1.2;
 }
 
 
-/* Dashboard Header - Clean card style */
+/* Dashboard Header - Clean card style with Velera orange top accent */
 .dashboard-header {
     background: var(--bg-card);
     padding: 1.5rem;
     border-radius: var(--radius-lg);
     margin-bottom: 1.5rem;
     border: 1px solid var(--border-light);
+    border-top: 3px solid var(--primary);
     box-shadow: var(--shadow-sm);
 }
 
 .dashboard-header h2 {
     font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--text-primary);
+    font-weight: 700;
+    color: var(--velera-navy);
     margin-bottom: 1.25rem;
     padding-bottom: 0.75rem;
-    border-bottom: 1px solid var(--border-light);
+    border-bottom: 2px solid var(--primary-light);
 }
 
 .dashboard-stats {
