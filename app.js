@@ -263,6 +263,81 @@ async function saveSubscriptionOverrides() {
     }
 }
 
+// Custom bills added by the user (beyond the built-in budget table rows).
+// Each entry: { name, category }. Amounts live in monthlyBudgets like any bill.
+let customBills = [];
+
+async function saveCustomBills() {
+    if (isFirebaseEnabled) {
+        try {
+            await db.collection('users').doc(userId).set({
+                customBills: customBills,
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            console.log('Custom bills saved to cloud');
+        } catch (error) {
+            console.error('Error saving custom bills:', error);
+            localStorage.setItem('customBills', JSON.stringify(customBills));
+        }
+    } else {
+        localStorage.setItem('customBills', JSON.stringify(customBills));
+    }
+}
+
+// Inject one custom bill as a row in the Monthly Budget table (if not already present)
+function addCustomBillRow(name, amount) {
+    const tbody = document.querySelector('.budget-table tbody');
+    if (!tbody) return;
+    const exists = Array.from(tbody.querySelectorAll('tr')).some(
+        r => r.cells[0] && r.cells[0].textContent.trim() === name
+    );
+    if (exists) return;
+
+    const amt = Number(amount) || 0;
+    const safeName = name.replace(/'/g, "\\'");
+    const tr = document.createElement('tr');
+    tr.className = 'custom-bill-row';
+
+    const nameTd = document.createElement('td');
+    nameTd.textContent = name;
+
+    const dueTd = document.createElement('td');
+    dueTd.className = 'due-date';
+    dueTd.textContent = 'Monthly';
+
+    const budgetTd = document.createElement('td');
+    budgetTd.textContent = `$${amt.toFixed(2)}`;
+
+    const actualTd = document.createElement('td');
+    actualTd.innerHTML = `<span class="actual-amount clickable-zero" data-bill="${name.replace(/"/g, '&quot;')}" onclick="promptMarkPaid('${safeName}')">$0.00</span>`;
+
+    const ouTd = document.createElement('td');
+    ouTd.className = 'over-under';
+    ouTd.textContent = `-$${amt.toFixed(2)}`;
+
+    const actionTd = document.createElement('td');
+    actionTd.innerHTML = `<button class="btn-edit" onclick="editBill('${safeName}', ${amt})">Edit</button>`;
+
+    tr.append(nameTd, dueTd, budgetTd, actualTd, ouTd, actionTd);
+    tbody.appendChild(tr);
+}
+
+// Render all saved custom bills into the budget table
+function renderCustomBills() {
+    const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    customBills.forEach(b => {
+        // Skip if the bill has been deleted (marked null in any month)
+        const isDeleted = months.some(m => monthlyBudgets[m] && monthlyBudgets[m][b.name] === null);
+        if (isDeleted) return;
+        let amount = 0;
+        for (const m of months) {
+            const v = monthlyBudgets[m]?.[b.name];
+            if (typeof v === 'number' && v > 0) { amount = v; break; }
+        }
+        addCustomBillRow(b.name, amount);
+    });
+}
+
 // Enhanced cloud storage functions
 async function saveTransactions() {
     // DUPLICATE PREVENTION: Remove duplicates before saving
@@ -339,6 +414,11 @@ async function loadTransactions() {
                     periodicBillsConfig = doc.data().periodicBillsConfig;
                     console.log('Periodic bills config loaded from cloud');
                 }
+
+                if (doc.data().customBills) {
+                    customBills = doc.data().customBills;
+                    console.log('Custom bills loaded from cloud');
+                }
                 return;
             }
         } catch (error) {
@@ -376,6 +456,12 @@ async function loadTransactions() {
     if (savedPeriodic) {
         periodicBillsConfig = JSON.parse(savedPeriodic);
         console.log('Periodic bills config loaded from localStorage');
+    }
+
+    const savedCustomBills = localStorage.getItem('customBills');
+    if (savedCustomBills) {
+        customBills = JSON.parse(savedCustomBills);
+        console.log('Custom bills loaded from localStorage');
     }
 }
 
@@ -2417,7 +2503,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     };
     const currentDate = new Date();
     document.getElementById('currentMonthTitle').textContent = `${monthNames[monthToShow]} ${currentDate.getFullYear()} Budget`;
-    
+
+    renderCustomBills(); // Inject any user-added bills into the table first
     loadMonthBudget(monthToShow);
     calculatePeriodicBuckets(); // Calculate buckets before updating budget
     updateBudgetFromTransactions();
@@ -3178,19 +3265,37 @@ document.getElementById('addBillForm').addEventListener('submit', async function
         // Close modal after a brief delay to ensure all updates complete
         setTimeout(() => closeAddBill(), 300);
     } else {
-        // ADD MODE: Create new bill (currently limited - would need UI for month selection)
-        // For now, add to current month only
-        if (!monthlyBudgets[currentMonth]) {
-            monthlyBudgets[currentMonth] = {};
+        // ADD MODE: Create a new bill and apply it to every month
+        const allMonths = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+        allMonths.forEach(m => {
+            if (!monthlyBudgets[m]) monthlyBudgets[m] = {};
+            monthlyBudgets[m][billName] = amount;
+        });
+
+        // If this bill isn't already a row in the budget table, register it as a
+        // custom bill and render it so it shows in the Monthly Budget section.
+        const tbody = document.querySelector('.budget-table tbody');
+        const alreadyInTable = tbody && Array.from(tbody.querySelectorAll('tr')).some(
+            r => r.cells[0] && r.cells[0].textContent.trim() === billName
+        );
+        if (!alreadyInTable) {
+            const category = document.getElementById('billCategory').value || 'Bills & Utilities';
+            if (!customBills.some(b => b.name === billName)) {
+                customBills.push({ name: billName, category });
+                await saveCustomBills();
+            }
+            addCustomBillRow(billName, amount);
         }
-        monthlyBudgets[currentMonth][billName] = amount;
-        
+
         // Save to cloud/localStorage - WAIT for completion
         await saveMonthlyBudgets();
+        loadMonthBudget(currentMonth);
+        updateBudgetFromTransactions();
+        updateBudgetTotals();
         updateDashboard();
-        
-        showNotification(`✓ ${billName} added to ${currentMonth.toUpperCase()}!`);
-        
+
+        showNotification(`✓ ${billName} added to your monthly bills!`);
+
         // Close modal after a brief delay
         setTimeout(() => closeAddBill(), 300);
     }
@@ -4326,12 +4431,22 @@ function renderRecurringList(tbodyId, items, moveTo) {
         monTd.textContent = '$' + r.estMonthly.toFixed(2);
 
         const actTd = document.createElement('td');
+        actTd.style.whiteSpace = 'nowrap';
         const btn = document.createElement('button');
         btn.className = 'btn-edit';
         btn.textContent = moveLabel;
         // Attach handler directly - avoids any string-escaping issues with merchant keys
         btn.addEventListener('click', () => reclassifyMerchant(r.key, moveTo));
         actTd.appendChild(btn);
+
+        // "Add as Bill" - opens the Add Bill modal prefilled with this merchant
+        const addBtn = document.createElement('button');
+        addBtn.className = 'btn-edit';
+        addBtn.textContent = '+ Bill';
+        addBtn.title = 'Add to Monthly Bills';
+        addBtn.style.marginLeft = '0.35rem';
+        addBtn.addEventListener('click', () => addSubscriptionAsBill(r.key));
+        actTd.appendChild(addBtn);
 
         row.appendChild(nameTd);
         row.appendChild(catTd);
@@ -4378,6 +4493,24 @@ async function reclassifyMerchant(key, newType) {
     await saveSubscriptionOverrides();
     updateSubscriptionsTable();
     showNotification(`✓ Moved to ${newType}`);
+}
+
+// Open the Add Bill modal prefilled from a recurring/subscription merchant,
+// so it can be added to the Monthly Budget bills.
+function addSubscriptionAsBill(key) {
+    const item = computeRecurringMerchants().find(r => r.key === key);
+    if (!item) { showNotification('Could not find that merchant', 'error'); return; }
+
+    showAddBill(); // resets form into add-mode + hides reserve-only fields
+    document.getElementById('billModalTitle').textContent = 'Add as Bill';
+    document.getElementById('billName').value = item.display;
+    const monthlyEstimate = item.estMonthly || item.typical || 0;
+    document.getElementById('billAmount').value = monthlyEstimate.toFixed(2);
+    // Pre-select a sensible category; user can change it
+    const catSel = document.getElementById('billCategory');
+    if (catSel) catSel.value = 'Bills & Utilities';
+    // Focus the amount so the user can confirm/adjust
+    document.getElementById('billAmount').focus();
 }
 
 
