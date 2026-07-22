@@ -38,8 +38,10 @@ function showTab(tabName) {
 
 // Periodic Bills Configuration
 // This defines which bills are periodic (not monthly) and their payment schedule
-// The totalAmount will be calculated from the actual monthly budget
-const periodicBillsConfig = {
+// The totalAmount will be calculated from the actual monthly budget.
+// This is now DYNAMIC: it can be edited via the Add/Edit Bill modal and is
+// persisted to the cloud. The values below are just the initial defaults.
+let periodicBillsConfig = {
     'Auto Insurance': { frequency: 'semi-annual', monthsInCycle: 6, dueMonth: 8, defaultMonthly: 136, initialBalance: 0 },  // Aug 26 - paid in Jan
     'AAA Roadside Assistance': { frequency: 'annual', monthsInCycle: 12, dueMonth: 5, defaultMonthly: 15, initialBalance: 135 },  // May 26 - 9 months saved as of Jan
     'Jewelers Insurance': { frequency: 'annual', monthsInCycle: 12, dueMonth: 6, defaultMonthly: 7, initialBalance: 56 },  // Jun 15 - 8 months saved as of Jan
@@ -47,6 +49,28 @@ const periodicBillsConfig = {
     'Water': { frequency: 'quarterly', monthsInCycle: 3, dueMonth: 1, defaultMonthly: 70, initialBalance: 0 },  // Jan 26 - paid in Jan
     'YMCA Membership': { frequency: 'annual', monthsInCycle: 12, dueMonth: 12, defaultMonthly: 0, initialBalance: 0 }  // Dec 26 (deleted)
 };
+
+// Number of months in a payment cycle for each frequency.
+// Monthly/biweekly are paid every month, so they are NOT reserve bills.
+const FREQUENCY_MONTHS = { quarterly: 3, 'semi-annual': 6, annual: 12 };
+const RESERVE_FREQUENCIES = ['quarterly', 'semi-annual', 'annual'];
+
+async function savePeriodicBillsConfig() {
+    if (isFirebaseEnabled) {
+        try {
+            await db.collection('users').doc(userId).set({
+                periodicBillsConfig: periodicBillsConfig,
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            console.log('Periodic bills config saved to cloud');
+        } catch (error) {
+            console.error('Error saving periodic bills config:', error);
+            localStorage.setItem('periodicBillsConfig', JSON.stringify(periodicBillsConfig));
+        }
+    } else {
+        localStorage.setItem('periodicBillsConfig', JSON.stringify(periodicBillsConfig));
+    }
+}
 
 // Get the actual total amount for a periodic bill from current month's budget
 function getPeriodicBillTotal(billName) {
@@ -305,6 +329,11 @@ async function loadTransactions() {
                     subscriptionOverrides = doc.data().subscriptionOverrides;
                     console.log('Subscription overrides loaded from cloud');
                 }
+
+                if (doc.data().periodicBillsConfig) {
+                    periodicBillsConfig = doc.data().periodicBillsConfig;
+                    console.log('Periodic bills config loaded from cloud');
+                }
                 return;
             }
         } catch (error) {
@@ -336,6 +365,12 @@ async function loadTransactions() {
     if (savedOverrides) {
         subscriptionOverrides = JSON.parse(savedOverrides);
         console.log('Subscription overrides loaded from localStorage');
+    }
+
+    const savedPeriodic = localStorage.getItem('periodicBillsConfig');
+    if (savedPeriodic) {
+        periodicBillsConfig = JSON.parse(savedPeriodic);
+        console.log('Periodic bills config loaded from localStorage');
     }
 }
 
@@ -2986,12 +3021,29 @@ function updateBudgetTotals() {
     if (shareBBiweeklyEl) shareBBiweeklyEl.textContent = `$${shareBBiweekly.toFixed(2)}`;
 }
 
+// Show/hide the Next Due Date field based on the chosen frequency
+function onBillFrequencyChange() {
+    const freq = document.getElementById('billFrequency').value;
+    const isReserve = RESERVE_FREQUENCIES.includes(freq);
+    const dueGroup = document.getElementById('billDueDateGroup');
+    const hint = document.getElementById('billAmountHint');
+    if (dueGroup) dueGroup.style.display = isReserve ? 'block' : 'none';
+    if (hint) hint.style.display = isReserve ? 'block' : 'none';
+}
+
 function showAddBill() {
     document.getElementById('addBillModal').style.display = 'block';
     document.getElementById('billModalTitle').textContent = 'Add Bill';
     document.getElementById('addBillForm').reset();
     document.getElementById('deleteBillBtn').style.display = 'none';
     delete document.getElementById('addBillForm').dataset.editBill;
+
+    // Default to monthly; hide reserve-only fields
+    document.getElementById('billFrequency').value = 'monthly';
+    onBillFrequencyChange();
+
+    // Hide month selection for new bills
+    document.getElementById('monthSelectionGroup').style.display = 'none';
 }
 
 function editBill(billName, amount) {
@@ -3001,24 +3053,27 @@ function editBill(billName, amount) {
     document.getElementById('billAmount').value = amount;
     document.getElementById('deleteBillBtn').style.display = 'inline-block';
     document.getElementById('addBillForm').dataset.editBill = billName;
-    
+
+    // Populate frequency + due date from the saved periodic config (if any)
+    const cfg = periodicBillsConfig[billName];
+    const freqSel = document.getElementById('billFrequency');
+    freqSel.value = (cfg && cfg.frequency) ? cfg.frequency : 'monthly';
+    const dueInput = document.getElementById('billDueDate');
+    if (cfg && cfg.dueMonth) {
+        const yr = cfg.dueYear || new Date().getFullYear();
+        const day = cfg.dueDay || 1;
+        dueInput.value = `${yr}-${String(cfg.dueMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    } else {
+        dueInput.value = '';
+    }
+    onBillFrequencyChange();
+
     // Show month selection for editing
     document.getElementById('monthSelectionGroup').style.display = 'block';
-    
+
     // Check current month by default
     clearAllMonths();
     document.getElementById(`month-${currentMonth}`).checked = true;
-}
-
-function showAddBill() {
-    document.getElementById('addBillModal').style.display = 'block';
-    document.getElementById('billModalTitle').textContent = 'Add Bill';
-    document.getElementById('addBillForm').reset();
-    document.getElementById('deleteBillBtn').style.display = 'none';
-    delete document.getElementById('addBillForm').dataset.editBill;
-    
-    // Hide month selection for new bills
-    document.getElementById('monthSelectionGroup').style.display = 'none';
 }
 
 function selectAllMonths() {
@@ -3087,7 +3142,39 @@ document.getElementById('addBillForm').addEventListener('submit', async function
     const billName = document.getElementById('billName').value;
     const amount = parseFloat(document.getElementById('billAmount').value);
     const isEdit = this.dataset.editBill;
-    
+
+    // ===== Frequency / periodic reserve config =====
+    const billKey = isEdit || billName;
+    const frequency = document.getElementById('billFrequency').value;
+    const dueDateVal = document.getElementById('billDueDate').value;
+    if (RESERVE_FREQUENCIES.includes(frequency)) {
+        const existing = periodicBillsConfig[billKey] || {};
+        let dueMonth, dueYear, dueDay;
+        if (dueDateVal) {
+            const dd = parseLocalDate(dueDateVal);
+            dueMonth = dd.getMonth() + 1;
+            dueYear = dd.getFullYear();
+            dueDay = dd.getDate();
+        } else {
+            dueMonth = existing.dueMonth || (new Date().getMonth() + 1);
+            dueYear = existing.dueYear;
+            dueDay = existing.dueDay;
+        }
+        periodicBillsConfig[billKey] = {
+            frequency,
+            monthsInCycle: FREQUENCY_MONTHS[frequency],
+            dueMonth,
+            dueYear,
+            dueDay,
+            defaultMonthly: amount,
+            initialBalance: existing.initialBalance || 0
+        };
+    } else if (periodicBillsConfig[billKey]) {
+        // Switched to monthly/biweekly -> no longer a reserve bill
+        delete periodicBillsConfig[billKey];
+    }
+    await savePeriodicBillsConfig();
+
     if (isEdit) {
         // EDIT MODE: Update existing bill
         const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
