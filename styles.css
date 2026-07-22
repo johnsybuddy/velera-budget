@@ -1449,6 +1449,40 @@ body {
 .subs-panel .transactions-table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .subs-panel .transactions-table { min-width: 480px; }
 
+/* Per-panel summary bar (Items / Per Month / Per Year) */
+.subs-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.9rem;
+}
+.subs-summary-item {
+    flex: 1 1 0;
+    min-width: 90px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 0.4rem;
+    background: var(--bg-main);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md, 8px);
+    text-align: center;
+}
+.subs-summary-value {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+.subs-summary-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--text-muted);
+    margin-top: 0.15rem;
+}
+
 /* Health insurance row */
 .health-insurance {
     font-style: italic;
