@@ -4122,6 +4122,14 @@ async function cleanupDuplicatesUI() {
 // "Recurring" spend, and lets you reclassify any merchant manually.
 // ============================================
 
+// Everyday / variable-spend categories that clutter the Recurring list.
+// These are hidden from the Recurring side (unless you manually move an item there),
+// so the section focuses on real recurring bills and subscriptions.
+const EVERYDAY_CATEGORIES = [
+    'Gas', 'Groceries', 'Restaurants/Entertainment', 'Cat Food', 'Miscellaneous',
+    'Health & Wellness', 'Education & Training', 'Travel Spending'
+];
+
 // Known subscription/streaming/service merchants used for auto-classification
 const SUBSCRIPTION_KEYWORDS = [
     'netflix', 'hulu', 'disney', 'disney+', 'spotify', 'roku', 'hbo', 'max ', 'paramount', 'peacock',
@@ -4290,7 +4298,11 @@ function updateSubscriptionsTable() {
 
     const data = computeRecurringMerchants();
     const subs = data.filter(r => r.type === 'Subscription').sort((a, b) => b.estMonthly - a.estMonthly);
-    const recs = data.filter(r => r.type === 'Recurring').sort((a, b) => b.estMonthly - a.estMonthly);
+    // Recurring side: hide everyday/variable spend (groceries, gas, restaurants, etc.)
+    // unless the user has explicitly moved that merchant into Recurring.
+    const recs = data
+        .filter(r => r.type === 'Recurring' && (r.overridden || !EVERYDAY_CATEGORIES.includes(r.category)))
+        .sort((a, b) => b.estMonthly - a.estMonthly);
 
     renderRecurringList('subscriptionsBody', subs, 'Recurring');
     renderRecurringList('recurringBody', recs, 'Subscription');
