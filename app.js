@@ -27,6 +27,11 @@ function showTab(tabName) {
         updateCarryoverTable();
     }
     
+    // Refresh subscriptions/recurring table when switching to it
+    if (tabName === 'subscriptions') {
+        updateSubscriptionsTable();
+    }
+    
     // Save current tab
     localStorage.setItem('currentTab', tabName);
 }
@@ -2406,6 +2411,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Find and activate the correct tab button
     const tabBtn = Array.from(tabButtons).find(btn => btn.onclick.toString().includes(savedTab));
     if (tabBtn) tabBtn.classList.add('active');
+
+    // Refresh data for tabs that build their content dynamically
+    if (savedTab === 'subscriptions') updateSubscriptionsTable();
 });
 
 
@@ -4072,4 +4080,156 @@ async function cleanupDuplicatesUI() {
         console.error('Error during cleanup:', error);
         showNotification('❌ Error during cleanup: ' + error.message, 'error');
     }
+}
+
+
+// ============================================
+// RECURRING / SUBSCRIPTIONS
+// Detects merchants charged across 2+ different months from transaction history
+// and estimates monthly / yearly recurring spend.
+// ============================================
+function updateSubscriptionsTable() {
+    const tbody = document.getElementById('subscriptionsBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    const monthlyEl = document.getElementById('subsMonthlyTotal');
+    const yearlyEl = document.getElementById('subsYearlyTotal');
+    const countEl = document.getElementById('subsCount');
+
+    const setSummary = (m, y, c) => {
+        if (monthlyEl) monthlyEl.textContent = '$' + m.toFixed(2);
+        if (yearlyEl) yearlyEl.textContent = '$' + y.toFixed(2);
+        if (countEl) countEl.textContent = String(c);
+    };
+
+    if (!transactions || transactions.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:1.5rem; color:var(--text-muted);">No transactions yet</td></tr>';
+        setSummary(0, 0, 0);
+        return;
+    }
+
+    // Group transactions by normalized merchant name (skip internal transfers/ignored)
+    const groups = {};
+    transactions.forEach(t => {
+        if (!t.source || !t.date) return;
+        if (t.bill === 'Ignore/Internal Transfer') return;
+        const d = parseLocalDate(String(t.date));
+        if (!d || isNaN(d.getTime())) return;
+        const key = cleanMerchantName(t.source);
+        if (!key) return;
+        if (!groups[key]) {
+            groups[key] = { display: t.source, category: t.bill, dates: [], amounts: [], latest: d };
+        }
+        groups[key].dates.push(d);
+        groups[key].amounts.push(Math.abs(parseFloat(t.amount) || 0));
+        // Track the most recent occurrence's category/label
+        if (d >= groups[key].latest) {
+            groups[key].latest = d;
+            groups[key].display = t.source;
+            groups[key].category = t.bill;
+        }
+    });
+
+    const monthKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const median = (arr) => {
+        const s = [...arr].sort((a, b) => a - b);
+        const mid = Math.floor(s.length / 2);
+        return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
+    };
+
+    // Known subscription/streaming/service merchants
+    const SUBSCRIPTION_KEYWORDS = [
+        'netflix', 'hulu', 'disney', 'spotify', 'roku', 'hbo', 'max ', 'paramount', 'peacock',
+        'apple.com', 'apple music', 'itunes', 'youtube', 'prime video', 'amazon prime', 'audible',
+        'sirius', 'pandora', 'adobe', 'microsoft', 'office 365', 'google storage', 'google one',
+        'dropbox', 'icloud', 'patreon', 'nyt', 'wall street journal', 'espn+', 'dazn', 'crunchyroll',
+        'playstation', 'xbox', 'nintendo', 'twitch', 'notion', 'canva', 'grammarly', 'linkedin',
+        'peloton', 'planet fitness', 'anytime fitness', 'membership', 'helium mobile', 'spectrum mobile'
+    ];
+
+    // Classify a recurring merchant as a fixed "Subscription" vs general "Recurring" spend
+    const classify = (name, category, amounts, freq) => {
+        const n = (name || '').toLowerCase();
+        const cat = (category || '').toLowerCase();
+        if (cat.includes('subscription')) return 'Subscription';
+        if (SUBSCRIPTION_KEYWORDS.some(k => n.includes(k))) return 'Subscription';
+        // A near-identical amount charged on a regular cadence looks like a subscription
+        const med = median(amounts);
+        if (med > 0 && (freq === 'Monthly' || freq === 'Biweekly' || freq === 'Weekly')) {
+            const maxDev = Math.max(...amounts.map(a => Math.abs(a - med) / med));
+            if (maxDev <= 0.05) return 'Subscription';
+        }
+        return 'Recurring';
+    };
+
+    const recurring = [];
+    Object.values(groups).forEach(g => {
+        const distinctMonths = new Set(g.dates.map(monthKey));
+        if (distinctMonths.size < 2) return; // need 2+ different months to count as recurring
+
+        const sortedDates = [...g.dates].sort((a, b) => a - b);
+        const first = sortedDates[0];
+        const last = sortedDates[sortedDates.length - 1];
+        const spanMonths = (last.getFullYear() - first.getFullYear()) * 12 + (last.getMonth() - first.getMonth()) + 1;
+        const totalSpent = g.amounts.reduce((a, b) => a + b, 0);
+        const estMonthly = totalSpent / Math.max(spanMonths, 1);
+
+        // Estimate frequency from the average gap between consecutive charges
+        let freq = 'Recurring';
+        if (sortedDates.length >= 2) {
+            let totalGap = 0;
+            for (let i = 1; i < sortedDates.length; i++) {
+                totalGap += (sortedDates[i] - sortedDates[i - 1]) / 86400000;
+            }
+            const avgGap = totalGap / (sortedDates.length - 1);
+            if (avgGap <= 10) freq = 'Weekly';
+            else if (avgGap <= 24) freq = 'Biweekly';
+            else if (avgGap <= 45) freq = 'Monthly';
+            else if (avgGap <= 100) freq = 'Quarterly';
+            else freq = 'Occasional';
+        }
+
+        recurring.push({
+            display: g.display,
+            category: g.category || 'Uncategorized',
+            type: classify(g.display, g.category, g.amounts, freq),
+            typical: median(g.amounts),
+            freq,
+            count: g.dates.length,
+            last,
+            estMonthly,
+            estYearly: estMonthly * 12
+        });
+    });
+
+    recurring.sort((a, b) => b.estYearly - a.estYearly);
+
+    if (recurring.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:1.5rem; color:var(--text-muted);">No recurring merchants detected yet (need charges in 2+ different months)</td></tr>';
+        setSummary(0, 0, 0);
+        return;
+    }
+
+    recurring.forEach(r => {
+        const row = document.createElement('tr');
+        const lastStr = r.last.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
+        const typeBadge = r.type === 'Subscription'
+            ? '<span style="background:#DBEAFE; color:#1E40AF; padding:0.15rem 0.5rem; border-radius:9999px; font-size:0.75rem; font-weight:600;">Subscription</span>'
+            : '<span style="background:#F3F4F6; color:#374151; padding:0.15rem 0.5rem; border-radius:9999px; font-size:0.75rem; font-weight:600;">Recurring</span>';
+        row.innerHTML = `
+            <td>${r.display}</td>
+            <td>${typeBadge}</td>
+            <td>${r.category}</td>
+            <td>$${r.typical.toFixed(2)}</td>
+            <td>${r.freq}</td>
+            <td>${r.count}</td>
+            <td>${lastStr}</td>
+            <td>$${r.estYearly.toFixed(2)}</td>
+        `;
+        tbody.appendChild(row);
+    });
+
+    const totalMonthly = recurring.reduce((a, r) => a + r.estMonthly, 0);
+    setSummary(totalMonthly, totalMonthly * 12, recurring.length);
 }
