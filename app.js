@@ -213,6 +213,27 @@ let transactions = generateDemoTransactions();
 let learnedPatterns = {};
 let categoryConfidence = {};
 
+// User overrides for subscription vs recurring classification, keyed by cleaned merchant name
+// Values: 'Subscription' or 'Recurring'
+let subscriptionOverrides = {};
+
+async function saveSubscriptionOverrides() {
+    if (isFirebaseEnabled) {
+        try {
+            await db.collection('users').doc(userId).set({
+                subscriptionOverrides: subscriptionOverrides,
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            console.log('Subscription overrides saved to cloud');
+        } catch (error) {
+            console.error('Error saving subscription overrides:', error);
+            localStorage.setItem('subscriptionOverrides', JSON.stringify(subscriptionOverrides));
+        }
+    } else {
+        localStorage.setItem('subscriptionOverrides', JSON.stringify(subscriptionOverrides));
+    }
+}
+
 // Enhanced cloud storage functions
 async function saveTransactions() {
     // DUPLICATE PREVENTION: Remove duplicates before saving
@@ -279,6 +300,11 @@ async function loadTransactions() {
                     categoryConfidence = doc.data().categoryConfidence;
                     console.log('Category confidence loaded from cloud');
                 }
+
+                if (doc.data().subscriptionOverrides) {
+                    subscriptionOverrides = doc.data().subscriptionOverrides;
+                    console.log('Subscription overrides loaded from cloud');
+                }
                 return;
             }
         } catch (error) {
@@ -304,6 +330,12 @@ async function loadTransactions() {
     if (savedConfidence) {
         categoryConfidence = JSON.parse(savedConfidence);
         console.log('Category confidence loaded from localStorage');
+    }
+
+    const savedOverrides = localStorage.getItem('subscriptionOverrides');
+    if (savedOverrides) {
+        subscriptionOverrides = JSON.parse(savedOverrides);
+        console.log('Subscription overrides loaded from localStorage');
     }
 }
 
@@ -4085,29 +4117,32 @@ async function cleanupDuplicatesUI() {
 
 // ============================================
 // RECURRING / SUBSCRIPTIONS
-// Detects merchants charged across 2+ different months from transaction history
-// and estimates monthly / yearly recurring spend.
+// Detects merchants charged across 2+ different months from transaction history,
+// splits them into "Subscriptions" (streaming/software/memberships) and general
+// "Recurring" spend, and lets you reclassify any merchant manually.
 // ============================================
-function updateSubscriptionsTable() {
-    const tbody = document.getElementById('subscriptionsBody');
-    if (!tbody) return;
-    tbody.innerHTML = '';
 
-    const monthlyEl = document.getElementById('subsMonthlyTotal');
-    const yearlyEl = document.getElementById('subsYearlyTotal');
-    const countEl = document.getElementById('subsCount');
+// Known subscription/streaming/service merchants used for auto-classification
+const SUBSCRIPTION_KEYWORDS = [
+    'netflix', 'hulu', 'disney', 'disney+', 'spotify', 'roku', 'hbo', 'max ', 'paramount', 'peacock',
+    'apple tv', 'apple.com', 'apple music', 'itunes', 'youtube', 'youtube premium', 'prime video',
+    'amazon prime', 'audible', 'sirius', 'pandora', 'adobe', 'microsoft', 'microsoft 365', 'office 365',
+    'google storage', 'google one', 'dropbox', 'icloud', 'patreon', 'nyt', 'wall street journal',
+    'espn+', 'dazn', 'crunchyroll', 'playstation', 'ps plus', 'xbox', 'xbox premium', 'game pass',
+    'nintendo', 'twitch', 'notion', 'canva', 'grammarly', 'linkedin', 'peloton', 'planet fitness',
+    'anytime fitness', 'membership', 'helium mobile', 'spectrum mobile'
+];
 
-    const setSummary = (m, y, c) => {
-        if (monthlyEl) monthlyEl.textContent = '$' + m.toFixed(2);
-        if (yearlyEl) yearlyEl.textContent = '$' + y.toFixed(2);
-        if (countEl) countEl.textContent = String(c);
+// Build the list of recurring merchants with classification applied (overrides respected)
+function computeRecurringMerchants() {
+    const median = (arr) => {
+        const s = [...arr].sort((a, b) => a - b);
+        const mid = Math.floor(s.length / 2);
+        return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
     };
+    const monthKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 
-    if (!transactions || transactions.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:1.5rem; color:var(--text-muted);">No transactions yet</td></tr>';
-        setSummary(0, 0, 0);
-        return;
-    }
+    if (!transactions || transactions.length === 0) return [];
 
     // Group transactions by normalized merchant name (skip internal transfers/ignored)
     const groups = {};
@@ -4119,11 +4154,10 @@ function updateSubscriptionsTable() {
         const key = cleanMerchantName(t.source);
         if (!key) return;
         if (!groups[key]) {
-            groups[key] = { display: t.source, category: t.bill, dates: [], amounts: [], latest: d };
+            groups[key] = { key, display: t.source, category: t.bill, dates: [], amounts: [], latest: d };
         }
         groups[key].dates.push(d);
         groups[key].amounts.push(Math.abs(parseFloat(t.amount) || 0));
-        // Track the most recent occurrence's category/label
         if (d >= groups[key].latest) {
             groups[key].latest = d;
             groups[key].display = t.source;
@@ -4131,25 +4165,8 @@ function updateSubscriptionsTable() {
         }
     });
 
-    const monthKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    const median = (arr) => {
-        const s = [...arr].sort((a, b) => a - b);
-        const mid = Math.floor(s.length / 2);
-        return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
-    };
-
-    // Known subscription/streaming/service merchants
-    const SUBSCRIPTION_KEYWORDS = [
-        'netflix', 'hulu', 'disney', 'spotify', 'roku', 'hbo', 'max ', 'paramount', 'peacock',
-        'apple.com', 'apple music', 'itunes', 'youtube', 'prime video', 'amazon prime', 'audible',
-        'sirius', 'pandora', 'adobe', 'microsoft', 'office 365', 'google storage', 'google one',
-        'dropbox', 'icloud', 'patreon', 'nyt', 'wall street journal', 'espn+', 'dazn', 'crunchyroll',
-        'playstation', 'xbox', 'nintendo', 'twitch', 'notion', 'canva', 'grammarly', 'linkedin',
-        'peloton', 'planet fitness', 'anytime fitness', 'membership', 'helium mobile', 'spectrum mobile'
-    ];
-
-    // Classify a recurring merchant as a fixed "Subscription" vs general "Recurring" spend
-    const classify = (name, category, amounts, freq) => {
+    // Auto-classify a merchant as a fixed "Subscription" vs general "Recurring" spend
+    const autoClassify = (name, category, amounts, freq) => {
         const n = (name || '').toLowerCase();
         const cat = (category || '').toLowerCase();
         if (cat.includes('subscription')) return 'Subscription';
@@ -4163,7 +4180,7 @@ function updateSubscriptionsTable() {
         return 'Recurring';
     };
 
-    const recurring = [];
+    const results = [];
     Object.values(groups).forEach(g => {
         const distinctMonths = new Set(g.dates.map(monthKey));
         if (distinctMonths.size < 2) return; // need 2+ different months to count as recurring
@@ -4190,46 +4207,86 @@ function updateSubscriptionsTable() {
             else freq = 'Occasional';
         }
 
-        recurring.push({
+        const autoType = autoClassify(g.display, g.category, g.amounts, freq);
+        // Manual override takes precedence
+        const type = subscriptionOverrides[g.key] || autoType;
+
+        results.push({
+            key: g.key,
             display: g.display,
             category: g.category || 'Uncategorized',
-            type: classify(g.display, g.category, g.amounts, freq),
+            type,
+            autoType,
+            overridden: !!subscriptionOverrides[g.key],
             typical: median(g.amounts),
             freq,
             count: g.dates.length,
-            last,
+            last: last,
             estMonthly,
             estYearly: estMonthly * 12
         });
     });
 
-    recurring.sort((a, b) => b.estYearly - a.estYearly);
+    return results;
+}
 
-    if (recurring.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:1.5rem; color:var(--text-muted);">No recurring merchants detected yet (need charges in 2+ different months)</td></tr>';
-        setSummary(0, 0, 0);
+// Render one merchant list into a tbody. moveTo = the type the "Move" button switches to.
+function renderRecurringList(tbodyId, items, moveTo) {
+    const tbody = document.getElementById(tbodyId);
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    if (items.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:1.25rem; color:var(--text-muted);">None detected yet</td></tr>`;
         return;
     }
 
-    recurring.forEach(r => {
+    items.forEach(r => {
         const row = document.createElement('tr');
         const lastStr = r.last.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
-        const typeBadge = r.type === 'Subscription'
-            ? '<span style="background:#DBEAFE; color:#1E40AF; padding:0.15rem 0.5rem; border-radius:9999px; font-size:0.75rem; font-weight:600;">Subscription</span>'
-            : '<span style="background:#F3F4F6; color:#374151; padding:0.15rem 0.5rem; border-radius:9999px; font-size:0.75rem; font-weight:600;">Recurring</span>';
+        const safeKey = r.key.replace(/'/g, "\\'");
+        const moveLabel = moveTo === 'Subscription' ? '→ Subscription' : '→ Recurring';
         row.innerHTML = `
-            <td>${r.display}</td>
-            <td>${typeBadge}</td>
+            <td>${r.display}${r.overridden ? ' <span title="Manually set" style="color:var(--primary);">✎</span>' : ''}</td>
             <td>${r.category}</td>
             <td>$${r.typical.toFixed(2)}</td>
             <td>${r.freq}</td>
-            <td>${r.count}</td>
-            <td>${lastStr}</td>
-            <td>$${r.estYearly.toFixed(2)}</td>
+            <td>$${r.estMonthly.toFixed(2)}</td>
+            <td><button class="btn-edit" onclick="reclassifyMerchant('${safeKey}', '${moveTo}')">${moveLabel}</button></td>
         `;
         tbody.appendChild(row);
     });
+}
 
-    const totalMonthly = recurring.reduce((a, r) => a + r.estMonthly, 0);
-    setSummary(totalMonthly, totalMonthly * 12, recurring.length);
+function updateSubscriptionsTable() {
+    const subBody = document.getElementById('subscriptionsBody');
+    const recBody = document.getElementById('recurringBody');
+    if (!subBody && !recBody) return;
+
+    const data = computeRecurringMerchants();
+    const subs = data.filter(r => r.type === 'Subscription').sort((a, b) => b.estMonthly - a.estMonthly);
+    const recs = data.filter(r => r.type === 'Recurring').sort((a, b) => b.estMonthly - a.estMonthly);
+
+    renderRecurringList('subscriptionsBody', subs, 'Recurring');
+    renderRecurringList('recurringBody', recs, 'Subscription');
+
+    // Per-side summaries (monthly + yearly + count)
+    const subMonthly = subs.reduce((a, r) => a + r.estMonthly, 0);
+    const recMonthly = recs.reduce((a, r) => a + r.estMonthly, 0);
+
+    const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    setText('subsSubMonthly', '$' + subMonthly.toFixed(2));
+    setText('subsSubYearly', '$' + (subMonthly * 12).toFixed(2));
+    setText('subsSubCount', String(subs.length));
+    setText('subsRecMonthly', '$' + recMonthly.toFixed(2));
+    setText('subsRecYearly', '$' + (recMonthly * 12).toFixed(2));
+    setText('subsRecCount', String(recs.length));
+}
+
+// Manually move a merchant between Subscription and Recurring; persists the choice.
+async function reclassifyMerchant(key, newType) {
+    subscriptionOverrides[key] = newType;
+    await saveSubscriptionOverrides();
+    updateSubscriptionsTable();
+    showNotification(`✓ Moved to ${newType}`);
 }

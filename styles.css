@@ -1561,3 +1561,9 @@ body {
 .carryover-balance-positive { color: var(--success); font-weight: 600; }
 .carryover-balance-negative { color: var(--danger); font-weight: 600; }
 .carryover-balance-zero { color: var(--success); font-weight: 600; }
+
+/* Subscriptions/Recurring two-column layout */
+@media (max-width: 900px) {
+    .subs-columns { grid-template-columns: 1fr !important; }
+}
+
