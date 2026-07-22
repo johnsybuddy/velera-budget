@@ -1554,8 +1554,8 @@ body {
     white-space: nowrap;
 }
 
-.carryover-payment-entry .paid-by-erik { color: #3B82F6; font-weight: 600; }
-.carryover-payment-entry .paid-by-sara { color: #8B5CF6; font-weight: 600; }
+.carryover-payment-entry .paid-by-primary { color: #3B82F6; font-weight: 600; }
+.carryover-payment-entry .paid-by-secondary { color: #8B5CF6; font-weight: 600; }
 .carryover-payment-entry .paid-by-other { color: var(--text-secondary); font-weight: 600; }
 
 .carryover-balance-positive { color: var(--success); font-weight: 600; }
