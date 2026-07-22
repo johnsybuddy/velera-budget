@@ -528,14 +528,16 @@ function calculatePeriodicBuckets() {
     for (const billName in periodicBillsConfig) {
         const config = periodicBillsConfig[billName];
 
-        // Get monthly budget amount
+        // Skip bills the user has deleted (marked null in any month)
+        const isDeleted = months.some(m => monthlyBudgets[m] && monthlyBudgets[m][billName] === null);
+        if (isDeleted) continue;
+
+        // Monthly contribution amount: current month's budget, else any month with a value,
+        // else the config default. This is the amount set aside toward the bill each month.
         let monthlyBudget = monthlyBudgets[months[currentMonthIndex]]?.[billName];
         if (!monthlyBudget || monthlyBudget === 0) {
             for (const m of months) {
-                if (monthlyBudgets[m]?.[billName] > 0) {
-                    monthlyBudget = monthlyBudgets[m][billName];
-                    break;
-                }
+                if (monthlyBudgets[m]?.[billName] > 0) { monthlyBudget = monthlyBudgets[m][billName]; break; }
             }
         }
         if ((!monthlyBudget || monthlyBudget === 0) && config.defaultMonthly) {
@@ -543,64 +545,33 @@ function calculatePeriodicBuckets() {
         }
         if (!monthlyBudget || monthlyBudget === 0) continue;
 
-        // Figure out the most recent due date that has already passed (0-indexed month)
-        // dueMonth in config is 1-indexed
-        const dueMonthIndex = config.dueMonth - 1; // convert to 0-indexed
+        const monthsInCycle = config.monthsInCycle || FREQUENCY_MONTHS[config.frequency] || 12;
+        const target = monthlyBudget * monthsInCycle;
 
-        // Find the last due month that has passed (could be this year or previous cycle)
-        // For quarterly: due months are every 3 months starting from dueMonth
-        let lastDueMonthIndex = -1;
+        // Find the most recent ACTUAL payment for this bill this year. A real payment
+        // draws down the reserve and starts a fresh savings cycle.
+        let lastPaymentIdx = -1; // 0-11
+        transactions.forEach(t => {
+            if (t.bill !== billName) return;
+            const d = parseLocalDate(String(t.date));
+            if (!d || isNaN(d.getTime()) || d.getFullYear() !== currentYear) return;
+            const idx = d.getMonth();
+            if (idx <= currentMonthIndex && idx > lastPaymentIdx) lastPaymentIdx = idx;
+        });
 
-        if (config.frequency === 'quarterly') {
-            // Due every 3 months: e.g. Jan(0), Apr(3), Jul(6), Oct(9)
-            const dueDates = [dueMonthIndex, dueMonthIndex + 3, dueMonthIndex + 6, dueMonthIndex + 9]
-                .map(m => m % 12);
-            // Find the most recent one that has passed (already paid)
-            for (let m = currentMonthIndex; m >= 0; m--) {
-                if (dueDates.includes(m)) {
-                    lastDueMonthIndex = m;
-                    break;
-                }
-            }
+        let reserve;
+        if (lastPaymentIdx >= 0) {
+            // Reset at the payment month; accrue one contribution for each month since.
+            const monthsSince = currentMonthIndex - lastPaymentIdx;
+            reserve = monthlyBudget * monthsSince;
         } else {
-            // Annual or semi-annual: last due month that has passed in this cycle
-            if (config.frequency === 'semi-annual') {
-                const due1 = dueMonthIndex;
-                const due2 = (dueMonthIndex + 6) % 12;
-                for (let m = currentMonthIndex; m >= 0; m--) {
-                    if (m === due1 || m === due2) { lastDueMonthIndex = m; break; }
-                }
-            } else {
-                // annual
-                if (dueMonthIndex <= currentMonthIndex) {
-                    lastDueMonthIndex = dueMonthIndex;
-                }
-            }
+            // No payment recorded yet this year: carryover balance plus a contribution
+            // for every month from January through the current month.
+            reserve = (config.initialBalance || 0) + monthlyBudget * (currentMonthIndex + 1);
         }
 
-        // Start accumulating from the month AFTER the last due date (or Jan if no due date passed yet)
-        const startMonthIndex = lastDueMonthIndex >= 0 ? lastDueMonthIndex + 1 : 0;
-
-        let bucketBalance = 0;
-
-        for (let i = startMonthIndex; i <= currentMonthIndex; i++) {
-            const month = months[i];
-            const monthNum = monthNumbers[month];
-            const thisMonthBudget = monthlyBudgets[month]?.[billName] || monthlyBudget;
-
-            const monthHasTransactions = transactions.some(t => {
-                const tDate = parseLocalDate(t.date);
-                const tMonth = String(tDate.getMonth() + 1).padStart(2, '0');
-                const tYear = tDate.getFullYear();
-                return tMonth === monthNum && tYear === currentYear && t.bill !== 'Ignore/Internal Transfer';
-            });
-
-            if (monthHasTransactions) {
-                bucketBalance += thisMonthBudget;
-            }
-        }
-
-        periodicBuckets[billName] = Math.max(0, bucketBalance);
+        // A reserve never goes below zero or above what's needed for the next payment.
+        periodicBuckets[billName] = Math.max(0, Math.min(reserve, target));
     }
 
     savePeriodicBuckets();
